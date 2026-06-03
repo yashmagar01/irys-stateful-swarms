@@ -31,11 +31,24 @@ def test_build_artifact_commitments_targets_workbook_for_calculations(tmp_path, 
     assert len(commitments) == 1
     assert commitments[0]["target_file"] == "asset_workbook.xlsx"
     assert commitments[0]["native_form"] == "workbook_row"
+    assert commitments[0]["artifact_function"] == "workbook_calculation"
+    assert commitments[0]["evidence_entry_ids"] == ["e1"]
+    assert commitments[0]["source_refs"] == [{
+        "document": "schedule.xlsx",
+        "section": "A",
+        "evidence": "$1,849,900",
+    }]
+    assert any(
+        "workbook row or table line" in condition
+        for condition in commitments[0]["satisfaction_conditions"]
+    )
     assert commitments[0]["source"] == "artifact_commitment"
     report = json.loads(
         (tmp_path / "swarm" / "artifact_commitments.json").read_text(encoding="utf-8")
     )
     assert report["summary"]["selected"] == 1
+    assert report["summary"]["artifact_functions"] == {"workbook_calculation": 1}
+    assert report["summary"]["satisfaction_conditions"] >= 4
 
 
 def test_build_artifact_commitments_ignores_unsourced_entries(tmp_path, monkeypatch):

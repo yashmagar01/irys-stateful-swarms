@@ -78,8 +78,14 @@ def test_artifact_placement_trace_marks_target_file_hit(tmp_path):
     (swarm_dir / "artifact_commitments.json").write_text(json.dumps({
         "items": [{
             "entry_id": "e1",
+            "evidence_entry_ids": ["e1"],
             "target_file": "model.xlsx",
             "native_form": "workbook_row",
+            "artifact_function": "workbook_calculation",
+            "satisfaction_conditions": [
+                "Place entry e1 in model.xlsx as a workbook row or table line.",
+            ],
+            "required_source_refs": [{"document": "schedule.xlsx"}],
             "verification_terms": ["$1,849,900"],
             "summary": "Net equity calculation must appear in model.xlsx.",
             "source": "artifact_commitment",
@@ -94,6 +100,11 @@ def test_artifact_placement_trace_marks_target_file_hit(tmp_path):
     item = trace["items"][0]
     assert item["found_in_target_file"] is True
     assert item["death_mode"] is None
+    assert item["artifact_function"] == "workbook_calculation"
+    assert item["satisfaction_conditions"] == [
+        "Place entry e1 in model.xlsx as a workbook row or table line.",
+    ]
+    assert item["required_source_refs"] == [{"document": "schedule.xlsx"}]
     assert trace["summary"]["found_in_target_file"] == 1
     assert (swarm_dir / "artifact_placement_trace.json").exists()
 

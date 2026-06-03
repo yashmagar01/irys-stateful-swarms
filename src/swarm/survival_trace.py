@@ -162,8 +162,12 @@ def _artifact_commitment_trace_item(
 
     return {
         "entry_id": commitment.get("entry_id", ""),
+        "evidence_entry_ids": commitment.get("evidence_entry_ids", []),
         "target_file": target_file,
         "native_form": native_form,
+        "artifact_function": commitment.get("artifact_function", ""),
+        "satisfaction_conditions": commitment.get("satisfaction_conditions", []),
+        "required_source_refs": commitment.get("required_source_refs", commitment.get("source_refs", [])),
         "verification_terms": verification_terms,
         "found_in_target_file": found_in_target,
         "found_elsewhere": found_elsewhere,

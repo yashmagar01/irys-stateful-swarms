@@ -8,6 +8,7 @@ from src.swarm.synthesis import (
     _assign_unassigned_items,
     _format_criteria,
     _format_item_pool,
+    _format_selected_items,
     _plan_file_deliverable,
     _sectioned_synthesis,
     _selected_evidence_text,
@@ -702,6 +703,34 @@ def test_item_pool_renders_late_items_without_omission_by_default():
 
     assert "250. [Any] Item 250" in rendered
     assert "additional items omitted" not in rendered
+
+
+def test_artifact_commitment_details_render_for_synthesis_prompt():
+    rendered = _format_selected_items([
+        {
+            "section": "Sheet: Required Calculations",
+            "summary": "Represent source-backed entry e1 in model.xlsx as workbook_row.",
+            "entry_id": "e1",
+            "target_file": "model.xlsx",
+            "native_form": "workbook_row",
+            "artifact_function": "workbook_calculation",
+            "source": "artifact_commitment",
+            "required_source_refs": [{
+                "document": "schedule.xlsx",
+                "section": "A",
+                "evidence": "$1,849,900",
+            }],
+            "satisfaction_conditions": [
+                "Place entry e1 in model.xlsx as a workbook row or table line, not as prose.",
+                "Show the calculation expression and final result in separate workbook cells or columns.",
+            ],
+        }
+    ])
+
+    assert "Artifact-native contract: target=model.xlsx, native=workbook_row, function=workbook_calculation" in rendered
+    assert "Required source refs: schedule.xlsx / A: $1,849,900" in rendered
+    assert "Satisfaction conditions:" in rendered
+    assert "workbook row or table line" in rendered
 
 
 def test_selected_evidence_prioritizes_selected_entry_over_early_entries():

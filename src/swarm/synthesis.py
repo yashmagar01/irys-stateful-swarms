@@ -445,7 +445,10 @@ def _format_item_pool(
         section = item.get("section", "General")
         summary = item.get("summary", "")
         entry_id = item.get("entry_id") or item.get("entry_ids", "")
-        parts.append(f"{number}. [{section}] {summary[:max_summary_chars]} (ref: {entry_id})")
+        extra = _format_artifact_commitment_inline(item)
+        if extra:
+            extra = f" | {extra}"
+        parts.append(f"{number}. [{section}] {summary[:max_summary_chars]} (ref: {entry_id}){extra}")
     if max_count is not None and len(item_pool) > max_count:
         parts.append(f"... {len(item_pool) - max_count} additional items omitted from prompt")
     return "\n".join(parts)
@@ -941,8 +944,64 @@ def _format_selected_items(items: list[dict]) -> str:
         section = item.get("section", "General")
         summary = item.get("summary", "")
         entry_id = item.get("entry_id") or item.get("entry_ids", "")
-        parts.append(f"{i}. [{section}] {summary} (ref: {entry_id})")
+        block = [f"{i}. [{section}] {summary} (ref: {entry_id})"]
+        native_details = _format_artifact_commitment_details(item)
+        if native_details:
+            block.append(native_details)
+        parts.append("\n".join(block))
     return "\n".join(parts)
+
+
+def _format_artifact_commitment_inline(item: dict) -> str:
+    if not isinstance(item, dict) or item.get("source") != "artifact_commitment":
+        return ""
+    pieces = []
+    target = str(item.get("target_file", "") or "").strip()
+    native = str(item.get("native_form", "") or "").strip()
+    function = str(item.get("artifact_function", "") or "").strip()
+    if target:
+        pieces.append(f"target={target}")
+    if native:
+        pieces.append(f"native={native}")
+    if function:
+        pieces.append(f"function={function}")
+    return ", ".join(pieces)
+
+
+def _format_artifact_commitment_details(item: dict) -> str:
+    if not isinstance(item, dict) or item.get("source") != "artifact_commitment":
+        return ""
+    lines = []
+    inline = _format_artifact_commitment_inline(item)
+    if inline:
+        lines.append(f"   Artifact-native contract: {inline}")
+
+    source_refs = item.get("required_source_refs") or item.get("source_refs") or []
+    if isinstance(source_refs, list) and source_refs:
+        labels = []
+        for ref in source_refs[:3]:
+            if not isinstance(ref, dict):
+                continue
+            label_parts = [
+                str(ref.get("document", "") or "").strip(),
+                str(ref.get("section", "") or "").strip(),
+            ]
+            evidence = str(ref.get("evidence", "") or "").strip()
+            label = " / ".join(part for part in label_parts if part)
+            if evidence:
+                label = f"{label}: {evidence[:180]}" if label else evidence[:180]
+            if label:
+                labels.append(label)
+        if labels:
+            lines.append("   Required source refs: " + "; ".join(labels))
+
+    conditions = item.get("satisfaction_conditions") or []
+    if isinstance(conditions, list):
+        clean = [str(cond).strip() for cond in conditions if str(cond).strip()]
+        if clean:
+            lines.append("   Satisfaction conditions:")
+            lines.extend(f"   - {cond}" for cond in clean[:7])
+    return "\n".join(lines)
 
 
 def _selected_evidence_text(

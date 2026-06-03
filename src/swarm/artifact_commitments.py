@@ -26,13 +26,22 @@ def build_artifact_commitments(
     for entry in _candidate_entries(active):
         filename = _target_file(entry, filenames)
         native_form = _native_form(filename, entry)
+        artifact_function = _artifact_function(filename, entry, native_form)
+        source_refs = _source_refs(entry)
         commitments.append({
             "entry_id": entry.id,
+            "evidence_entry_ids": [entry.id] if entry.id else [],
             "importance": "critical" if _is_high_materiality(entry) else "high",
             "section": _section_for_entry(entry, native_form),
             "summary": _summary_for_entry(entry, filename, native_form),
             "obligation_type": "artifact_native_commitment",
+            "artifact_function": artifact_function,
+            "satisfaction_conditions": _satisfaction_conditions(
+                entry, filename, native_form, artifact_function,
+            ),
             "verification_terms": _verification_terms(entry),
+            "source_refs": source_refs,
+            "required_source_refs": source_refs,
             "source": "artifact_commitment",
             "target_file": filename,
             "native_form": native_form,
@@ -53,6 +62,13 @@ def write_artifact_commitment_report(output_dir: str, commitments: list[dict]) -
             "selected": len(commitments),
             "targeted": sum(1 for item in commitments if item.get("target_file")),
             "native_forms": _counts(item.get("native_form", "") for item in commitments),
+            "artifact_functions": _counts(
+                item.get("artifact_function", "") for item in commitments
+            ),
+            "satisfaction_conditions": sum(
+                len(item.get("satisfaction_conditions") or [])
+                for item in commitments
+            ),
         },
     }
     (swarm_dir / "artifact_commitments.json").write_text(
@@ -163,6 +179,21 @@ def _native_form(filename: str, entry: Entry) -> str:
     return "memo_statement"
 
 
+def _artifact_function(filename: str, entry: Entry, native_form: str) -> str:
+    if native_form == "workbook_row":
+        return "workbook_calculation" if entry.type == "calculation" else "workbook_finding"
+    if native_form == "slide_bullet":
+        return "slide_bullet"
+    if native_form == "drafting_clause":
+        return "drafting_clause"
+    if native_form == "calculation_statement":
+        return "memo_calculation"
+    lower = filename.lower()
+    if lower.endswith(".docx") or any(word in lower for word in ("memo", "report", "analysis")):
+        return "memo_analysis"
+    return "memo_statement"
+
+
 def _section_for_entry(entry: Entry, native_form: str) -> str:
     if native_form == "workbook_row":
         return "Sheet: Required Calculations" if entry.type == "calculation" else "Sheet: Required Findings"
@@ -181,6 +212,82 @@ def _summary_for_entry(entry: Entry, filename: str, native_form: str) -> str:
         f"Represent source-backed entry {entry.id}{target} as {native_form}: "
         f"{entry.content}"
     )
+
+
+def _satisfaction_conditions(
+    entry: Entry,
+    filename: str,
+    native_form: str,
+    artifact_function: str,
+) -> list[str]:
+    conditions = []
+    target = filename or "the selected deliverable"
+    terms = _verification_terms(entry)
+    source_ref = _source_ref_label(entry)
+
+    if native_form == "workbook_row":
+        conditions.extend([
+            f"Place entry {entry.id} in {target} as a workbook row or table line, not as prose.",
+            "Include columns or cells for issue/finding, source, inputs, result or conclusion, and confidence/status.",
+        ])
+        if entry.type == "calculation":
+            conditions.append("Show the calculation expression and final result in separate workbook cells or columns.")
+    elif native_form == "slide_bullet":
+        conditions.extend([
+            f"Represent entry {entry.id} as slide-ready content in {target}.",
+            "Include a slide title or section label plus a concise bullet that preserves the source-backed conclusion.",
+        ])
+    elif native_form == "drafting_clause":
+        conditions.extend([
+            f"Represent entry {entry.id} as drafting content in {target}.",
+            "Include revised clause language or a targeted drafting note, not only a memo-style issue description.",
+        ])
+    elif native_form == "calculation_statement":
+        conditions.extend([
+            f"Represent entry {entry.id} as a calculation statement in {target}.",
+            "Include the inputs, operation, final result, and source basis in the calculation discussion.",
+        ])
+    else:
+        conditions.extend([
+            f"Represent entry {entry.id} as analysis in {target}.",
+            "State the source-backed finding and why it matters for this deliverable's purpose.",
+        ])
+
+    if artifact_function and artifact_function not in conditions:
+        conditions.append(f"Use artifact function: {artifact_function}.")
+    if source_ref:
+        conditions.append(f"Anchor the item to source reference: {source_ref}.")
+    if terms:
+        conditions.append("Preserve at least one verification term: " + "; ".join(terms[:3]))
+    return conditions[:7]
+
+
+def _source_refs(entry: Entry) -> list[dict]:
+    if not entry.source:
+        return []
+    ref: dict[str, str] = {}
+    if entry.source.document:
+        ref["document"] = entry.source.document
+    if entry.source.section:
+        ref["section"] = entry.source.section
+    evidence = (entry.source.evidence or "").strip()
+    if evidence:
+        ref["evidence"] = evidence[:500]
+    return [ref] if ref else []
+
+
+def _source_ref_label(entry: Entry) -> str:
+    if not entry.source:
+        return ""
+    parts = []
+    if entry.source.document:
+        parts.append(entry.source.document)
+    if entry.source.section:
+        parts.append(entry.source.section)
+    evidence = (entry.source.evidence or "").strip()
+    if evidence:
+        parts.append(evidence[:160])
+    return " / ".join(parts)
 
 
 def _verification_terms(entry: Entry) -> list[str]:
