@@ -21,7 +21,7 @@ The complete outputs from the full benchmark run are available as downloadable a
 
 ### Context
 
-Harvey's published LAB results use a private holdout set that mirrors the public benchmark distribution, so they are useful context but not a direct leaderboard comparison. Harvey reported that its strongest published private-holdout all-pass result reached `10.4%`, with earlier initial results at `7.1%` all-pass at about `$50.90/task`.
+Harvey's published LAB results use a private holdout set that mirrors the public benchmark distribution. Harvey reported that its strongest published private-holdout all-pass result reached `10.4%`, with earlier initial results at `7.1%` all-pass at about `$50.90/task`. We ran on the public benchmark because we don't have access to the private holdout — we'd welcome the opportunity to run ant-irys on the private set for a direct comparison.
 
 On a per-task cost basis, ant-irys is roughly **39x cheaper** than that `$50.90/task` figure. This is a cost comparison only; the evaluation sets differ.
 
