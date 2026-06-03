@@ -157,6 +157,11 @@ def _aggregate_debt(
         if item.get("status") == "actionable_gap" and not item.get("created_entry_ids")
     )
     target["unresolved_actionable"] += unresolved
+    coordinator = report.get("lens_coordinator", {})
+    if isinstance(coordinator, dict) and coordinator:
+        target["coordinator_tasks"] += 1
+        target["coordinator_selected"] += _int(coordinator.get("selected_actionable"), 0)
+        target["coordinator_deferred"] += _int(coordinator.get("deferred"), 0)
 
     rows.append(_row(
         task_id,
@@ -398,6 +403,9 @@ def _empty_debt_summary() -> dict:
         },
         "gap_entries_created": 0,
         "unresolved_actionable": 0,
+        "coordinator_tasks": 0,
+        "coordinator_selected": 0,
+        "coordinator_deferred": 0,
     }
 
 

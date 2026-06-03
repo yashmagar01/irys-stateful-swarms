@@ -57,6 +57,17 @@ def authority_debt_execute_enabled() -> bool:
     return _env_on("SWARM_AUTHORITY_DEBT_EXECUTE")
 
 
+def lens_coordinator_enabled() -> bool:
+    return _env_on("SWARM_ENABLE_LENS_COORDINATOR")
+
+
+def lens_coordinator_max_items() -> int:
+    try:
+        return max(1, int(os.getenv("SWARM_LENS_COORDINATOR_MAX_ITEMS", "24")))
+    except ValueError:
+        return 24
+
+
 def run_debt_sensors(
     blackboard: Blackboard,
     seed: dict,
@@ -91,6 +102,18 @@ def run_debt_sensors(
             "items": normalized_items,
         }
         report["summary"] = summarize_debt_sensor_items(report["items"])
+        if (
+            lens_coordinator_enabled()
+            and not debt_sensors_detect_only()
+            and len(report["items"]) > lens_coordinator_max_items()
+        ):
+            coordinated_items, coordinator_report, coordinator_tokens = (
+                coordinate_debt_sensor_items(blackboard, seed, caller, report["items"])
+            )
+            total_tokens += coordinator_tokens
+            report["items"] = coordinated_items
+            report["lens_coordinator"] = coordinator_report
+            report["summary"] = summarize_debt_sensor_items(report["items"])
         if not debt_sensors_detect_only():
             relation_entries: list[Entry] = []
             if relation_debt_execute_enabled():
@@ -413,6 +436,204 @@ def summarize_debt_sensor_items(items: list[dict]) -> dict:
         "status_counts": status_counts,
         "actionable": status_counts.get("actionable_gap", 0),
     }
+
+
+def coordinate_debt_sensor_items(
+    blackboard: Blackboard,
+    seed: dict,
+    caller: ModelCaller,
+    items: list[dict],
+) -> tuple[list[dict], dict, int]:
+    """Prioritize multiple debt-lens outputs under a bounded execution budget."""
+    actionable = [
+        item for item in items
+        if item.get("status") == "actionable_gap"
+    ]
+    max_items = lens_coordinator_max_items()
+    if len(actionable) <= max_items:
+        report = {
+            "mode": "not_needed",
+            "max_items": max_items,
+            "input_actionable": len(actionable),
+            "selected_actionable": len(actionable),
+            "deferred": 0,
+            "selected_item_ids": [item.get("id", "") for item in actionable],
+            "deferred_item_ids": [],
+            "decisions": [],
+        }
+        return items, report, 0
+
+    prompt = f"""Coordinate debt lenses for a document-analysis swarm.
+
+TASK:
+{blackboard.task_instruction}
+
+SEED QUESTIONS:
+{_format_list(seed.get("key_questions", []))}
+
+ACTIONABLE DEBT ITEMS FROM MULTIPLE LENSES:
+{_render_debt_items(actionable)}
+
+Choose at most {max_items} item IDs to execute now. This is a state-quality budget decision, not final-output repair.
+
+Prioritize work that:
+- is source-grounded or can read specific source excerpts;
+- will transform raw state into analysis/calculation/recommendation/authority state;
+- affects the user's requested deliverable materially;
+- avoids duplicate work across lenses;
+- does not rely on benchmark criteria, task IDs, or scorer artifacts.
+
+Defer work that is redundant, low-confidence, too speculative, or less useful than another item.
+
+Return JSON:
+{{"selected_item_ids": ["ds_001"], "decisions": [
+  {{"id": "ds_001", "decision": "execute|defer", "reason": "brief rationale"}}
+]}}
+"""
+    payload, tokens = call_model(
+        caller,
+        prompt,
+        max_tokens=4096,
+        audit_context=PromptAuditContext(
+            stage="lens_coordinator",
+            output_dir=blackboard.output_dir,
+            provenance=[
+                "user.instruction",
+                "swarm.seed_generated",
+                "swarm.blackboard",
+                "swarm.debt_sensors",
+                "clean.professional_prior_dynamic",
+            ],
+            metadata={
+                "actionable_items": len(actionable),
+                "max_items": max_items,
+            },
+        ),
+    )
+    selected_ids = _normalize_selected_item_ids(
+        payload.get("selected_item_ids", []),
+        actionable,
+        max_items,
+    )
+    decisions = _normalize_coordinator_decisions(
+        payload.get("decisions", []),
+        actionable,
+        selected_ids,
+    )
+    selected = set(selected_ids)
+    updated_items = []
+    deferred_ids = []
+    for item in items:
+        updated = dict(item)
+        if item.get("status") == "actionable_gap" and item.get("id") not in selected:
+            updated["status"] = "deferred_by_coordinator"
+            updated["coordinator_deferred"] = True
+            deferred_ids.append(str(item.get("id", "")))
+        elif item.get("status") == "actionable_gap":
+            updated["coordinator_selected"] = True
+        updated_items.append(updated)
+
+    report = {
+        "mode": "prioritized",
+        "max_items": max_items,
+        "input_actionable": len(actionable),
+        "selected_actionable": len(selected_ids),
+        "deferred": len(deferred_ids),
+        "selected_item_ids": selected_ids,
+        "deferred_item_ids": deferred_ids,
+        "decisions": decisions,
+    }
+    return updated_items, report, tokens
+
+
+def _normalize_selected_item_ids(
+    raw_ids: Any,
+    actionable: list[dict],
+    max_items: int,
+) -> list[str]:
+    valid_ids = [str(item.get("id", "")) for item in actionable if item.get("id")]
+    valid = set(valid_ids)
+    selected: list[str] = []
+    if isinstance(raw_ids, list):
+        for raw in raw_ids:
+            item_id = str(raw).strip()
+            if item_id in valid and item_id not in selected:
+                selected.append(item_id)
+            if len(selected) >= max_items:
+                break
+    if selected:
+        return selected
+    ranked = sorted(
+        actionable,
+        key=lambda item: (
+            _debt_type_priority(str(item.get("type", ""))),
+            _safe_float(item.get("confidence", 0.0)),
+        ),
+        reverse=True,
+    )
+    return [str(item.get("id", "")) for item in ranked[:max_items] if item.get("id")]
+
+
+def _normalize_coordinator_decisions(
+    raw_decisions: Any,
+    actionable: list[dict],
+    selected_ids: list[str],
+) -> list[dict]:
+    actionable_by_id = {
+        str(item.get("id", "")): item for item in actionable if item.get("id")
+    }
+    selected = set(selected_ids)
+    normalized: list[dict] = []
+    seen: set[str] = set()
+    if isinstance(raw_decisions, list):
+        for raw in raw_decisions:
+            if not isinstance(raw, dict):
+                continue
+            item_id = str(raw.get("id", "")).strip()
+            if item_id not in actionable_by_id or item_id in seen:
+                continue
+            decision = str(raw.get("decision", "")).strip().lower()
+            if decision not in {"execute", "defer"}:
+                decision = "execute" if item_id in selected else "defer"
+            normalized.append({
+                "id": item_id,
+                "type": actionable_by_id[item_id].get("type", ""),
+                "decision": decision,
+                "reason": str(raw.get("reason", "")).strip()[:400],
+            })
+            seen.add(item_id)
+    for item_id, item in actionable_by_id.items():
+        if item_id in seen:
+            continue
+        normalized.append({
+            "id": item_id,
+            "type": item.get("type", ""),
+            "decision": "execute" if item_id in selected else "defer",
+            "reason": "defaulted from selected_item_ids",
+        })
+    return normalized
+
+
+def _render_debt_items(items: list[dict]) -> str:
+    lines = []
+    for item in items[:80]:
+        parent_ids = ",".join(item.get("parent_entry_ids", [])[:6])
+        targets = ",".join(item.get("target_documents", [])[:4])
+        lines.append(
+            f"- {item.get('id')} type={item.get('type')} subtype={item.get('subtype')} "
+            f"confidence={item.get('confidence')} parents={parent_ids or 'none'} "
+            f"targets={targets or 'none'} reason={str(item.get('reason', ''))[:350]}"
+        )
+    return "\n".join(lines) or "None"
+
+
+def _debt_type_priority(item_type: str) -> int:
+    return {
+        "source_object": 5,
+        "relation": 4,
+        "severity": 3,
+        "authority": 2,
+    }.get(item_type, 1)
 
 
 def debt_sensor_items_to_gap_entries(

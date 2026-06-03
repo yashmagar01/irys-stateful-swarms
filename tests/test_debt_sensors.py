@@ -2,6 +2,7 @@ import json
 
 from src.swarm.blackboard import Blackboard
 from src.swarm.debt_sensors import (
+    coordinate_debt_sensor_items,
     debt_sensor_items_to_gap_entries,
     execute_authority_debt_items,
     execute_relation_debt_items,
@@ -69,6 +70,54 @@ def test_debt_sensor_items_materialize_gap_entries():
     assert entries[0].type == "gap"
     assert "missing_work:compare" in entries[0].tags
     assert entries[0].supports_entries == ["e1", "e2"]
+
+
+def test_coordinate_debt_sensor_items_defers_unselected_actionable_items(tmp_path, monkeypatch):
+    monkeypatch.setenv("SWARM_ENABLE_LENS_COORDINATOR", "1")
+    monkeypatch.setenv("SWARM_LENS_COORDINATOR_MAX_ITEMS", "2")
+    blackboard = Blackboard(task_instruction="Review repo architecture.", output_dir=str(tmp_path))
+    items = normalize_debt_sensor_items([
+        {
+            "type": "relation",
+            "subtype": "conflict",
+            "reason": "Compare source files for a routing conflict.",
+            "parent_entry_ids": ["e1", "e2"],
+            "confidence": 0.91,
+        },
+        {
+            "type": "severity",
+            "subtype": "risk_without_severity",
+            "reason": "Assign severity to the unsupported security claim.",
+            "parent_entry_ids": ["e3"],
+            "confidence": 0.9,
+        },
+        {
+            "type": "authority",
+            "subtype": "evidence_anchor_needed",
+            "reason": "Anchor the configuration statement to source.",
+            "parent_entry_ids": ["e4"],
+            "confidence": 0.89,
+        },
+    ])
+    caller = SequenceCaller([json.dumps({
+        "selected_item_ids": ["ds_002", "ds_003"],
+        "decisions": [
+            {"id": "ds_001", "decision": "defer", "reason": "Lower value duplicate."},
+            {"id": "ds_002", "decision": "execute", "reason": "Material risk."},
+            {"id": "ds_003", "decision": "execute", "reason": "Needed source anchor."},
+        ],
+    })])
+
+    updated, report, tokens = coordinate_debt_sensor_items(blackboard, {}, caller, items)
+
+    assert tokens == 30
+    assert report["mode"] == "prioritized"
+    assert report["selected_item_ids"] == ["ds_002", "ds_003"]
+    assert report["deferred_item_ids"] == ["ds_001"]
+    assert updated[0]["status"] == "deferred_by_coordinator"
+    assert updated[1]["status"] == "actionable_gap"
+    assert updated[2]["status"] == "actionable_gap"
+    assert "Coordinate debt lenses" in caller.prompts[0]
 
 
 def test_run_debt_sensors_detect_only_writes_report(tmp_path, monkeypatch):
@@ -249,6 +298,118 @@ def test_run_debt_sensors_executes_relation_without_gap(tmp_path, monkeypatch):
     assert created.type == "analysis"
     written = json.loads((tmp_path / "swarm" / "debt_sensors.json").read_text())
     assert written["relation_execution_summary"]["entries_created"] == 1
+
+
+def test_run_debt_sensors_uses_lens_coordinator_budget(tmp_path, monkeypatch):
+    monkeypatch.setenv("SWARM_ENABLE_RELATION_DEBT", "1")
+    monkeypatch.setenv("SWARM_RELATION_DEBT_EXECUTE", "1")
+    monkeypatch.setenv("SWARM_ENABLE_SEVERITY_DEBT", "1")
+    monkeypatch.setenv("SWARM_SEVERITY_DEBT_EXECUTE", "1")
+    monkeypatch.setenv("SWARM_ENABLE_LENS_COORDINATOR", "1")
+    monkeypatch.setenv("SWARM_LENS_COORDINATOR_MAX_ITEMS", "2")
+    monkeypatch.setenv("SWARM_PROMPT_AUDIT", "1")
+    blackboard = Blackboard(
+        task_instruction="Review repo architecture risks.",
+        output_dir=str(tmp_path),
+        entries=[
+            Entry(
+                id="e1",
+                type="observation",
+                content="README says src is a companion/reference helper, not primary runtime.",
+                source=EntrySource(document="README.md", section="Scope", evidence="not the primary runtime surface"),
+            ),
+            Entry(
+                id="e2",
+                type="observation",
+                content="runtime.py routes prompts through PortRuntime.",
+                source=EntrySource(document="runtime.py", section="PortRuntime", evidence="def route_prompt"),
+            ),
+            Entry(
+                id="e3",
+                type="analysis",
+                content="The memo overstates the Python runtime as canonical.",
+                source=EntrySource(document="README.md", section="Scope", evidence="rust/ is canonical"),
+            ),
+        ],
+    )
+    caller = SequenceCaller([
+        json.dumps({
+            "items": [
+                {
+                    "type": "relation",
+                    "subtype": "reconciliation",
+                    "reason": "Reconcile README source-of-truth statement with runtime.py routing.",
+                    "parent_entry_ids": ["e1", "e2"],
+                    "confidence": 0.91,
+                },
+                {
+                    "type": "relation",
+                    "subtype": "conflict",
+                    "reason": "Compare two lower-priority routing details.",
+                    "parent_entry_ids": ["e1", "e2"],
+                    "confidence": 0.88,
+                },
+            ]
+        }),
+        json.dumps({
+            "items": [
+                {
+                    "type": "severity",
+                    "subtype": "risk_without_severity",
+                    "reason": "Assign severity to the canonical-runtime overstatement.",
+                    "parent_entry_ids": ["e3"],
+                    "confidence": 0.92,
+                },
+                {
+                    "type": "severity",
+                    "subtype": "recommendation_needed",
+                    "reason": "Recommend a broad documentation cleanup.",
+                    "parent_entry_ids": ["e3"],
+                    "confidence": 0.86,
+                },
+            ]
+        }),
+        json.dumps({
+            "selected_item_ids": ["ds_001", "ds_003"],
+            "decisions": [
+                {"id": "ds_001", "decision": "execute", "reason": "Core source-of-truth relation."},
+                {"id": "ds_002", "decision": "defer", "reason": "Lower priority duplicate."},
+                {"id": "ds_003", "decision": "execute", "reason": "High-impact overstatement."},
+                {"id": "ds_004", "decision": "defer", "reason": "Less concrete."},
+            ],
+        }),
+        json.dumps({
+            "status": "computed",
+            "content": "README limits src to companion/reference helpers while runtime.py shows only a Python helper routing surface.",
+            "relation_type": "reconciliation",
+            "evidence": "not the primary runtime surface; def route_prompt",
+            "confidence": 0.9,
+        }),
+        json.dumps({
+            "status": "computed",
+            "content": "Treating the Python helper as canonical is a high severity source-of-truth risk.",
+            "severity": "high",
+            "recommendation": "Flag the canonical/runtime distinction before making architecture recommendations.",
+            "evidence": "rust/ is canonical",
+            "confidence": 0.9,
+        }),
+    ])
+
+    report, tokens = run_debt_sensors(blackboard, {}, caller)
+
+    assert tokens == 150
+    assert report["lens_coordinator"]["selected_item_ids"] == ["ds_001", "ds_003"]
+    assert report["lens_coordinator"]["deferred"] == 2
+    assert report["summary"]["status_counts"]["deferred_by_coordinator"] == 2
+    assert len(report["created_relation_entry_ids"]) == 1
+    assert len(report["created_severity_entry_ids"]) == 1
+    assert report["created_gap_entry_ids"] == []
+    assert len(blackboard.entries) == 5
+    assert any("Coordinate debt lenses" in prompt for prompt in caller.prompts)
+    written = json.loads((tmp_path / "swarm" / "debt_sensors.json").read_text())
+    assert written["lens_coordinator"]["selected_actionable"] == 2
+    audit = json.loads((tmp_path / "swarm" / "prompt_audit.json").read_text())
+    assert audit["summary"]["stages"]["lens_coordinator"] == 1
 
 
 def test_execute_source_object_debt_items_rereads_target_document(tmp_path, monkeypatch):

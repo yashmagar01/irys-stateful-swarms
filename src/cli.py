@@ -433,6 +433,11 @@ def _cmd_summarize_lifecycle(args):
         f"{debt['selected']}/{debt['actionable']}/{debt['unresolved_actionable']}"
     )
     print(
+        "Lens coordinator selected/deferred: "
+        f"{debt.get('coordinator_selected', 0)}/"
+        f"{debt.get('coordinator_deferred', 0)}"
+    )
+    print(
         "Artifact placement found/lost: "
         f"{placement['found_in_target_file']}/{placement['lost']}"
     )

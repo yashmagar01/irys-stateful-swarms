@@ -32,6 +32,10 @@ def test_aggregate_lifecycle_reports_writes_run_summary(tmp_path):
         "relation_execution_summary": {"entries_created": 1},
         "severity_execution_summary": {"entries_created": 0},
         "created_gap_entry_ids": ["e11"],
+        "lens_coordinator": {
+            "selected_actionable": 1,
+            "deferred": 1,
+        },
     }), encoding="utf-8")
     (swarm_dir / "derived_work_items.json").write_text(json.dumps({
         "items": [{
@@ -96,6 +100,8 @@ def test_aggregate_lifecycle_reports_writes_run_summary(tmp_path):
     assert summary["reports"]["debt_sensors"]["actionable"] == 1
     assert summary["reports"]["debt_sensors"]["execution_entries_created"]["relation"] == 1
     assert summary["reports"]["debt_sensors"]["unresolved_actionable"] == 1
+    assert summary["reports"]["debt_sensors"]["coordinator_selected"] == 1
+    assert summary["reports"]["debt_sensors"]["coordinator_deferred"] == 1
     assert summary["reports"]["derived_work"]["lost"] == 1
     assert summary["reports"]["derived_work"]["death_modes"]["artifact_missing"] == 1
     assert summary["reports"]["artifact_placement"]["found_in_target_file"] == 1
