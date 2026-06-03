@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Results (too large for git)
+results/
+logs/
+
+# Test artifacts
+.pytest_cache/
+pytest-cache-files-*/
+htmlcov/
+.coverage
+
+# Claude Code
+.claude/
+
+# Environment
+.env
+.env.local

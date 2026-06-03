@@ -1,0 +1,24 @@
+[project]
+name = "ant-irys"
+version = "0.1.0"
+description = "Swarm-based document analysis system for legal benchmarks."
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    # LLM providers
+    "google-genai>=1.0.0",
+    "anthropic>=0.40.0",
+    "openai>=1.50.0",
+    # Document ingestion
+    "pdfplumber>=0.10.0",
+    "openpyxl>=3.1.0",
+    "markitdown>=0.1.0",
+    "python-docx>=1.1.0",
+    "python-pptx>=0.6.23",
+    # Utilities
+    "pandas>=2.0.0",
+    # Testing
+    "pytest>=8.0.0",
+]
+
+[project.scripts]
+ant-irys = "src.cli:main"
