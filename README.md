@@ -32,6 +32,7 @@ On a per-task cost basis, ant-irys is roughly **39x cheaper** than that `$50.90/
 | map | 5 | 92.52 |
 | draft | 427 | 90.22 |
 | analyze | 89 | 86.42 |
+| triage | 8 | 84.89 |
 | scenario | 119 | 83.91 |
 | assess | 22 | 83.57 |
 | research | 10 | 83.43 |
@@ -40,6 +41,7 @@ On a per-task cost basis, ant-irys is roughly **39x cheaper** than that `$50.90/
 | compare | 148 | 77.14 |
 | extract | 138 | 75.67 |
 | identify | 195 | 74.26 |
+| build | 24 | 69.71 |
 
 ## How the swarm reasons
 
