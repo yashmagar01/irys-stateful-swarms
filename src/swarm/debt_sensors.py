@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from .blackboard import Blackboard
-from .models import Entry, ModelCaller, WorkerRecord, gen_entry_id
+from .models import Entry, EntrySource, ModelCaller, WorkerRecord, gen_entry_id
 from .prompt_audit import PromptAuditContext
 from .worker_dispatch import begin_call_model_usage, call_model, end_call_model_usage
 
@@ -25,6 +25,10 @@ def source_object_debt_enabled() -> bool:
 
 def debt_sensors_detect_only() -> bool:
     return _env_on("SWARM_DEBT_SENSORS_DETECT_ONLY")
+
+
+def relation_debt_execute_enabled() -> bool:
+    return _env_on("SWARM_RELATION_DEBT_EXECUTE")
 
 
 def run_debt_sensors(
@@ -46,16 +50,32 @@ def run_debt_sensors(
             total_tokens += tokens
             items.extend(source_items)
 
+        normalized_items = normalize_debt_sensor_items(items)
         report = {
             "schema_version": 1,
-            "mode": "detect_only" if debt_sensors_detect_only() else "materialize_gaps",
-            "items": normalize_debt_sensor_items(items),
+            "mode": _debt_sensor_mode(),
+            "items": normalized_items,
         }
         report["summary"] = summarize_debt_sensor_items(report["items"])
         if not debt_sensors_detect_only():
-            entries = debt_sensor_items_to_gap_entries(report["items"], blackboard)
-            blackboard.add_entries_batch(entries)
-            report["created_entry_ids"] = [entry.id for entry in entries]
+            relation_entries: list[Entry] = []
+            if relation_debt_execute_enabled():
+                relation_report, relation_tokens = execute_relation_debt_items(
+                    blackboard, caller, report["items"],
+                )
+                total_tokens += relation_tokens
+                report["items"] = relation_report["items"]
+                report["relation_execution_summary"] = relation_report["summary"]
+                relation_entries = relation_report["entries"]
+                if relation_entries:
+                    blackboard.add_entries_batch(relation_entries)
+
+            gap_entries = debt_sensor_items_to_gap_entries(report["items"], blackboard)
+            if gap_entries:
+                blackboard.add_entries_batch(gap_entries)
+            report["created_relation_entry_ids"] = [entry.id for entry in relation_entries]
+            report["created_gap_entry_ids"] = [entry.id for entry in gap_entries]
+            report["summary"] = summarize_debt_sensor_items(report["items"])
         write_debt_sensor_report(blackboard.output_dir, report)
         return report, total_tokens
     finally:
@@ -224,6 +244,8 @@ def debt_sensor_items_to_gap_entries(
     for item in items:
         if item.get("status") != "actionable_gap":
             continue
+        if item.get("type") == "relation" and item.get("created_entry_ids"):
+            continue
         missing_work = "compare" if item.get("type") == "relation" else "extract_more"
         entries.append(Entry(
             id=gen_entry_id(),
@@ -243,6 +265,142 @@ def debt_sensor_items_to_gap_entries(
     return entries
 
 
+def execute_relation_debt_items(
+    blackboard: Blackboard,
+    caller: ModelCaller,
+    items: list[dict],
+) -> tuple[dict, int]:
+    updated_items = [dict(item) for item in items]
+    total_tokens = 0
+    entries: list[Entry] = []
+    limit = int(os.getenv("SWARM_RELATION_DEBT_EXECUTION_LIMIT", "8"))
+    executed = 0
+
+    for item in updated_items:
+        if executed >= limit:
+            break
+        if item.get("type") != "relation" or item.get("status") != "actionable_gap":
+            continue
+        parents = blackboard.get_entries_by_ids(item.get("parent_entry_ids", []))
+        if not _relation_item_executable(parents):
+            item["status"] = "diagnostic_only"
+            item["execution_error"] = "relation_requires_two_source_documents"
+            continue
+
+        payload, tokens = _run_relation_worker(blackboard, caller, item, parents)
+        total_tokens += tokens
+        entry = _entry_from_relation_payload(blackboard, item, payload, parents)
+        if entry is None:
+            item["status"] = "execution_failed"
+            item["execution_error"] = "worker_returned_no_valid_relation_analysis"
+            continue
+
+        entries.append(entry)
+        item["status"] = "relation_executed"
+        item["created_entry_ids"] = [entry.id]
+        executed += 1
+
+    return {
+        "items": updated_items,
+        "entries": entries,
+        "summary": {
+            "attempted": executed,
+            "entries_created": len(entries),
+            "execution_limit": limit,
+        },
+    }, total_tokens
+
+
+def _run_relation_worker(
+    blackboard: Blackboard,
+    caller: ModelCaller,
+    item: dict,
+    parents: list[Entry],
+) -> tuple[dict, int]:
+    parent_text = "\n".join(_render_entry(parent) for parent in parents)
+    prompt = f"""Execute one cross-document relation debt item.
+
+TASK:
+{blackboard.task_instruction}
+
+RELATION DEBT ITEM:
+{json.dumps(item, indent=2)}
+
+PARENT BLACKBOARD ENTRIES:
+{parent_text}
+
+Rules:
+- Use only the parent blackboard entries shown here.
+- Compare, reconcile, classify conflict, align dates/entities/provisions, or explain interplay as requested.
+- Preserve exact values, dates, parties, and source caveats.
+- Do not infer missing source facts. If the parent entries are insufficient, return status "unsupported".
+- This is blackboard state, not final deliverable prose.
+
+Return JSON:
+{{
+  "status": "computed|unsupported",
+  "content": "source-grounded relation analysis",
+  "relation_type": "conflict|reconciliation|date_alignment|entity_alignment|provision_interplay",
+  "evidence": "short evidence summary",
+  "confidence": 0.0
+}}"""
+    return call_model(
+        caller,
+        prompt,
+        max_tokens=4096,
+        audit_context=PromptAuditContext(
+            stage="relation_debt_execution",
+            output_dir=blackboard.output_dir,
+            provenance=[
+                "user.instruction",
+                "swarm.blackboard",
+                "clean.professional_prior_dynamic",
+            ],
+            metadata={"debt_sensor_id": item.get("id")},
+        ),
+    )
+
+
+def _entry_from_relation_payload(
+    blackboard: Blackboard,
+    item: dict,
+    payload: dict,
+    parents: list[Entry],
+) -> Entry | None:
+    if not isinstance(payload, dict) or payload.get("status") != "computed":
+        return None
+    content = str(payload.get("content", "")).strip()
+    if len(content) < 40:
+        return None
+    parent_ids = [entry.id for entry in parents]
+    subtype = str(item.get("subtype", "")).strip() or str(
+        payload.get("relation_type", "")
+    ).strip()
+    return Entry(
+        id=gen_entry_id(),
+        type="analysis",
+        content=content,
+        source=_combined_source(parents, str(payload.get("evidence", "")).strip()),
+        created_by=WorkerRecord(
+            "relation_debt_worker",
+            f"debt_sensor:{item.get('id')}",
+            blackboard.iteration,
+        ),
+        confidence=_safe_float(payload.get("confidence", item.get("confidence", 0.75))),
+        verified=None,
+        tags=[
+            "debt_sensor",
+            "debt_type:relation",
+            f"debt_subtype:{subtype}",
+            "missing_work:compare",
+            "lifecycle:transformed",
+            "source_grounded:true",
+        ],
+        status="active",
+        supports_entries=parent_ids,
+    )
+
+
 def write_debt_sensor_report(output_dir: str, report: dict) -> None:
     if not output_dir:
         return
@@ -252,6 +410,14 @@ def write_debt_sensor_report(output_dir: str, report: dict) -> None:
         json.dumps(report, indent=2),
         encoding="utf-8",
     )
+
+
+def _debt_sensor_mode() -> str:
+    if debt_sensors_detect_only():
+        return "detect_only"
+    if relation_debt_execute_enabled():
+        return "execute_relation_debt"
+    return "materialize_gaps"
 
 
 def _prioritized_entries(entries: list[Entry]) -> list[Entry]:
@@ -277,6 +443,18 @@ def _prioritized_entries(entries: list[Entry]) -> list[Entry]:
     return sorted(active, key=score, reverse=True)[:limit]
 
 
+def _render_entry(entry: Entry) -> str:
+    source = ""
+    if entry.source and entry.source.document:
+        source = f" source={entry.source.document}/{entry.source.section or ''}"
+    tags = ",".join((entry.tags or [])[:5])
+    supports = ",".join((entry.supports_entries or [])[:5])
+    return (
+        f"[{entry.id}] type={entry.type} conf={entry.confidence:.2f}"
+        f"{source} tags={tags} supports={supports}\n{entry.content[:900]}"
+    )
+
+
 def _render_entries(entries: list[Entry]) -> str:
     parts = []
     for entry in entries:
@@ -292,6 +470,31 @@ def _render_entries(entries: list[Entry]) -> str:
     return "\n".join(parts)
 
 
+def _relation_item_executable(parents: list[Entry]) -> bool:
+    documents = {
+        entry.source.document
+        for entry in parents
+        if entry.source and entry.source.document
+    }
+    return len(parents) >= 2 and len(documents) >= 2
+
+
+def _combined_source(parents: list[Entry], evidence: str) -> EntrySource | None:
+    sourced = [entry for entry in parents if entry.source and entry.source.document]
+    documents = _dedupe([
+        entry.source.document
+        for entry in sourced
+    ])
+    if not documents:
+        return None
+    first = sourced[0].source
+    return EntrySource(
+        document="; ".join(documents[:6]),
+        section="multiple" if len(documents) > 1 else first.section,
+        evidence=evidence or "Relation analysis from source-grounded parent entries.",
+    )
+
+
 def _format_list(values: list) -> str:
     items = [str(value).strip() for value in values if str(value).strip()]
     return "\n".join(f"- {item}" for item in items[:12]) or "None"
@@ -301,6 +504,16 @@ def _as_str_list(value: Any) -> list[str]:
     if not isinstance(value, list):
         return []
     return [str(item).strip() for item in value if str(item).strip()]
+
+
+def _dedupe(values: list[str]) -> list[str]:
+    seen: set[str] = set()
+    out: list[str] = []
+    for value in values:
+        if value not in seen:
+            out.append(value)
+            seen.add(value)
+    return out
 
 
 def _safe_float(value: Any) -> float:
