@@ -1,0 +1,252 @@
+{
+  "score": 1.0,
+  "max_score": 1.0,
+  "all_pass": true,
+  "n_criteria": 40,
+  "n_passed": 40,
+  "criteria_results": [
+    {
+      "id": "C-001",
+      "title": "ISSUE_001: Identifies TLB interest rate increase from SOFR+400 to SOFR+425",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly identifies in multiple sections (e.g., the Executive Summary and the Deviation Report) that the draft credit agreement sets the Term Loan B interest rate at SOFR + 425 bps, while the commitment letter specifies SOFR + 400 bps, correctly noting this as an unauthorized 25 bps increase."
+    },
+    {
+      "id": "C-002",
+      "title": "ISSUE_001: Links rate increase to no-flex confirmation email",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly references the June 2, 2025 'no-flex' confirmation email from David Sung of Northbrook Capital Markets in connection with the unauthorized 25 bps Term Loan B interest rate increase (ISSUE_001), correctly identifying it as a violation of that agreement."
+    },
+    {
+      "id": "C-003",
+      "title": "ISSUE_002: Identifies SOFR floor increase on Revolver from 0.00% to 0.50%",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly identifies the deviation in ISSUE_002, stating that the draft credit agreement sets a 0.50% SOFR floor on the Revolving Credit Facility (Section 2.05(b)), whereas the commitment letter specifies a 0.00% floor."
+    },
+    {
+      "id": "C-004",
+      "title": "ISSUE_003: Identifies ECF sweep 50%\u219225% stepdown threshold tightened from 3.75x to 4.00x",
+      "verdict": "pass",
+      "reasoning": "The agent's output correctly identifies the ECF sweep stepdown threshold deviation, noting the commitment letter baseline of 3.75x and the draft credit agreement's tighter threshold of 4.00x."
+    },
+    {
+      "id": "C-005",
+      "title": "ISSUE_003: Identifies ECF sweep 25%\u21920% stepdown threshold tightened from 3.25x to 3.50x",
+      "verdict": "pass",
+      "reasoning": "The agent's output correctly identifies the ECF sweep stepdown threshold deviation, specifically noting the tightening from 3.25x to 3.50x for the 25% to 0% reduction in the detailed deviation analysis section."
+    },
+    {
+      "id": "C-006",
+      "title": "ISSUE_004: Identifies asset sale reinvestment base period shortened",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly identifies that the draft credit agreement shortens the base reinvestment period for asset sale mandatory prepayments from 365 days to 270 days in Section 2.09(c), satisfying the criterion."
+    },
+    {
+      "id": "C-007",
+      "title": "ISSUE_004: Identifies asset sale reinvestment extension shortened",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly identifies that the draft credit agreement shortens the asset sale reinvestment extension period from 180 days to 90 days, and correctly notes that this reduces the maximum total reinvestment period from 545 days to 360 days (e.g., in the 'Deviation Register' and the 'Detailed Deviation Analysis' sections)."
+    },
+    {
+      "id": "C-008",
+      "title": "ISSUE_005: Identifies springing financial covenant trigger reduced from 35% to 30%",
+      "verdict": "pass",
+      "reasoning": "The agent correctly identifies in multiple sections (e.g., the Deviation Register and the Detailed Deviation Analysis) that the springing financial covenant trigger was reduced from 35% ($26.25M) to 30% ($22.5M), and explicitly notes that this causes the covenant to spring into effect sooner."
+    },
+    {
+      "id": "C-009",
+      "title": "ISSUE_006: Identifies equity cure period shortened from 15 to 10 business days",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly identifies ISSUE_006 in the Deviation Register and the detailed analysis sections, correctly noting that the equity cure period was shortened from 15 business days (commitment letter) to 10 business days (draft credit agreement) after the delivery of the compliance certificate."
+    },
+    {
+      "id": "C-010",
+      "title": "ISSUE_007: Identifies omission of unlimited RP basket at \u22644.50x TNL",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly identifies the omission of the unlimited Restricted Payments (RP) leverage-based basket at \u2264 4.50x Total Net Leverage in multiple sections of the executive summary and the deviation register, correctly noting that only general and builder baskets were retained."
+    },
+    {
+      "id": "C-011",
+      "title": "ISSUE_008: Identifies incremental free-and-clear dollar amount reduced from $75M to $50M",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly identifies in multiple sections (e.g., the Executive Summary and the Deviation Register) that the draft credit agreement reduces the incremental facility free-and-clear fixed dollar amount from $75 million to $50 million, satisfying the criterion."
+    },
+    {
+      "id": "C-012",
+      "title": "ISSUE_008: Identifies incremental free-and-clear EBITDA percentage reduced from 75% to 50%",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly identifies that the draft credit agreement reduces the incremental facility free-and-clear EBITDA-based component from 75% of Consolidated EBITDA to 50% of Consolidated EBITDA in multiple sections, including the Deviation Register and the Executive Summary."
+    },
+    {
+      "id": "C-013",
+      "title": "ISSUE_009: Identifies MFN sunset period extended from 12 to 18 months",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly identifies in the 'Deviation Register' (ISSUE_009) that the MFN sunset period was extended from 12 months to 18 months, satisfying the criterion."
+    },
+    {
+      "id": "C-014",
+      "title": "ISSUE_010: Identifies impermissible additional closing condition for audited financials",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly identifies the addition of a closing condition in Section 4.01 requiring audited financial statements for FY22-24 with unqualified opinions as a violation of the SunGard closing conditions framework, which is exactly what the criterion requires."
+    },
+    {
+      "id": "C-015",
+      "title": "ISSUE_011: Identifies permitted acquisition leverage test tightened from 5.75x to 5.50x",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly identifies the deviation in the permitted acquisition leverage test, noting that the draft credit agreement sets the test at \u2264 5.50x compared to the commitment letter's \u2264 5.75x, correctly characterizing this as a 0.25x tightening."
+    },
+    {
+      "id": "C-016",
+      "title": "ISSUE_012: Identifies EBITDA addback cap reduced from 25% to 20%",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly identifies the reduction of the EBITDA addback cap from 25% to 20% in multiple sections, including the Deviation Register and the Detailed Deviation Analysis."
+    },
+    {
+      "id": "C-017",
+      "title": "ISSUE_012: Identifies EBITDA addback realization period shortened from 18 to 12 months",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly identifies in multiple sections (e.g., the Deviation Register and the Detailed Deviation Analysis) that the EBITDA addback realization period was shortened from 18 months to 12 months."
+    },
+    {
+      "id": "C-018",
+      "title": "ISSUE_013: Identifies soft call period extended from 6 to 12 months",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly identifies the deviation regarding the soft call protection period, noting that the draft credit agreement extends it from 6 months to 12 months (ISSUE_013)."
+    },
+    {
+      "id": "C-019",
+      "title": "ISSUE_014: Identifies immaterial subsidiary individual threshold reduced from $5M to $2.5M",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly identifies ISSUE_014 in the Deviation Register and the detailed analysis section, noting that the individual immaterial subsidiary threshold was reduced from $5M to $2.5M."
+    },
+    {
+      "id": "C-020",
+      "title": "ISSUE_014: Identifies immaterial subsidiary aggregate threshold reduced from $15M to $10M",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly identifies the reduction of the aggregate Immaterial Subsidiary threshold from $15 million to $10 million in the 'Deviation Register' section of the executive summary and the 'Deviation Report' sheet."
+    },
+    {
+      "id": "C-021",
+      "title": "ISSUE_015: Identifies new anti-cash-hoarding provision as impermissible addition",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly identifies the new anti-cash-hoarding provision in Section 6.11 of the draft credit agreement, which requires mandatory prepayment of the Term Loan when Unrestricted Cash exceeds $30 million at quarter-end, and correctly flags it as an unauthorized, impermissible addition not contemplated in the commitment papers."
+    },
+    {
+      "id": "C-022",
+      "title": "ISSUE_016: Identifies missing incremental revolving commitment provision",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly identifies the omission of the incremental revolving commitment provision in the draft credit agreement (ISSUE_016) and notes that the commitment letter expressly permitted such incremental revolving capacity."
+    },
+    {
+      "id": "C-023",
+      "title": "ISSUE_017: Identifies extraordinary receipts threshold reduced from $5M to $2.5M",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly identifies ISSUE_017 in the deviation register and the executive summary, noting that the extraordinary receipts prepayment threshold was reduced from $5.0M to $2.5M."
+    },
+    {
+      "id": "C-024",
+      "title": "Executive summary highlights unauthorized TLB rate increase",
+      "verdict": "pass",
+      "reasoning": "The agent's executive summary explicitly highlights the unauthorized 25 bps increase in the Term Loan B (TLB) interest rate margin (from SOFR + 400 bps to SOFR + 425 bps) as a critical deviation in multiple sections of the document."
+    },
+    {
+      "id": "C-025",
+      "title": "Executive summary highlights omission of unlimited RP leverage basket",
+      "verdict": "pass",
+      "reasoning": "The agent's executive summary explicitly highlights the omission of the unlimited restricted payments (RP) leverage basket as one of the three most critical unauthorized deviations that must be contested."
+    },
+    {
+      "id": "C-026",
+      "title": "Executive summary highlights reduction in incremental free-and-clear capacity",
+      "verdict": "pass",
+      "reasoning": "The agent's executive summary explicitly highlights the reduction in incremental free-and-clear capacity as one of the three most critical unauthorized deviations that must be contested."
+    },
+    {
+      "id": "C-027",
+      "title": "Executive summary concludes draft does not faithfully reflect commitment letter terms",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly states in multiple sections that the draft credit agreement 'does not faithfully reflect and materially departs from the agreed commitment terms' and notes that all identified deviations systematically favor the lender group."
+    },
+    {
+      "id": "C-028",
+      "title": "Executive summary includes negotiation strategy for June 16 session",
+      "verdict": "pass",
+      "reasoning": "The agent's output includes a detailed negotiation strategy for the June 16, 2025 session, which explicitly categorizes the identified deviations into three priority tiers (Tier 1: Must-Restore, Tier 2: High Priority/Strong Pushback, and Tier 3: Negotiable/Compromise), fully satisfying the criterion."
+    },
+    {
+      "id": "C-029",
+      "title": "Severity rating assigns Critical or High to unauthorized TLB rate increase",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly assigns a severity rating of 'Critical' to the unauthorized Term Loan B interest rate increase (ISSUE_001) in both the Deviation Report and the Prioritized Negotiation Recommendations."
+    },
+    {
+      "id": "C-030",
+      "title": "Severity rating assigns Critical or High to omission of unlimited RP leverage basket",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly assigns a 'Critical' severity rating to the omission of the unlimited Restricted Payments (RP) leverage basket in both the 'Deviation Report' sheet and the 'Prioritized Negotiation Recommendations' table within the executive summary."
+    },
+    {
+      "id": "C-031",
+      "title": "Severity rating assigns Critical or High to reduction in incremental free-and-clear capacity",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly categorizes the reduction in incremental free-and-clear capacity as 'Critical' in the 'Summary of Key Must-Restore Items' and the 'Prioritized Negotiation Recommendations' table, satisfying the criterion."
+    },
+    {
+      "id": "C-032",
+      "title": "ISSUE_001: Quantifies financial impact of rate increase",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly quantifies the financial impact of the 25 bps increase on the $350 million Term Loan B as $875,000 per year in additional interest expense in multiple sections of the provided documents."
+    },
+    {
+      "id": "C-033",
+      "title": "ISSUE_003: Notes direction of deviation favors lenders",
+      "verdict": "pass",
+      "reasoning": "The agent correctly identifies that the tighter ECF sweep stepdown thresholds (4.00x/3.50x vs. 3.75x/3.25x) are unfavorable to the Borrower, explicitly explaining that the Borrower must achieve lower leverage levels before benefiting from reduced sweep percentages."
+    },
+    {
+      "id": "C-034",
+      "title": "All deviations identified as favoring lenders over borrower",
+      "verdict": "pass",
+      "reasoning": "The agent's output consistently and explicitly states that all 17 identified deviations systematically favor the lender group at the expense of the Borrower, characterizing this as a deliberate pattern of lender-favorable drafting rather than random errors."
+    },
+    {
+      "id": "C-035",
+      "title": "Output includes deviation report in spreadsheet/tabular format",
+      "verdict": "pass",
+      "reasoning": "The agent provided a comprehensive deviation report in a clear tabular format within the 'Agent Output: deviation-report.xlsx' section, which includes columns for Issue ID, Section Reference, Term Description, Baseline, Draft Term, Deviation Details, Impact, Severity, and Recommendations."
+    },
+    {
+      "id": "C-036",
+      "title": "Output includes narrative executive summary memorandum",
+      "verdict": "pass",
+      "reasoning": "The agent provided a distinct narrative executive summary memorandum (executive-summary.docx) that is clearly distinguishable from the tabular deviation report (deviation-report.xlsx) and the other supporting documents."
+    },
+    {
+      "id": "C-037",
+      "title": "ISSUE_010: Explains SunGard closing condition framework violation",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly identifies the SunGard closing conditions framework in the Commitment Letter as limiting conditions to those 'explicitly enumerated' and correctly explains that the addition of the audited financial statements requirement violates this framework by introducing an impermissible, out-of-scope condition that increases execution risk."
+    },
+    {
+      "id": "C-038",
+      "title": "ISSUE_015: Identifies anti-cash-hoarding as additional mandatory prepayment",
+      "verdict": "pass",
+      "reasoning": "The agent correctly identifies the anti-cash-hoarding provision (Section 6.11) as an unauthorized additional mandatory prepayment mechanism that was not contemplated in the commitment papers, and explicitly notes its negative impact on the Borrower's liquidity management."
+    },
+    {
+      "id": "C-039",
+      "title": "ISSUE_008: Quantifies impact of reduced incremental free-and-clear capacity",
+      "verdict": "pass",
+      "reasoning": "The agent correctly identified and quantified the impact of the reduced incremental free-and-clear capacity, explicitly calculating the reduction from $75 million to $50 million based on the provided EBITDA of $97.5 million, resulting in a $25 million reduction."
+    },
+    {
+      "id": "C-040",
+      "title": "Recommendations differentiate must-restore items from negotiable items",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly categorizes deviations into three distinct tiers (Tier 1: Must-Restore, Tier 2: High Priority, and Tier 3: Negotiable/Compromise). It provides specific negotiation guidance for each, clearly differentiating between non-negotiable items (e.g., TLB margin, RP basket) and items subject to compromise (e.g., ECF sweep stepdowns, soft call periods)."
+    }
+  ],
+  "run_id": "banking-finance/compare-credit-agreement-to-commitment-letter",
+  "task": "banking-finance/compare-credit-agreement-to-commitment-letter",
+  "judge_model": "gemini-3.1-flash-lite"
+}

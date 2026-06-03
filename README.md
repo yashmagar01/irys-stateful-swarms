@@ -45,45 +45,147 @@ On a per-task cost basis, ant-irys is roughly **39x cheaper** than that `$50.90/
 
 The best way to understand ant-irys is to look at how it actually thinks. Each task produces a **blackboard** — a structured state that evolves over multiple iterations as workers read documents, extract evidence, cross-reference findings, and build toward a complete answer.
 
-Here's a real example from the benchmark: **Compare Credit Agreement to Commitment Letter** (scored 40/40 — perfect).
+A complete example is included in [`examples/compare-credit-agreement-to-commitment-letter/`](examples/compare-credit-agreement-to-commitment-letter/) — a banking task that scored **40/40 (perfect)**. You can browse every blackboard snapshot to see exactly how the system builds its understanding.
 
-### Iteration 0 — Planning
+### Iteration 0 — The system plans before it reads
 
-The system reads document structure (headings, tables, complexity) without reading the full text. It produces a seed plan:
+Before reading any document in detail, the seed planner scans document structure and produces a strategy with targeted questions:
 
-> *"What are the interest rate margins, SOFR floors, and OID terms in the commitment letter versus the credit agreement draft? Are the financial covenants (leverage ratio, interest coverage) consistent? What fee structures are specified and do they match?"*
+```json
+{
+  "id": "e564",
+  "type": "strategy",
+  "content": "This is a comparison and issue-flagging task supported by targeted extraction. The approach involves extracting the baseline terms from the term sheet, commitment letter, and no-flex confirmation, extracting the corresponding drafted terms from the draft credit agreement, and performing a side-by-side gap analysis to identify any deviations, unauthorized changes, or missing provisions.",
+  "created_by": {
+    "worker_id": "seed_planner",
+    "description": "analytical_framework",
+    "iteration": 0
+  }
+}
+```
 
-It generates 13 targeted signals — specific questions that workers must answer — and a completeness checklist before any document is read in detail.
+The system then generates **signals** — specific questions that workers must answer:
 
-**7 entries.** The swarm knows what it's looking for.
+```json
+{
+  "id": "s341",
+  "type": "question",
+  "content": "What are the exact interest rate margins, SOFR floors, and OID for Term Loan B in the draft credit agreement, and do they match the term sheet and commitment letter?",
+  "origin_entry": "seed_plan",
+  "priority": "high",
+  "status": "open"
+}
+```
 
-### Iteration 5 — Evidence building
+```json
+{
+  "id": "s346",
+  "type": "question",
+  "content": "What are the Asset Sale Prepayment terms (net proceeds percentage, annual threshold, reinvestment periods, cash consideration requirement) in the draft credit agreement, and do they deviate from the term sheet?",
+  "origin_entry": "seed_plan",
+  "priority": "high",
+  "status": "open"
+}
+```
 
-Workers have read both documents in parallel. The blackboard now contains **2,203 entries** — observations with exact source provenance, calculations, and early gap detection:
+**7 entries, 12 open signals.** The swarm knows what it's looking for before reading a single page.
 
-> *"Term Loan B: $350M at 4.00% SOFR margin + 0.50% floor, 2.00% OID ($7M), 7-year maturity"*
->
-> *"ECF Sweep: 50% if leverage > 3.75x; 25% if > 3.25x; 0% if ≤ 3.25x"*
->
-> *"Gap: Missing 6-month soft call protection definition in draft"*
+### Iteration 5 — Workers extract grounded evidence
 
-Each finding links back to the specific document, section, and evidence quote. Workers build on each other's findings — an observation about a fee amount triggers a calculation entry cross-referencing the commitment letter's percentage.
+Parallel workers read both documents and write structured findings to the blackboard. Each observation links to its source document, section, and evidence:
 
-### Iteration 12 — Cross-document analysis complete
+```json
+{
+  "id": "e716",
+  "type": "observation",
+  "content": "Northbrook Capital Markets, LLC commits to provide a first lien senior secured term loan B facility in an aggregate principal amount of $350,000,000.",
+  "source": {
+    "document": "commitment-letter.docx",
+    "section": "Full Document (part 1)",
+    "evidence": ""
+  },
+  "created_by": {
+    "worker_id": "reader_commitment-letter.do",
+    "description": "initial_reading",
+    "iteration": 0
+  },
+  "confidence": 0.9
+}
+```
 
-The final blackboard has **2,400 entries** including 113 analysis entries and 87 calculations. The system has identified critical deviations between the two documents:
+Workers also identify what's missing. Gap entries flag incomplete extraction and link back to the signals they're trying to answer:
 
-> *"Margin Violation: Draft shows 4.25% SOFR margin vs. agreed 4.00% — 25 bps unauthorized increase violating 'no-flex' waiver"*
->
-> *"Arrangement Fee Discrepancy: Draft shows $250K vs. commitment letter mandates 1.75% of $350M = $6.125M — under-draft by $5.875M"*
->
-> *"Revolver Floor Breach: Draft imposes 0.50% SOFR floor vs. agreed 0.00% — 50 bps unauthorized increase = $375K annual excess cost if SOFR drops to 0%"*
->
-> *"Asset Sale Reinvestment: Draft limits to 270+90 days (360 total) vs. agreed 365+180 days (545 total) — severe capital deployment restriction"*
+```json
+{
+  "id": "e1977",
+  "type": "gap",
+  "content": "Rows 1.0 through 5.0 and 7.0 through 50.0 are currently unextracted from comparison-template.xlsx.",
+  "source": {
+    "document": "comparison-template.xlsx",
+    "evidence": "Document 'comparison-template.xlsx' has ~50 enumerable items but only 0 extracted."
+  },
+  "created_by": {
+    "worker_id": "w1_72fa",
+    "description": "Enumerate all 50 row headers and baseline financial terms from comparison-template.xlsx to establish the comparison framework.",
+    "iteration": 1
+  },
+  "addresses_signals": ["s483"]
+}
+```
 
-From 7 strategy entries to 2,400 grounded findings — a **340x expansion** of structured analytical state. The system found 10+ specific deviations with exact dollar amounts, basis point calculations, and clause references.
+**2,203 entries:** 2,023 observations, 78 calculations, 54 analyses, 41 gaps. The blackboard is dense with source-grounded facts.
 
-**You can explore the full blackboard state for any of the 1,251 tasks** in the downloadable outputs from [GitHub Releases](../../releases). Look in `<task>/swarm/blackboard_iter_*.json` to trace how the system reasons for each task.
+### Iteration 12 — Cross-document analysis reveals deviations
+
+By the final iteration, the system has built enough state for a stronger model to perform cross-document analysis. It finds specific deviations between the commitment letter and the draft credit agreement:
+
+```json
+{
+  "id": "e156",
+  "type": "analysis",
+  "content": "The term sheet requires a 0.50% SOFR floor for the TLB, but the draft credit agreement fails to include this value, creating a potential financial impact where the interest rate could be lower than intended if SOFR drops below 0.50%.",
+  "source": {
+    "document": "term-sheet.docx",
+    "section": "IV.A. First Lien Term Loan B",
+    "evidence": "Term Sheet: 'SOFR Floor: 0.50% per annum.' Draft Credit Agreement: 'Adjusted Term SOFR... greater of (a) Term SOFR... and (b) the Floor.' Floor is not defined."
+  },
+  "created_by": {
+    "worker_id": "w5_da99",
+    "description": "Calculate the financial impact of the 0.50% TLB floor and verify if it matches the term-sheet.docx requirements",
+    "iteration": 5
+  },
+  "confidence": 0.98,
+  "addresses_signals": ["s663"]
+}
+```
+
+```json
+{
+  "id": "e865",
+  "type": "analysis",
+  "content": "Section 2.06 of the draft credit agreement specifies an annual agency fee of $50,000. This is a deviation from the Commitment Letter, which requires an Administrative Agent Fee of $150,000 per annum, payable annually in advance.",
+  "source": {
+    "document": "draft-credit-agreement.docx"
+  },
+  "created_by": {
+    "worker_id": "flash35_analyst",
+    "description": "direct_analysis",
+    "iteration": 12
+  },
+  "confidence": 0.98,
+  "supports": ["e260", "e261", "e35"]
+}
+```
+
+**Final state: 2,400 entries** (2,044 observations, 113 analyses, 87 calculations, 135 gaps, 21 strategies). **210 signals** with 127 addressed and 45 still open. The system found 10+ material deviations — unauthorized margin increases, missing fee definitions, tightened covenant triggers, restricted reinvestment periods — each grounded in specific clauses from specific documents.
+
+From 7 strategy entries to 2,400 grounded findings — a **340x expansion** of structured analytical state over 12 iterations.
+
+### Explore it yourself
+
+The full blackboard evolution for this task is in [`examples/compare-credit-agreement-to-commitment-letter/swarm/`](examples/compare-credit-agreement-to-commitment-letter/swarm/). Each `blackboard_iter_*.json` file is a complete snapshot of the system's state at that point.
+
+The complete outputs for all 1,251 benchmark tasks (including blackboard state) are available in the [GitHub Releases](../../releases).
 
 ## Why open source this?
 

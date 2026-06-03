@@ -1,0 +1,230 @@
+{
+  "parse_error": false,
+  "error": "",
+  "errors": [],
+  "seed_coverage": [
+    {
+      "id": "q1",
+      "status": "partial",
+      "answer_summary": "The draft credit agreement deviates from the commitment documents: it specifies a 1.00% upfront fee instead of the agreed 2.00% OID, incorporates an unauthorized 25 bps increase in the TLB margin, and omits the 0.50% SOFR floor (using an undefined placeholder 'the Floor'). However, the exact base interest rate margins cannot be fully verified because the draft credit agreement is missing the body text for Article II.",
+      "evidence_summary": "According to e27, the draft credit agreement is missing the body text for Article II, preventing full extraction of interest rate margins. However, e805 notes the draft specifies a 1.00% upfront fee vs. the 2.00% OID in the commitment letter. e156, e415, and e2385 show the 0.50% SOFR floor is missing or left as an undefined placeholder. e866 and e813 indicate an unauthorized 25 bps increase in the TLB margin.",
+      "supporting_entries": [
+        "e27",
+        "e156",
+        "e208",
+        "e415",
+        "e805",
+        "e813",
+        "e866",
+        "e2385"
+      ],
+      "missing_reason": "The exact baseline interest rate margins and the exact drafted margins are not fully detailed in the analytical state due to missing body text in Article II of the draft credit agreement.",
+      "missing_work_type": "extract_more",
+      "materiality": "high"
+    },
+    {
+      "id": "q2",
+      "status": "answered",
+      "answer_summary": "The draft credit agreement fails to comply with the 'no-flex' confirmation. Despite Northbrook Capital Markets, LLC formally waiving all market flex rights on June 2, 2025, the draft credit agreement (dated June 9, 2025) incorporates several unfavorable economic changes, including a 25 bps increase in the TLB margin, an unauthorized 0.50% SOFR floor on the Revolving Credit Facility, and a tighter springing covenant trigger.",
+      "evidence_summary": "The draft credit agreement violates the no-flex confirmation by introducing a 25 bps increase in the TLB margin, a 50 bps floor on the Revolver, and a tighter springing covenant trigger, as detailed in the analytical state.",
+      "supporting_entries": [
+        "e813",
+        "e866",
+        "e2133",
+        "e2136",
+        "e270",
+        "e271",
+        "e64"
+      ],
+      "missing_reason": "",
+      "missing_work_type": "none",
+      "materiality": "critical"
+    },
+    {
+      "id": "q3",
+      "status": "answered",
+      "answer_summary": "The maturity date and amortization schedule for Term Loan B cannot be determined in the draft credit agreement because the body text for Article II is missing, preventing extraction. In contrast, the commitment letter specifies a Term Loan B amortization of 1.00% per annum ($3,500,000 per annum or $875,000 per quarter). Due to the missing text in the draft, specific deviations cannot be verified.",
+      "evidence_summary": "The draft credit agreement is missing the body text for Article II, preventing extraction of maturity dates or amortization schedules (e28). The commitment letter specifies Term Loan B amortization of 1.00% per annum (e210).",
+      "supporting_entries": [
+        "e28",
+        "e210"
+      ],
+      "missing_reason": "",
+      "missing_work_type": "none",
+      "materiality": "high"
+    },
+    {
+      "id": "q4",
+      "status": "partial",
+      "answer_summary": "The draft credit agreement is missing the body text for Article II, preventing the extraction of most Revolver terms (commitment amount, interest rate margin, commitment fee, LC sublimit, swingline sublimit). However, known deviations include an unauthorized 0.50% SOFR floor on the Revolver in the draft credit agreement (compared to 0.00% in the Term Sheet) and a reduced minimum assignment amount of $1,000,000 (compared to the Term Sheet's $5,000,000).",
+      "evidence_summary": "Article II of the draft credit agreement is missing body text, preventing full extraction of Revolver terms (e29). The draft credit agreement contains an unauthorized 0.50% SOFR floor on the Revolver (e803) and a deviated minimum assignment amount of $1,000,000 (e807).",
+      "supporting_entries": [
+        "e29",
+        "e206",
+        "e420",
+        "e803",
+        "e807"
+      ],
+      "missing_reason": "The complete drafted Revolver terms (such as interest rate margin, commitment fee, LC sublimit, and swingline sublimit) cannot be verified because the body text for Article II of the draft credit agreement is missing from the provided source document.",
+      "missing_work_type": "extract_more",
+      "materiality": "high"
+    },
+    {
+      "id": "q5",
+      "status": "answered",
+      "answer_summary": "The term sheet specifies an Excess Cash Flow (ECF) sweep of 50% with stepdowns to 25% (if First Lien Net Leverage Ratio is > 3.25x but <= 3.75x) and 0% (if <= 3.25x). However, the draft credit agreement's ECF sweep percentages and stepdowns cannot be verified or compared because the draft credit agreement is missing the body text for Section 1.08 and Article II, preventing extraction of these terms.",
+      "evidence_summary": "The term sheet's ECF sweep percentages and stepdowns are detailed in e212, e269, and e436. The draft credit agreement's lack of extractable ECF sweep terms due to missing body text is documented in e30.",
+      "supporting_entries": [
+        "e30",
+        "e212",
+        "e269",
+        "e436"
+      ],
+      "missing_reason": "",
+      "missing_work_type": "none",
+      "materiality": "high"
+    },
+    {
+      "id": "q6",
+      "status": "partial",
+      "answer_summary": "The Term Sheet terms are fully detailed (100% Net Cash Proceeds sweep, $7,500,000 annual threshold, 365-day reinvestment period extendable to 545 days, and 75% cash consideration requirement). However, a comparison cannot be completed because the draft credit agreement is missing the body text for Article II, preventing the extraction of its Asset Sale Prepayment terms.",
+      "evidence_summary": "The Term Sheet establishes a 100% Net Cash Proceeds sweep (e839), a $7.5M annual threshold (e840), a 365-day reinvestment period extendable to 545 days (e841, e842), and a 75% cash consideration requirement (e843). The draft credit agreement is missing the body text for Article II, preventing extraction of these terms (e31).",
+      "supporting_entries": [
+        "e31",
+        "e839",
+        "e840",
+        "e841",
+        "e842",
+        "e843"
+      ],
+      "missing_reason": "The actual drafted terms in the credit agreement are missing from the source document (Article II body text is missing), preventing a direct comparison of the drafted text against the term sheet.",
+      "missing_work_type": "compare",
+      "materiality": "high"
+    },
+    {
+      "id": "q7",
+      "status": "answered",
+      "answer_summary": "Yes, the draft credit agreement contains multiple unauthorized fees, covenants, and definitions, as well as critical omissions. These include an unauthorized 0.50% SOFR floor on the Revolver (e803), unauthorized fee modifications in Section 2.06 (under-drafted arrangement, upfront, and agency fees) (e804, e805, e806), a reduced minimum assignment threshold for Revolving Commitments (e807), and unauthorized economic changes (25 bps TLB margin increase, tighter springing covenant trigger) that violate the 'no-flex' confirmation (e813, e866). It also lacks agreed-upon terms such as the MFN protection clause (e810), negative covenants (e811), Equity Cure provisions (e812), and key definitions like the 0.50% TLB SOFR floor (e415) and soft call protection (e741, e742).",
+      "evidence_summary": "The analytical state identifies numerous unauthorized deviations, fee discrepancies, and missing covenants/definitions between the draft credit agreement and the commitment documents.",
+      "supporting_entries": [
+        "e741",
+        "e742",
+        "e415",
+        "e803",
+        "e804",
+        "e805",
+        "e806",
+        "e807",
+        "e810",
+        "e811",
+        "e812",
+        "e813",
+        "e866"
+      ],
+      "missing_reason": "",
+      "missing_work_type": "none",
+      "materiality": "critical"
+    },
+    {
+      "id": "q8",
+      "status": "partial",
+      "answer_summary": "The exact parties cannot be fully identified or verified for alignment because the draft credit agreement is missing the necessary body text.",
+      "evidence_summary": "The analytical state notes that the draft credit agreement is missing body text in Section 1.08, Article II, and Section 6.14, which prevents the identification of the Borrower, Guarantors, Administrative Agent, or other specific party names.",
+      "supporting_entries": [
+        "e32",
+        "e1126"
+      ],
+      "missing_reason": "The actual names of the Borrower, Guarantors, Administrative Agent, and Lenders in the draft credit agreement are unextracted/missing due to incomplete source text, preventing a complete alignment check against the commitment letter and term sheet.",
+      "missing_work_type": "extract_more",
+      "materiality": "high"
+    }
+  ],
+  "criteria_coverage": [
+    {
+      "id": "c1",
+      "status": "unsatisfied",
+      "answer_summary": "The deviation-report.xlsx is incomplete and does not address all 20 items listed in the comparison template.",
+      "evidence_summary": "The analytical state reveals that rows 1.0 through 5.0 and 7.0 through 50.0 are currently unextracted from the comparison template, and section 6.0 lacks mapped data, indicating a failure to complete the required 20-item comparison.",
+      "supporting_entries": [
+        "e1977",
+        "e907",
+        "e565",
+        "e566"
+      ],
+      "missing_reason": "The comparison template is missing data for the majority of its rows (specifically rows 1.0 through 5.0 and 7.0 through 50.0 are unextracted, and section 6.0 is unmapped), preventing the completion of the 20-item deviation report.",
+      "missing_work_type": "extract_more",
+      "materiality": "critical"
+    },
+    {
+      "id": "c2",
+      "status": "unsatisfied",
+      "answer_summary": "The analytical state does not contain the completed 20-item comparison report showing the baseline, draft credit agreement terms, and Match/Deviation flags. Instead, it notes that rows 1.0 through 5.0 and 7.0 through 50.0 are currently unextracted from the comparison template.",
+      "evidence_summary": "Entry e1977 explicitly states that rows 1.0 through 5.0 and 7.0 through 50.0 are unextracted from comparison-template.xlsx, and other entries (such as e907, e1902-e1906, and e2330-e2332) confirm that key terms remain unmapped or missing, preventing the verification of a completed 20-item report.",
+      "supporting_entries": [
+        "e1977",
+        "e907",
+        "e566"
+      ],
+      "missing_reason": "The complete 20-item comparison table containing the baseline terms, draft terms, and Match/Deviation flags is missing from the analytical state, with the majority of the rows remaining unextracted.",
+      "missing_work_type": "compare",
+      "materiality": "high"
+    },
+    {
+      "id": "c3",
+      "status": "unsatisfied",
+      "answer_summary": "",
+      "evidence_summary": "",
+      "supporting_entries": [],
+      "missing_reason": "The blackboard contains only the completeness criterion (e567) and individual raw findings, but lacks the actual completed executive summary memo (executive-summary.docx) or a synthesized summary of the key findings, material deviations, and commercial impacts.",
+      "missing_work_type": "extract_more",
+      "materiality": "high"
+    },
+    {
+      "id": "c4",
+      "status": "satisfied",
+      "answer_summary": "The draft credit agreement fails to comply with the 'no-flex' confirmation. Despite David Sung's formal waiver of all market flex rights on June 2, 2025, the draft credit agreement (dated June 9, 2025) incorporates several unauthorized and unfavorable economic changes, including a 25 bps increase in the Term Loan B margin, a 50 bps floor on the Revolver, and a tighter springing covenant trigger.",
+      "evidence_summary": "The analytical state explicitly confirms non-compliance, detailing how the draft credit agreement violates the formal waiver of market flex rights by introducing unfavorable pricing and covenant terms.",
+      "supporting_entries": [
+        "e813",
+        "e866"
+      ],
+      "missing_reason": "",
+      "missing_work_type": "none",
+      "materiality": "critical"
+    },
+    {
+      "id": "c5",
+      "status": "satisfied",
+      "answer_summary": "The analytical state identifies several unauthorized fees and structural changes not contemplated in the commitment documents. These include an unauthorized 0.50% SOFR floor on the Revolving Credit Facility (representing up to $375,000/year in excess interest), significant fee discrepancies (under-drafted arrangement fee of $250k vs $6.125M, upfront fee of 1.00% vs 2.00%, and agency fee of $50k vs $150k), a reduced minimum assignment amount for Revolving Commitments ($1M vs $5M), the omission of the MFN protection clause, the complete absence of Article VI (Negative Covenants), and unauthorized economic changes (25 bps increase in TLB margin and tighter springing covenant trigger) that violate the 'no-flex' confirmation.",
+      "evidence_summary": "Entries e803, e804, e805, e806, e807, e810, e811, e812, e813, and e866 detail these unauthorized fees and structural deviations between the draft credit agreement and the commitment documents.",
+      "supporting_entries": [
+        "e803",
+        "e804",
+        "e805",
+        "e806",
+        "e807",
+        "e810",
+        "e811",
+        "e812",
+        "e813",
+        "e866"
+      ],
+      "missing_reason": "",
+      "missing_work_type": "none",
+      "materiality": "critical"
+    },
+    {
+      "id": "c6",
+      "status": "partial",
+      "answer_summary": "The analytical state contains a specific recommendation for the negotiation team regarding the 'Floor' definition, but lacks a comprehensive set of recommendations for the other identified deviations.",
+      "evidence_summary": "Entry e814 recommends that the negotiation team demand the 'Floor' be explicitly defined as 0.50% per annum for the Term Loan B to avoid legal ambiguity. Entry e570 notes this as a completeness criterion.",
+      "supporting_entries": [
+        "e814",
+        "e570"
+      ],
+      "missing_reason": "A complete set of clear recommendations for the negotiation team on which other deviations must be contested (such as the TLB margin increase, Revolver floor, springing covenant trigger, and missing negative covenants/Equity Cure) is missing.",
+      "missing_work_type": "recommendation",
+      "materiality": "high"
+    }
+  ]
+}

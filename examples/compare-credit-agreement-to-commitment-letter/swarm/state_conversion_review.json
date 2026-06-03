@@ -1,0 +1,33 @@
+{
+  "parse_error": false,
+  "entries_created": 24,
+  "entries_dropped_no_source": 0,
+  "created_entry_ids": [
+    "e803",
+    "e804",
+    "e805",
+    "e806",
+    "e807",
+    "e808",
+    "e809",
+    "e810",
+    "e811",
+    "e812",
+    "e813",
+    "e814",
+    "e815",
+    "e816",
+    "e817",
+    "e818",
+    "e819",
+    "e820",
+    "e821",
+    "e822",
+    "e823",
+    "e824",
+    "e825",
+    "e826"
+  ],
+  "observation_candidates": 207,
+  "analytical_entries_before": 318
+}

@@ -1,0 +1,34 @@
+{
+  "documents_read": 5,
+  "total_vdr_files": 5,
+  "documents_skipped": 0,
+  "documents_read_list": [
+    "commitment-letter.docx",
+    "comparison-template.xlsx",
+    "draft-credit-agreement.docx",
+    "no-flex-confirmation.eml",
+    "term-sheet.docx"
+  ],
+  "documents_skipped_list": [],
+  "input_tokens": 1172717,
+  "output_tokens": 117184,
+  "total_tokens": 1737800,
+  "cost_total_usd": 1.6354,
+  "cost_by_model": {
+    "gemini-3.1-flash-lite": {
+      "input_tokens": 528027,
+      "output_tokens": 69108,
+      "total_tokens": 597135,
+      "calls": 76,
+      "cost_usd": 0.2357
+    },
+    "gemini-3.5-flash": {
+      "input_tokens": 644690,
+      "output_tokens": 48076,
+      "total_tokens": 692766,
+      "calls": 48,
+      "cost_usd": 1.3997
+    }
+  },
+  "wall_clock_seconds": 1979.330799818039
+}

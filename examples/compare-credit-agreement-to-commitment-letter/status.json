@@ -1,0 +1,10 @@
+{
+  "task_id": "banking-finance/compare-credit-agreement-to-commitment-letter",
+  "status": "completed",
+  "tokens_used": 1737800,
+  "wall_clock_seconds": 1979.330799818039,
+  "deliverable_files": [
+    "deviation-report.xlsx",
+    "executive-summary.docx"
+  ]
+}
