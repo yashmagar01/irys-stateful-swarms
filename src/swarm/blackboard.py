@@ -103,9 +103,12 @@ class Blackboard:
 
     def find_entry(self, entry_id: str) -> Entry | None:
         if hasattr(self, '_entry_index'):
-            return self._entry_index.get(entry_id)
+            found = self._entry_index.get(entry_id)
+            if found is not None:
+                return found
         for e in self.entries:
             if e.id == entry_id:
+                self._index_entry(e)
                 return e
         return None
 

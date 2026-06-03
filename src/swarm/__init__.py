@@ -9,6 +9,10 @@ from datetime import datetime, timezone
 from .blackboard import Blackboard
 from .analysis import run_direct_analysis
 from .artifact_commitments import build_artifact_commitments
+from .blackboard_maintenance import (
+    blackboard_maintenance_enabled,
+    run_blackboard_maintenance,
+)
 from .convergence import check_convergence, supervisor_review
 from .seed import generate_seed, seed_to_signals
 from .curation import curate_entries
@@ -336,6 +340,14 @@ def run_swarm(task: Task, caller: ModelCaller, *,
                 json.dump(repair_report, f, indent=2)
 
         blackboard.save_snapshot("post_state_repair")
+
+    if review_caller is not None and blackboard_maintenance_enabled():
+        _, maintenance_tokens = run_blackboard_maintenance(
+            blackboard, seed_plan, review_caller,
+        )
+        if maintenance_tokens:
+            blackboard.add_tokens_from_last_call(maintenance_tokens)
+        blackboard.save_snapshot("post_blackboard_maintenance")
 
     if review_caller is not None and debt_sensors_enabled():
         _, debt_sensor_tokens = run_debt_sensors(
