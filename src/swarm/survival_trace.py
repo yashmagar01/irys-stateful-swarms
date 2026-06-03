@@ -138,6 +138,7 @@ def _artifact_commitment_trace_item(
     target_file = str(commitment.get("target_file", "") or "")
     native_form = str(commitment.get("native_form", "") or "")
     verification_terms = _artifact_verification_terms(commitment)
+    placement_traceable = bool(verification_terms)
     locations = _artifact_commitment_locations(
         verification_terms, commitment, artifact_texts,
     )
@@ -156,6 +157,8 @@ def _artifact_commitment_trace_item(
     death_mode = None
     if wrong_format:
         death_mode = "wrong_format"
+    elif not placement_traceable:
+        death_mode = "artifact_ambiguous"
     elif found_in_target and native_satisfied:
         death_mode = None
     elif found_in_target:
@@ -176,6 +179,7 @@ def _artifact_commitment_trace_item(
         "satisfaction_conditions": commitment.get("satisfaction_conditions", []),
         "required_source_refs": commitment.get("required_source_refs", commitment.get("source_refs", [])),
         "verification_terms": verification_terms,
+        "placement_traceable": placement_traceable,
         "found_in_target_file": found_in_target,
         "native_form_satisfied": native_satisfied,
         "native_form_checks": native_check.get("checks", []),
@@ -415,10 +419,13 @@ def _summarize_artifact_placements(items: list[dict]) -> dict:
         native_forms[native] = native_forms.get(native, 0) + 1
     found_target = sum(1 for item in items if item.get("found_in_target_file"))
     native_satisfied = sum(1 for item in items if item.get("native_form_satisfied"))
+    traceable = sum(1 for item in items if item.get("placement_traceable"))
     found_elsewhere = sum(1 for item in items if item.get("found_elsewhere"))
     return {
         "selected": len(items),
         "targeted": sum(1 for item in items if item.get("target_file")),
+        "traceable": traceable,
+        "untraceable": len(items) - traceable,
         "found_in_target_file": found_target,
         "native_form_satisfied": native_satisfied,
         "found_elsewhere": found_elsewhere,

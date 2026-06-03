@@ -249,6 +249,10 @@ def _aggregate_artifact_placement(
         reported.get("targeted"),
         sum(1 for item in items if item.get("target_file")),
     )
+    traceable = _int(
+        reported.get("traceable"),
+        sum(1 for item in items if item.get("placement_traceable")),
+    )
     found_target = _int(
         reported.get("found_in_target_file"),
         sum(1 for item in items if item.get("found_in_target_file")),
@@ -277,6 +281,8 @@ def _aggregate_artifact_placement(
     target["tasks"] += 1
     target["selected"] += selected
     target["targeted"] += targeted
+    target["traceable"] += traceable
+    target["untraceable"] += max(0, selected - traceable)
     target["found_in_target_file"] += found_target
     target["native_form_satisfied"] += native_satisfied
     target["found_elsewhere"] += found_elsewhere
@@ -292,7 +298,7 @@ def _aggregate_artifact_placement(
         death_modes=death_modes,
         type_counts=native_forms,
         notes=(
-            f"targeted={targeted}; found_target={found_target}; "
+            f"targeted={targeted}; traceable={traceable}; found_target={found_target}; "
             f"native_satisfied={native_satisfied}; found_elsewhere={found_elsewhere}"
         ),
     ))
@@ -437,6 +443,8 @@ def _empty_artifact_summary() -> dict:
         "tasks": 0,
         "selected": 0,
         "targeted": 0,
+        "traceable": 0,
+        "untraceable": 0,
         "found_in_target_file": 0,
         "native_form_satisfied": 0,
         "found_elsewhere": 0,

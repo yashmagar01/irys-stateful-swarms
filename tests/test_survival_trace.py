@@ -140,6 +140,34 @@ def test_artifact_placement_trace_detects_native_form_missing(tmp_path):
     assert trace["summary"]["death_modes"] == {"native_form_missing": 1}
 
 
+def test_artifact_placement_trace_marks_untraceable_commitment_ambiguous(tmp_path):
+    swarm_dir = tmp_path / "swarm"
+    swarm_dir.mkdir()
+    (swarm_dir / "artifact_commitments.json").write_text(json.dumps({
+        "items": [{
+            "entry_id": "e1",
+            "target_file": "memo.docx",
+            "native_form": "memo_statement",
+            "verification_terms": [],
+            "summary": "Operational risk should be explained in the memo.",
+            "source": "artifact_commitment",
+        }]
+    }), encoding="utf-8")
+
+    trace = finalize_artifact_placement_trace(
+        tmp_path,
+        {"memo.docx": "The memo explains operational risk."},
+    )
+
+    item = trace["items"][0]
+    assert item["placement_traceable"] is False
+    assert item["found_in_target_file"] is False
+    assert item["death_mode"] == "artifact_ambiguous"
+    assert trace["summary"]["traceable"] == 0
+    assert trace["summary"]["untraceable"] == 1
+    assert trace["summary"]["death_modes"] == {"artifact_ambiguous": 1}
+
+
 def test_artifact_placement_trace_classifies_wrong_file(tmp_path):
     swarm_dir = tmp_path / "swarm"
     swarm_dir.mkdir()
