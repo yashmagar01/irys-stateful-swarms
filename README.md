@@ -283,11 +283,23 @@ Browse any task's `swarm/blackboard_iter_*.json` files to trace the full reasoni
 
 ## Why open source this?
 
-ant-irys achieves strong results using only API calls to standard language models — no fine-tuning, no custom embeddings, no latent space reasoning. The entire system is prompt engineering and coordination logic.
+ant-irys achieves strong results using **only API calls** to standard language models — no fine-tuning, no custom embeddings, no latent space manipulation. The entire system is prompt engineering and coordination logic.
 
 We believe long-context reasoning over complex documents is an important unsolved problem. By open-sourcing this baseline, we want to open a discussion about how swarm coordination, structured state-building, and multi-agent decomposition can push the boundaries of what's possible with off-the-shelf models.
 
-There are promising directions we haven't explored here — hierarchical embeddings, latent space reasoning, hybrid retrieval-generation architectures — that could take this further. We're interested in what the community builds on top of this foundation.
+### What ant-irys doesn't include (yet)
+
+ant-irys deliberately uses only vanilla API calls. But we've built several complementary systems that could dramatically improve document analysis when integrated. These are all open-source:
+
+**[Latent Space Reasoning](https://github.com/dl1683/Latent-Space-Reasoning)** — Unlocking hidden reasoning capabilities in language models through inference-time perturbation. By injecting learned soft tokens into the latent space, we achieved a **+19.6pp arithmetic improvement** on Qwen3-4B (32% to 51.6%) with zero training. Applying this to the worker models in a swarm system could improve extraction accuracy and calculation precision — two of ant-irys's weakest areas.
+
+**[Fractal Embeddings](https://github.com/dl1683/moonshot-fractal-embeddings)** — Multi-scale self-similar embeddings that encode hierarchical semantic structure. We proved that correct geometric hierarchy **causally improves** embedding quality (+0.72pp), while wrong hierarchy actively hurts (-0.10pp). For document analysis, this means embeddings that natively understand that a clause lives inside a section lives inside a document — enabling better retrieval and cross-reference detection.
+
+**[CTI Universal Law](https://github.com/dl1683/moonshot-cti-universal-law)** — A first-principles derivation of a universal law governing learned representation quality, validated across 12 NLP architectures with **R²=0.955** across 192 test points, and confirmed on biological neural systems (mouse V1 cortex, r=0.736). This provides a theoretical framework for predicting when and why model representations will succeed or fail — relevant for model selection and quality prediction in multi-model swarm systems.
+
+**[MapU](https://github.com/dl1683/MapU)** — Persistent, provenance-backed knowledge memory for agentic systems. Ranked **#1 on the AMA-Bench memory-agent leaderboard** (macro accuracy 0.627). Where ant-irys builds a blackboard per task and discards it, MapU could enable cross-task knowledge accumulation — learning from every document the system has ever analyzed.
+
+A production document analysis system would combine swarm coordination (ant-irys) with improved reasoning (Latent Space), better representations (Fractal Embeddings, CTI), and persistent memory (MapU). We're releasing each piece independently so the community can explore these combinations.
 
 ## Installation
 
