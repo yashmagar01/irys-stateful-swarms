@@ -287,19 +287,29 @@ ant-irys achieves strong results using **only API calls** to standard language m
 
 We believe long-context reasoning over complex documents is an important unsolved problem. By open-sourcing this baseline, we want to open a discussion about how swarm coordination, structured state-building, and multi-agent decomposition can push the boundaries of what's possible with off-the-shelf models.
 
-### What ant-irys doesn't include (yet)
+### What ant-irys deliberately leaves out
 
-ant-irys deliberately uses only vanilla API calls. But we've built several complementary systems that could dramatically improve document analysis when integrated. These are all open-source:
+ant-irys uses only vanilla API calls and builds its entire understanding from scratch for every task. **This is intentional** — it's the only fair way to benchmark.
 
-**[Latent Space Reasoning](https://github.com/dl1683/Latent-Space-Reasoning)** — Unlocking hidden reasoning capabilities in language models through inference-time perturbation. By injecting learned soft tokens into the latent space, we achieved a **+19.6pp arithmetic improvement** on Qwen3-4B (32% to 51.6%) with zero training. Applying this to the worker models in a swarm system could improve extraction accuracy and calculation precision — two of ant-irys's weakest areas.
+In a real production system, a lawyer doesn't start from zero every time. They've read similar agreements before. They know what a SOFR floor is. They remember that last quarter's credit agreement had the same covenant issue. A real agentic system would persist its learnings, build knowledge graphs over time, maintain document indexes, and run background maintenance to keep its understanding current. Over time, the cost per output drops because the system isn't re-extracting the same concepts from scratch.
+
+ant-irys does none of this. Every task starts with an empty blackboard. No prior knowledge. No document memory. No learned patterns from previous tasks. The $1.30/task cost includes re-discovering concepts that a persistent system would already know.
+
+We made this choice because persistent storage would be an unfair advantage on a benchmark — the system would be learning from the benchmark itself. But it means **the benchmark numbers understate what a production system built on this architecture would achieve.** Lower cost, higher accuracy, faster execution — all from not throwing away what you've already learned.
+
+### Complementary systems we've built
+
+We've open-sourced several systems that address exactly what ant-irys leaves out. These are all independent projects:
+
+**[Latent Space Reasoning](https://github.com/dl1683/Latent-Space-Reasoning)** — Unlocking hidden reasoning capabilities in language models through inference-time perturbation. By injecting learned soft tokens into the latent space, we achieved a **+19.6pp arithmetic improvement** on Qwen3-4B (32% to 51.6%) with zero training. Applying this to swarm worker models could improve extraction accuracy and calculation precision — two of ant-irys's weakest areas.
 
 **[Fractal Embeddings](https://github.com/dl1683/moonshot-fractal-embeddings)** — Multi-scale self-similar embeddings that encode hierarchical semantic structure. We proved that correct geometric hierarchy **causally improves** embedding quality (+0.72pp), while wrong hierarchy actively hurts (-0.10pp). For document analysis, this means embeddings that natively understand that a clause lives inside a section lives inside a document — enabling better retrieval and cross-reference detection.
 
-**[CTI Universal Law](https://github.com/dl1683/moonshot-cti-universal-law)** — A first-principles derivation of a universal law governing learned representation quality, validated across 12 NLP architectures with **R²=0.955** across 192 test points, and confirmed on biological neural systems (mouse V1 cortex, r=0.736). This provides a theoretical framework for predicting when and why model representations will succeed or fail — relevant for model selection and quality prediction in multi-model swarm systems.
+**[CTI Universal Law](https://github.com/dl1683/moonshot-cti-universal-law)** — A first-principles derivation of a universal law governing learned representation quality, validated across 12 NLP architectures with **R²=0.955** across 192 test points, and confirmed on biological neural systems (mouse V1 cortex, r=0.736). This provides a theoretical framework for predicting when and why model representations will succeed or fail — relevant for model selection and quality prediction in multi-model systems.
 
-**[MapU](https://github.com/dl1683/MapU)** — Persistent, provenance-backed knowledge memory for agentic systems. Ranked **#1 on the AMA-Bench memory-agent leaderboard** (macro accuracy 0.627). Where ant-irys builds a blackboard per task and discards it, MapU could enable cross-task knowledge accumulation — learning from every document the system has ever analyzed.
+**[MapU](https://github.com/dl1683/MapU)** *(active development — architecture is being reworked)* — Persistent, provenance-backed knowledge memory for agentic systems. Ranked **#1 on the AMA-Bench memory-agent leaderboard** (macro accuracy 0.627). This is the missing piece for production deployment: within the same matter or project, the system would persist its document understanding, entity graphs, and analytical findings across sessions. Instead of re-reading a 200-page credit agreement every time a user asks a follow-up question, the system would already have 2,400 grounded entries in persistent storage — ready to query, extend, and refine. This is what turns a $1.30/task benchmark tool into a system where the tenth question about the same deal costs a fraction of the first.
 
-A production document analysis system would combine swarm coordination (ant-irys) with improved reasoning (Latent Space), better representations (Fractal Embeddings, CTI), and persistent memory (MapU). We're releasing each piece independently so the community can explore these combinations.
+A production document analysis system would combine swarm coordination (ant-irys) with improved reasoning (Latent Space), better representations (Fractal Embeddings, CTI), and persistent matter-level memory (MapU). We're releasing each piece independently so the community can explore these directions.
 
 ## Installation
 
