@@ -17,6 +17,7 @@ def debt_sensors_enabled() -> bool:
         relation_debt_enabled()
         or source_object_debt_enabled()
         or severity_debt_enabled()
+        or authority_debt_enabled()
     )
 
 
@@ -30,6 +31,10 @@ def source_object_debt_enabled() -> bool:
 
 def severity_debt_enabled() -> bool:
     return _env_on("SWARM_ENABLE_SEVERITY_DEBT")
+
+
+def authority_debt_enabled() -> bool:
+    return _env_on("SWARM_ENABLE_AUTHORITY_DEBT")
 
 
 def debt_sensors_detect_only() -> bool:
@@ -46,6 +51,10 @@ def source_object_debt_execute_enabled() -> bool:
 
 def severity_debt_execute_enabled() -> bool:
     return _env_on("SWARM_SEVERITY_DEBT_EXECUTE")
+
+
+def authority_debt_execute_enabled() -> bool:
+    return _env_on("SWARM_AUTHORITY_DEBT_EXECUTE")
 
 
 def run_debt_sensors(
@@ -70,6 +79,10 @@ def run_debt_sensors(
             severity_items, tokens = detect_severity_debts(blackboard, seed, caller)
             total_tokens += tokens
             items.extend(severity_items)
+        if authority_debt_enabled():
+            authority_items, tokens = detect_authority_debts(blackboard, seed, caller)
+            total_tokens += tokens
+            items.extend(authority_items)
 
         normalized_items = normalize_debt_sensor_items(items)
         report = {
@@ -115,12 +128,25 @@ def run_debt_sensors(
                 if severity_entries:
                     blackboard.add_entries_batch(severity_entries)
 
+            authority_entries: list[Entry] = []
+            if authority_debt_execute_enabled():
+                authority_report, authority_tokens = execute_authority_debt_items(
+                    blackboard, caller, report["items"],
+                )
+                total_tokens += authority_tokens
+                report["items"] = authority_report["items"]
+                report["authority_execution_summary"] = authority_report["summary"]
+                authority_entries = authority_report["entries"]
+                if authority_entries:
+                    blackboard.add_entries_batch(authority_entries)
+
             gap_entries = debt_sensor_items_to_gap_entries(report["items"], blackboard)
             if gap_entries:
                 blackboard.add_entries_batch(gap_entries)
             report["created_relation_entry_ids"] = [entry.id for entry in relation_entries]
             report["created_source_object_entry_ids"] = [entry.id for entry in source_entries]
             report["created_severity_entry_ids"] = [entry.id for entry in severity_entries]
+            report["created_authority_entry_ids"] = [entry.id for entry in authority_entries]
             report["created_gap_entry_ids"] = [entry.id for entry in gap_entries]
             report["summary"] = summarize_debt_sensor_items(report["items"])
         write_debt_sensor_report(blackboard.output_dir, report)
@@ -285,6 +311,61 @@ Return JSON:
     return raw if isinstance(raw, list) else [], tokens
 
 
+def detect_authority_debts(
+    blackboard: Blackboard,
+    seed: dict,
+    caller: ModelCaller,
+) -> tuple[list[dict], int]:
+    entries = _prioritized_entries(blackboard.entries)
+    prompt = f"""Detect authority/evidence citation debt in source-backed blackboard state.
+
+TASK:
+{blackboard.task_instruction}
+
+SEED QUESTIONS:
+{_format_list(seed.get("key_questions", []))}
+
+BLACKBOARD ENTRIES:
+{_render_entries(entries)}
+
+Find only cases where an existing blackboard entry makes a conclusion, issue,
+standard, obligation, recommendation, or classification that should be tied to
+a more exact source clause, document provision, cited standard, or evidence
+anchor already visible in the parent entry or nearby blackboard state.
+
+Do not request external research. Do not invent statutes, cases, standards, or
+document sections. This lens only strengthens source custody for facts already
+in the blackboard.
+
+Return JSON:
+{{"items": [
+  {{
+    "type": "authority",
+    "subtype": "source_citation_needed|clause_reference_needed|standard_needed|evidence_anchor_needed",
+    "reason": "specific authority/evidence work needed",
+    "parent_entry_ids": ["e1"],
+    "confidence": 0.0
+  }}
+]}}"""
+    payload, tokens = call_model(
+        caller,
+        prompt,
+        max_tokens=4096,
+        audit_context=PromptAuditContext(
+            stage="authority_debt_detection",
+            output_dir=blackboard.output_dir,
+            provenance=[
+                "user.instruction",
+                "swarm.seed_generated",
+                "swarm.blackboard",
+                "clean.professional_prior_dynamic",
+            ],
+        ),
+    )
+    raw = payload.get("items", [])
+    return raw if isinstance(raw, list) else [], tokens
+
+
 def normalize_debt_sensor_items(raw_items: list[Any]) -> list[dict]:
     normalized = []
     seen = set()
@@ -292,7 +373,7 @@ def normalize_debt_sensor_items(raw_items: list[Any]) -> list[dict]:
         if not isinstance(raw, dict):
             continue
         item_type = str(raw.get("type", "")).strip()
-        if item_type not in {"relation", "source_object", "severity"}:
+        if item_type not in {"relation", "source_object", "severity", "authority"}:
             continue
         subtype = str(raw.get("subtype", "")).strip() or "unknown"
         parent_ids = [
@@ -348,10 +429,13 @@ def debt_sensor_items_to_gap_entries(
             continue
         if item.get("type") == "severity" and item.get("created_entry_ids"):
             continue
+        if item.get("type") == "authority" and item.get("created_entry_ids"):
+            continue
         missing_work = {
             "relation": "compare",
             "source_object": "extract_more",
             "severity": "assess_risk",
+            "authority": "cite_authority",
         }.get(item.get("type"), "analyze")
         entries.append(Entry(
             id=gen_entry_id(),
@@ -369,6 +453,146 @@ def debt_sensor_items_to_gap_entries(
             supports_entries=item.get("parent_entry_ids", []),
         ))
     return entries
+
+
+def execute_authority_debt_items(
+    blackboard: Blackboard,
+    caller: ModelCaller,
+    items: list[dict],
+) -> tuple[dict, int]:
+    updated_items = [dict(item) for item in items]
+    total_tokens = 0
+    entries: list[Entry] = []
+    limit = int(os.getenv("SWARM_AUTHORITY_DEBT_EXECUTION_LIMIT", "8"))
+    executed = 0
+
+    for item in updated_items:
+        if executed >= limit:
+            break
+        if item.get("type") != "authority" or item.get("status") != "actionable_gap":
+            continue
+        parents = blackboard.get_entries_by_ids(item.get("parent_entry_ids", []))
+        if not _authority_item_executable(parents):
+            item["status"] = "diagnostic_only"
+            item["execution_error"] = "authority_requires_source_backed_parent"
+            continue
+
+        payload, tokens = _run_authority_worker(blackboard, caller, item, parents)
+        total_tokens += tokens
+        entry = _entry_from_authority_payload(blackboard, item, payload, parents)
+        if entry is None:
+            item["status"] = "execution_failed"
+            item["execution_error"] = "worker_returned_no_valid_authority_analysis"
+            continue
+
+        entries.append(entry)
+        item["status"] = "authority_executed"
+        item["created_entry_ids"] = [entry.id]
+        executed += 1
+
+    return {
+        "items": updated_items,
+        "entries": entries,
+        "summary": {
+            "attempted": executed,
+            "entries_created": len(entries),
+            "execution_limit": limit,
+        },
+    }, total_tokens
+
+
+def _run_authority_worker(
+    blackboard: Blackboard,
+    caller: ModelCaller,
+    item: dict,
+    parents: list[Entry],
+) -> tuple[dict, int]:
+    parent_text = "\n".join(_render_entry(parent) for parent in parents)
+    prompt = f"""Execute one authority/evidence citation debt item.
+
+TASK:
+{blackboard.task_instruction}
+
+AUTHORITY DEBT ITEM:
+{json.dumps(item, indent=2)}
+
+PARENT BLACKBOARD ENTRIES:
+{parent_text}
+
+Rules:
+- Use only the parent blackboard entries shown here.
+- Identify the exact source clause, document provision, cited standard, or evidence anchor available from the parent entries.
+- Do not invent external legal authority, cases, statutes, standards, or source sections.
+- If the parent entries do not contain enough source custody, return status "unsupported".
+- This is blackboard state, not final deliverable prose.
+
+Return JSON:
+{{
+  "status": "computed|unsupported",
+  "content": "source-grounded authority/evidence analysis",
+  "authority_label": "short clause/provision/standard/evidence label",
+  "citation": "exact citation or source anchor",
+  "evidence": "short evidence summary",
+  "confidence": 0.0
+}}"""
+    return call_model(
+        caller,
+        prompt,
+        max_tokens=4096,
+        audit_context=PromptAuditContext(
+            stage="authority_debt_execution",
+            output_dir=blackboard.output_dir,
+            provenance=[
+                "user.instruction",
+                "swarm.blackboard",
+                "clean.professional_prior_dynamic",
+            ],
+            metadata={"debt_sensor_id": item.get("id")},
+        ),
+    )
+
+
+def _entry_from_authority_payload(
+    blackboard: Blackboard,
+    item: dict,
+    payload: dict,
+    parents: list[Entry],
+) -> Entry | None:
+    if not isinstance(payload, dict) or payload.get("status") != "computed":
+        return None
+    content = str(payload.get("content", "")).strip()
+    citation = str(payload.get("citation", "")).strip()
+    if len(content) < 40 or not citation:
+        return None
+    label = str(payload.get("authority_label", "")).strip()
+    if label:
+        content = f"{content}\nAuthority/evidence anchor: {label} - {citation}"
+    else:
+        content = f"{content}\nAuthority/evidence anchor: {citation}"
+    parent_ids = [entry.id for entry in parents]
+    return Entry(
+        id=gen_entry_id(),
+        type="analysis",
+        content=content,
+        source=_combined_source(parents, str(payload.get("evidence", "")).strip()),
+        created_by=WorkerRecord(
+            "authority_debt_worker",
+            f"debt_sensor:{item.get('id')}",
+            blackboard.iteration,
+        ),
+        confidence=_safe_float(payload.get("confidence", item.get("confidence", 0.75))),
+        verified=None,
+        tags=[
+            "debt_sensor",
+            "debt_type:authority",
+            f"debt_subtype:{item.get('subtype')}",
+            "missing_work:provide_authority",
+            "lifecycle:transformed",
+            "source_grounded:true",
+        ],
+        status="active",
+        supports_entries=parent_ids,
+    )
 
 
 def execute_severity_debt_items(
@@ -825,6 +1049,8 @@ def _debt_sensor_mode() -> str:
         modes.append("source_object")
     if severity_debt_execute_enabled():
         modes.append("severity")
+    if authority_debt_execute_enabled():
+        modes.append("authority")
     if modes:
         return "execute_" + "_and_".join(modes) + "_debt"
     return "materialize_gaps"
@@ -891,6 +1117,13 @@ def _relation_item_executable(parents: list[Entry]) -> bool:
 
 def _severity_item_executable(parents: list[Entry]) -> bool:
     return any(entry.source and entry.source.document for entry in parents)
+
+
+def _authority_item_executable(parents: list[Entry]) -> bool:
+    return any(
+        entry.source and entry.source.document and entry.source.evidence
+        for entry in parents
+    )
 
 
 def _combined_source(parents: list[Entry], evidence: str) -> EntrySource | None:

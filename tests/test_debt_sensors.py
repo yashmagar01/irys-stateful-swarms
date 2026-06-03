@@ -3,6 +3,7 @@ import json
 from src.swarm.blackboard import Blackboard
 from src.swarm.debt_sensors import (
     debt_sensor_items_to_gap_entries,
+    execute_authority_debt_items,
     execute_relation_debt_items,
     execute_severity_debt_items,
     execute_source_object_debt_items,
@@ -507,3 +508,134 @@ def test_run_debt_sensors_executes_severity_without_gap(tmp_path, monkeypatch):
     assert "severity:high" in created.tags
     written = json.loads((tmp_path / "swarm" / "debt_sensors.json").read_text())
     assert written["severity_execution_summary"]["entries_created"] == 1
+
+
+def test_execute_authority_debt_items_creates_analysis_entry(tmp_path, monkeypatch):
+    monkeypatch.setenv("SWARM_AUTHORITY_DEBT_EXECUTE", "1")
+    blackboard = Blackboard(
+        task_instruction="Review source support.",
+        output_dir=str(tmp_path),
+        entries=[
+            Entry(
+                id="e1",
+                type="analysis",
+                content="The contract creates a termination-for-convenience issue.",
+                source=EntrySource(
+                    document="msa.docx",
+                    section="Section 12.4",
+                    evidence="Customer may terminate for convenience on 30 days notice.",
+                ),
+            ),
+        ],
+    )
+    items = normalize_debt_sensor_items([{
+        "type": "authority",
+        "subtype": "clause_reference_needed",
+        "reason": "Tie the termination issue to the exact clause.",
+        "parent_entry_ids": ["e1"],
+        "confidence": 0.9,
+    }])
+    caller = SequenceCaller([json.dumps({
+        "status": "computed",
+        "content": "The termination issue is grounded in Section 12.4 of the MSA.",
+        "authority_label": "MSA Section 12.4",
+        "citation": "msa.docx Section 12.4",
+        "evidence": "Customer may terminate for convenience on 30 days notice.",
+        "confidence": 0.9,
+    })])
+
+    report, tokens = execute_authority_debt_items(blackboard, caller, items)
+
+    assert tokens == 30
+    assert report["summary"]["entries_created"] == 1
+    assert report["items"][0]["status"] == "authority_executed"
+    entry = report["entries"][0]
+    assert entry.type == "analysis"
+    assert entry.supports_entries == ["e1"]
+    assert "debt_type:authority" in entry.tags
+    assert "missing_work:provide_authority" in entry.tags
+    assert "Authority/evidence anchor: MSA Section 12.4 - msa.docx Section 12.4" in entry.content
+
+
+def test_execute_authority_debt_requires_source_evidence():
+    blackboard = Blackboard(
+        task_instruction="Review source support.",
+        entries=[
+            Entry(
+                id="e1",
+                type="analysis",
+                content="The contract creates a termination issue.",
+                source=EntrySource(document="msa.docx", section="Section 12.4", evidence=""),
+            ),
+        ],
+    )
+    items = normalize_debt_sensor_items([{
+        "type": "authority",
+        "subtype": "evidence_anchor_needed",
+        "reason": "Tie the conclusion to source evidence.",
+        "parent_entry_ids": ["e1"],
+        "confidence": 0.9,
+    }])
+    caller = SequenceCaller(['{"status":"computed","content":"Should not run."}'])
+
+    report, tokens = execute_authority_debt_items(blackboard, caller, items)
+
+    assert tokens == 0
+    assert report["entries"] == []
+    assert report["items"][0]["status"] == "diagnostic_only"
+    assert report["items"][0]["execution_error"] == "authority_requires_source_backed_parent"
+    assert caller.prompts == []
+
+
+def test_run_debt_sensors_executes_authority_without_gap(tmp_path, monkeypatch):
+    monkeypatch.setenv("SWARM_ENABLE_AUTHORITY_DEBT", "1")
+    monkeypatch.setenv("SWARM_AUTHORITY_DEBT_EXECUTE", "1")
+    monkeypatch.setenv("SWARM_PROMPT_AUDIT", "1")
+    blackboard = Blackboard(
+        task_instruction="Review source support.",
+        output_dir=str(tmp_path),
+        entries=[
+            Entry(
+                id="e1",
+                type="analysis",
+                content="The contract creates a termination-for-convenience issue.",
+                source=EntrySource(
+                    document="msa.docx",
+                    section="Section 12.4",
+                    evidence="Customer may terminate for convenience on 30 days notice.",
+                ),
+            ),
+        ],
+    )
+    caller = SequenceCaller([
+        json.dumps({
+            "items": [{
+                "type": "authority",
+                "subtype": "clause_reference_needed",
+                "reason": "Tie the termination issue to the exact clause.",
+                "parent_entry_ids": ["e1"],
+                "confidence": 0.9,
+            }]
+        }),
+        json.dumps({
+            "status": "computed",
+            "content": "The termination issue is grounded in Section 12.4 of the MSA.",
+            "authority_label": "MSA Section 12.4",
+            "citation": "msa.docx Section 12.4",
+            "evidence": "Customer may terminate for convenience on 30 days notice.",
+            "confidence": 0.9,
+        }),
+    ])
+
+    report, tokens = run_debt_sensors(blackboard, {}, caller)
+
+    assert tokens == 60
+    assert report["mode"] == "execute_authority_debt"
+    assert report["created_gap_entry_ids"] == []
+    assert len(report["created_authority_entry_ids"]) == 1
+    assert len(blackboard.entries) == 2
+    created = blackboard.find_entry(report["created_authority_entry_ids"][0])
+    assert created is not None
+    assert "debt_type:authority" in created.tags
+    written = json.loads((tmp_path / "swarm" / "debt_sensors.json").read_text())
+    assert written["authority_execution_summary"]["entries_created"] == 1
