@@ -4,6 +4,7 @@ from src.swarm.blackboard import Blackboard
 from src.swarm.debt_sensors import (
     debt_sensor_items_to_gap_entries,
     execute_relation_debt_items,
+    execute_severity_debt_items,
     execute_source_object_debt_items,
     normalize_debt_sensor_items,
     run_debt_sensors,
@@ -384,3 +385,125 @@ def test_run_debt_sensors_executes_source_object_without_gap(tmp_path, monkeypat
     assert "debt_type:source_object" in created.tags
     written = json.loads((tmp_path / "swarm" / "debt_sensors.json").read_text())
     assert written["source_object_execution_summary"]["entries_created"] == 1
+
+
+def test_execute_severity_debt_items_creates_analysis_entry(tmp_path, monkeypatch):
+    monkeypatch.setenv("SWARM_SEVERITY_DEBT_EXECUTE", "1")
+    blackboard = Blackboard(
+        task_instruction="Review operational risks.",
+        output_dir=str(tmp_path),
+        entries=[
+            Entry(
+                id="e1",
+                type="analysis",
+                content="The contract omits any backup vendor for critical hosting services.",
+                source=EntrySource(document="msa.docx", section="2", evidence="No backup vendor"),
+            ),
+        ],
+    )
+    items = normalize_debt_sensor_items([{
+        "type": "severity",
+        "subtype": "risk_without_severity",
+        "reason": "Assign severity and action for missing backup vendor.",
+        "parent_entry_ids": ["e1"],
+        "confidence": 0.88,
+    }])
+    caller = SequenceCaller([json.dumps({
+        "status": "computed",
+        "content": "The missing backup vendor is a high severity continuity risk because critical hosting has no fallback.",
+        "severity": "high",
+        "recommendation": "Require a named backup vendor or disaster-recovery service level.",
+        "evidence": "No backup vendor",
+        "confidence": 0.87,
+    })])
+
+    report, tokens = execute_severity_debt_items(blackboard, caller, items)
+
+    assert tokens == 30
+    assert report["summary"]["entries_created"] == 1
+    assert report["items"][0]["status"] == "severity_executed"
+    entry = report["entries"][0]
+    assert entry.type == "analysis"
+    assert entry.supports_entries == ["e1"]
+    assert "debt_type:severity" in entry.tags
+    assert "severity:high" in entry.tags
+    assert "Recommended action" in entry.content
+
+
+def test_execute_severity_debt_requires_source_backed_parent():
+    blackboard = Blackboard(
+        task_instruction="Review operational risks.",
+        entries=[
+            Entry(
+                id="e1",
+                type="analysis",
+                content="Unsupported risk statement.",
+            ),
+        ],
+    )
+    items = normalize_debt_sensor_items([{
+        "type": "severity",
+        "subtype": "risk_without_severity",
+        "reason": "Assign severity to unsupported risk.",
+        "parent_entry_ids": ["e1"],
+        "confidence": 0.88,
+    }])
+    caller = SequenceCaller(['{"status":"computed","content":"Should not run."}'])
+
+    report, tokens = execute_severity_debt_items(blackboard, caller, items)
+
+    assert tokens == 0
+    assert report["entries"] == []
+    assert report["items"][0]["status"] == "diagnostic_only"
+    assert report["items"][0]["execution_error"] == "severity_requires_source_backed_parent"
+    assert caller.prompts == []
+
+
+def test_run_debt_sensors_executes_severity_without_gap(tmp_path, monkeypatch):
+    monkeypatch.setenv("SWARM_ENABLE_SEVERITY_DEBT", "1")
+    monkeypatch.setenv("SWARM_SEVERITY_DEBT_EXECUTE", "1")
+    monkeypatch.setenv("SWARM_PROMPT_AUDIT", "1")
+    blackboard = Blackboard(
+        task_instruction="Review operational risks.",
+        output_dir=str(tmp_path),
+        entries=[
+            Entry(
+                id="e1",
+                type="analysis",
+                content="The contract omits any backup vendor for critical hosting services.",
+                source=EntrySource(document="msa.docx", section="2", evidence="No backup vendor"),
+            ),
+        ],
+    )
+    caller = SequenceCaller([
+        json.dumps({
+            "items": [{
+                "type": "severity",
+                "subtype": "risk_without_severity",
+                "reason": "Assign severity and action for missing backup vendor.",
+                "parent_entry_ids": ["e1"],
+                "confidence": 0.88,
+            }]
+        }),
+        json.dumps({
+            "status": "computed",
+            "content": "The missing backup vendor is a high severity continuity risk because critical hosting has no fallback.",
+            "severity": "high",
+            "recommendation": "Require a named backup vendor or disaster-recovery service level.",
+            "evidence": "No backup vendor",
+            "confidence": 0.87,
+        }),
+    ])
+
+    report, tokens = run_debt_sensors(blackboard, {}, caller)
+
+    assert tokens == 60
+    assert report["mode"] == "execute_severity_debt"
+    assert report["created_gap_entry_ids"] == []
+    assert len(report["created_severity_entry_ids"]) == 1
+    assert len(blackboard.entries) == 2
+    created = blackboard.find_entry(report["created_severity_entry_ids"][0])
+    assert created is not None
+    assert "severity:high" in created.tags
+    written = json.loads((tmp_path / "swarm" / "debt_sensors.json").read_text())
+    assert written["severity_execution_summary"]["entries_created"] == 1

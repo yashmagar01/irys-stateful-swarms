@@ -13,7 +13,11 @@ from .worker_dispatch import begin_call_model_usage, call_model, end_call_model_
 
 
 def debt_sensors_enabled() -> bool:
-    return relation_debt_enabled() or source_object_debt_enabled()
+    return (
+        relation_debt_enabled()
+        or source_object_debt_enabled()
+        or severity_debt_enabled()
+    )
 
 
 def relation_debt_enabled() -> bool:
@@ -22,6 +26,10 @@ def relation_debt_enabled() -> bool:
 
 def source_object_debt_enabled() -> bool:
     return _env_on("SWARM_ENABLE_SOURCE_OBJECT_DEBT")
+
+
+def severity_debt_enabled() -> bool:
+    return _env_on("SWARM_ENABLE_SEVERITY_DEBT")
 
 
 def debt_sensors_detect_only() -> bool:
@@ -34,6 +42,10 @@ def relation_debt_execute_enabled() -> bool:
 
 def source_object_debt_execute_enabled() -> bool:
     return _env_on("SWARM_SOURCE_OBJECT_DEBT_EXECUTE")
+
+
+def severity_debt_execute_enabled() -> bool:
+    return _env_on("SWARM_SEVERITY_DEBT_EXECUTE")
 
 
 def run_debt_sensors(
@@ -54,6 +66,10 @@ def run_debt_sensors(
             source_items, tokens = detect_source_object_debts(blackboard, seed, caller)
             total_tokens += tokens
             items.extend(source_items)
+        if severity_debt_enabled():
+            severity_items, tokens = detect_severity_debts(blackboard, seed, caller)
+            total_tokens += tokens
+            items.extend(severity_items)
 
         normalized_items = normalize_debt_sensor_items(items)
         report = {
@@ -84,14 +100,27 @@ def run_debt_sensors(
                 report["items"] = source_report["items"]
                 report["source_object_execution_summary"] = source_report["summary"]
                 source_entries = source_report["entries"]
-                if source_entries:
-                    blackboard.add_entries_batch(source_entries)
+            if source_entries:
+                blackboard.add_entries_batch(source_entries)
+
+            severity_entries: list[Entry] = []
+            if severity_debt_execute_enabled():
+                severity_report, severity_tokens = execute_severity_debt_items(
+                    blackboard, caller, report["items"],
+                )
+                total_tokens += severity_tokens
+                report["items"] = severity_report["items"]
+                report["severity_execution_summary"] = severity_report["summary"]
+                severity_entries = severity_report["entries"]
+                if severity_entries:
+                    blackboard.add_entries_batch(severity_entries)
 
             gap_entries = debt_sensor_items_to_gap_entries(report["items"], blackboard)
             if gap_entries:
                 blackboard.add_entries_batch(gap_entries)
             report["created_relation_entry_ids"] = [entry.id for entry in relation_entries]
             report["created_source_object_entry_ids"] = [entry.id for entry in source_entries]
+            report["created_severity_entry_ids"] = [entry.id for entry in severity_entries]
             report["created_gap_entry_ids"] = [entry.id for entry in gap_entries]
             report["summary"] = summarize_debt_sensor_items(report["items"])
         write_debt_sensor_report(blackboard.output_dir, report)
@@ -205,6 +234,57 @@ Return JSON:
     return raw if isinstance(raw, list) else [], tokens
 
 
+def detect_severity_debts(
+    blackboard: Blackboard,
+    seed: dict,
+    caller: ModelCaller,
+) -> tuple[list[dict], int]:
+    entries = _prioritized_entries(blackboard.entries)
+    prompt = f"""Detect severity/recommendation debt in source-backed blackboard state.
+
+TASK:
+{blackboard.task_instruction}
+
+SEED QUESTIONS:
+{_format_list(seed.get("key_questions", []))}
+
+BLACKBOARD ENTRIES:
+{_render_entries(entries)}
+
+Find only cases where existing source-backed entries identify an issue, conflict,
+defect, exposure, missing term, or operational concern but do not yet state its
+severity, consequence, priority, or concrete recommended action. Do not invent
+new source facts and do not ask for generic advice.
+
+Return JSON:
+{{"items": [
+  {{
+    "type": "severity",
+    "subtype": "risk_without_severity|issue_without_recommendation|priority_needed|consequence_needed",
+    "reason": "specific severity or recommendation work needed",
+    "parent_entry_ids": ["e1"],
+    "confidence": 0.0
+  }}
+]}}"""
+    payload, tokens = call_model(
+        caller,
+        prompt,
+        max_tokens=4096,
+        audit_context=PromptAuditContext(
+            stage="severity_debt_detection",
+            output_dir=blackboard.output_dir,
+            provenance=[
+                "user.instruction",
+                "swarm.seed_generated",
+                "swarm.blackboard",
+                "clean.professional_prior_dynamic",
+            ],
+        ),
+    )
+    raw = payload.get("items", [])
+    return raw if isinstance(raw, list) else [], tokens
+
+
 def normalize_debt_sensor_items(raw_items: list[Any]) -> list[dict]:
     normalized = []
     seen = set()
@@ -212,7 +292,7 @@ def normalize_debt_sensor_items(raw_items: list[Any]) -> list[dict]:
         if not isinstance(raw, dict):
             continue
         item_type = str(raw.get("type", "")).strip()
-        if item_type not in {"relation", "source_object"}:
+        if item_type not in {"relation", "source_object", "severity"}:
             continue
         subtype = str(raw.get("subtype", "")).strip() or "unknown"
         parent_ids = [
@@ -266,7 +346,13 @@ def debt_sensor_items_to_gap_entries(
             continue
         if item.get("type") == "source_object" and item.get("created_entry_ids"):
             continue
-        missing_work = "compare" if item.get("type") == "relation" else "extract_more"
+        if item.get("type") == "severity" and item.get("created_entry_ids"):
+            continue
+        missing_work = {
+            "relation": "compare",
+            "source_object": "extract_more",
+            "severity": "assess_risk",
+        }.get(item.get("type"), "analyze")
         entries.append(Entry(
             id=gen_entry_id(),
             type="gap",
@@ -283,6 +369,145 @@ def debt_sensor_items_to_gap_entries(
             supports_entries=item.get("parent_entry_ids", []),
         ))
     return entries
+
+
+def execute_severity_debt_items(
+    blackboard: Blackboard,
+    caller: ModelCaller,
+    items: list[dict],
+) -> tuple[dict, int]:
+    updated_items = [dict(item) for item in items]
+    total_tokens = 0
+    entries: list[Entry] = []
+    limit = int(os.getenv("SWARM_SEVERITY_DEBT_EXECUTION_LIMIT", "8"))
+    executed = 0
+
+    for item in updated_items:
+        if executed >= limit:
+            break
+        if item.get("type") != "severity" or item.get("status") != "actionable_gap":
+            continue
+        parents = blackboard.get_entries_by_ids(item.get("parent_entry_ids", []))
+        if not _severity_item_executable(parents):
+            item["status"] = "diagnostic_only"
+            item["execution_error"] = "severity_requires_source_backed_parent"
+            continue
+
+        payload, tokens = _run_severity_worker(blackboard, caller, item, parents)
+        total_tokens += tokens
+        entry = _entry_from_severity_payload(blackboard, item, payload, parents)
+        if entry is None:
+            item["status"] = "execution_failed"
+            item["execution_error"] = "worker_returned_no_valid_severity_analysis"
+            continue
+
+        entries.append(entry)
+        item["status"] = "severity_executed"
+        item["created_entry_ids"] = [entry.id]
+        executed += 1
+
+    return {
+        "items": updated_items,
+        "entries": entries,
+        "summary": {
+            "attempted": executed,
+            "entries_created": len(entries),
+            "execution_limit": limit,
+        },
+    }, total_tokens
+
+
+def _run_severity_worker(
+    blackboard: Blackboard,
+    caller: ModelCaller,
+    item: dict,
+    parents: list[Entry],
+) -> tuple[dict, int]:
+    parent_text = "\n".join(_render_entry(parent) for parent in parents)
+    prompt = f"""Execute one severity/recommendation debt item.
+
+TASK:
+{blackboard.task_instruction}
+
+SEVERITY DEBT ITEM:
+{json.dumps(item, indent=2)}
+
+PARENT BLACKBOARD ENTRIES:
+{parent_text}
+
+Rules:
+- Use only the parent blackboard entries shown here.
+- Assign a defensible severity/priority and explain concrete consequence.
+- Give a specific recommended action only when it follows from the parent entries.
+- Do not invent missing source facts, legal standards, or business context.
+- This is blackboard state, not final deliverable prose.
+
+Return JSON:
+{{
+  "status": "computed|unsupported",
+  "content": "source-grounded severity/recommendation analysis",
+  "severity": "critical|high|medium|low",
+  "recommendation": "specific recommended action or null",
+  "evidence": "short evidence summary",
+  "confidence": 0.0
+}}"""
+    return call_model(
+        caller,
+        prompt,
+        max_tokens=4096,
+        audit_context=PromptAuditContext(
+            stage="severity_debt_execution",
+            output_dir=blackboard.output_dir,
+            provenance=[
+                "user.instruction",
+                "swarm.blackboard",
+                "clean.professional_prior_dynamic",
+            ],
+            metadata={"debt_sensor_id": item.get("id")},
+        ),
+    )
+
+
+def _entry_from_severity_payload(
+    blackboard: Blackboard,
+    item: dict,
+    payload: dict,
+    parents: list[Entry],
+) -> Entry | None:
+    if not isinstance(payload, dict) or payload.get("status") != "computed":
+        return None
+    content = str(payload.get("content", "")).strip()
+    severity = str(payload.get("severity", "")).strip().lower()
+    if len(content) < 40 or severity not in {"critical", "high", "medium", "low"}:
+        return None
+    recommendation = payload.get("recommendation")
+    if isinstance(recommendation, str) and recommendation.strip():
+        content = f"{content}\nRecommended action: {recommendation.strip()}"
+    parent_ids = [entry.id for entry in parents]
+    return Entry(
+        id=gen_entry_id(),
+        type="analysis",
+        content=content,
+        source=_combined_source(parents, str(payload.get("evidence", "")).strip()),
+        created_by=WorkerRecord(
+            "severity_debt_worker",
+            f"debt_sensor:{item.get('id')}",
+            blackboard.iteration,
+        ),
+        confidence=_safe_float(payload.get("confidence", item.get("confidence", 0.75))),
+        verified=None,
+        tags=[
+            "debt_sensor",
+            "debt_type:severity",
+            f"debt_subtype:{item.get('subtype')}",
+            f"severity:{severity}",
+            "missing_work:assess_risk",
+            "lifecycle:transformed",
+            "source_grounded:true",
+        ],
+        status="active",
+        supports_entries=parent_ids,
+    )
 
 
 def execute_source_object_debt_items(
@@ -598,6 +823,8 @@ def _debt_sensor_mode() -> str:
         modes.append("relation")
     if source_object_debt_execute_enabled():
         modes.append("source_object")
+    if severity_debt_execute_enabled():
+        modes.append("severity")
     if modes:
         return "execute_" + "_and_".join(modes) + "_debt"
     return "materialize_gaps"
@@ -660,6 +887,10 @@ def _relation_item_executable(parents: list[Entry]) -> bool:
         if entry.source and entry.source.document
     }
     return len(parents) >= 2 and len(documents) >= 2
+
+
+def _severity_item_executable(parents: list[Entry]) -> bool:
+    return any(entry.source and entry.source.document for entry in parents)
 
 
 def _combined_source(parents: list[Entry], evidence: str) -> EntrySource | None:
