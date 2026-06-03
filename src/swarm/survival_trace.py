@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from .verification import value_survives_in_text
+from .verification import extract_verification_targets, value_survives_in_text
 
 
 def write_pending_survival_trace(
@@ -50,6 +50,7 @@ def finalize_survival_trace(output_dir: str | Path,
                             artifact_texts: dict[str, str]) -> dict:
     """Finalize survival trace after deliverable files have been written."""
     out_dir = Path(output_dir)
+    finalize_artifact_placement_trace(out_dir, artifact_texts)
     pending_path = out_dir / "swarm" / "commitment_survival_trace.pending.json"
     if not pending_path.exists():
         return {}
@@ -74,6 +75,41 @@ def finalize_survival_trace(output_dir: str | Path,
     return trace
 
 
+def finalize_artifact_placement_trace(
+    output_dir: str | Path,
+    artifact_texts: dict[str, str],
+) -> dict:
+    """Trace artifact-native commitments after deliverable files are written."""
+    out_dir = Path(output_dir)
+    commitments_path = out_dir / "swarm" / "artifact_commitments.json"
+    if not commitments_path.exists():
+        return {}
+    try:
+        report = json.loads(commitments_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return {}
+
+    items = []
+    for commitment in report.get("items", []):
+        if not isinstance(commitment, dict):
+            continue
+        item = _artifact_commitment_trace_item(commitment, artifact_texts)
+        items.append(item)
+
+    trace = {
+        "schema_version": 1,
+        "items": items,
+        "summary": _summarize_artifact_placements(items),
+    }
+    swarm_dir = out_dir / "swarm"
+    swarm_dir.mkdir(parents=True, exist_ok=True)
+    (swarm_dir / "artifact_placement_trace.json").write_text(
+        json.dumps(trace, indent=2),
+        encoding="utf-8",
+    )
+    return trace
+
+
 def extract_artifact_texts(output_dir: str | Path,
                            deliverable_files: list[str]) -> dict[str, str]:
     output_path = Path(output_dir)
@@ -93,6 +129,97 @@ def extract_artifact_texts(output_dir: str | Path,
         else:
             texts[filename] = path.read_text(encoding="utf-8", errors="ignore")
     return texts
+
+
+def _artifact_commitment_trace_item(
+    commitment: dict,
+    artifact_texts: dict[str, str],
+) -> dict:
+    target_file = str(commitment.get("target_file", "") or "")
+    native_form = str(commitment.get("native_form", "") or "")
+    verification_terms = _artifact_verification_terms(commitment)
+    locations = _artifact_commitment_locations(
+        verification_terms, commitment, artifact_texts,
+    )
+    target_locations = [
+        loc for loc in locations
+        if not target_file or loc.get("file") == target_file
+    ]
+    found_in_target = bool(target_locations)
+    found_elsewhere = bool(locations) and not found_in_target
+    wrong_format = _native_form_wrong_for_target(native_form, target_file)
+    death_mode = None
+    if wrong_format:
+        death_mode = "wrong_format"
+    elif found_in_target:
+        death_mode = None
+    elif found_elsewhere:
+        death_mode = "wrong_file"
+    elif target_file and target_file not in artifact_texts:
+        death_mode = "artifact_missing"
+    else:
+        death_mode = "artifact_missing"
+
+    return {
+        "entry_id": commitment.get("entry_id", ""),
+        "target_file": target_file,
+        "native_form": native_form,
+        "verification_terms": verification_terms,
+        "found_in_target_file": found_in_target,
+        "found_elsewhere": found_elsewhere,
+        "artifact_locations": locations,
+        "death_mode": death_mode,
+        "summary": commitment.get("summary", ""),
+        "source": commitment.get("source", ""),
+    }
+
+
+def _artifact_commitment_locations(
+    verification_terms: list[str],
+    commitment: dict,
+    artifact_texts: dict[str, str],
+) -> list[dict]:
+    if not verification_terms:
+        return []
+    context_terms = _context_terms({
+        "expected_text": commitment.get("summary", ""),
+        "required_inputs": [],
+    })
+    locations = []
+    for filename, text in artifact_texts.items():
+        for term in verification_terms:
+            if value_survives_in_text(term, text, context_terms):
+                locations.append({"file": filename, "evidence": term})
+                break
+    return locations
+
+
+def _artifact_verification_terms(commitment: dict) -> list[str]:
+    terms = []
+    raw_terms = commitment.get("verification_terms", [])
+    if isinstance(raw_terms, list):
+        for term in raw_terms:
+            clean = str(term).strip()
+            if clean and clean not in terms:
+                terms.append(clean)
+    for target in extract_verification_targets(str(commitment.get("summary", ""))):
+        raw = str(target.get("raw", "")).strip()
+        if raw and raw not in terms:
+            terms.append(raw)
+    return terms[:12]
+
+
+def _native_form_wrong_for_target(native_form: str, target_file: str) -> bool:
+    if not native_form or not target_file:
+        return False
+    lower = target_file.lower()
+    if native_form == "workbook_row":
+        return not lower.endswith((".xlsx", ".csv"))
+    if native_form == "slide_bullet":
+        return not lower.endswith(".pptx")
+    if native_form == "drafting_clause":
+        return not any(word in lower for word in ("redline", "markup", "rider", ".docx"))
+    return False
 
 
 def _matching_must_include_ids(created_ids: list[str],
@@ -178,6 +305,28 @@ def _summarize(items: list[dict]) -> dict:
         "artifact_survived": survived,
         "lost": selected - survived,
         "death_modes": death_modes,
+    }
+
+
+def _summarize_artifact_placements(items: list[dict]) -> dict:
+    death_modes: dict[str, int] = {}
+    native_forms: dict[str, int] = {}
+    for item in items:
+        mode = item.get("death_mode")
+        if mode:
+            death_modes[mode] = death_modes.get(mode, 0) + 1
+        native = str(item.get("native_form") or "unknown")
+        native_forms[native] = native_forms.get(native, 0) + 1
+    found_target = sum(1 for item in items if item.get("found_in_target_file"))
+    found_elsewhere = sum(1 for item in items if item.get("found_elsewhere"))
+    return {
+        "selected": len(items),
+        "targeted": sum(1 for item in items if item.get("target_file")),
+        "found_in_target_file": found_target,
+        "found_elsewhere": found_elsewhere,
+        "lost": len(items) - found_target,
+        "death_modes": death_modes,
+        "native_forms": native_forms,
     }
 
 

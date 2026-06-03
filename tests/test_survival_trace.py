@@ -1,6 +1,7 @@
 import json
 
 from src.swarm.survival_trace import (
+    finalize_artifact_placement_trace,
     finalize_survival_trace,
     write_pending_survival_trace,
 )
@@ -69,3 +70,104 @@ def test_pending_trace_file_shape(tmp_path):
     )
     assert data["schema_version"] == 1
     assert data["items"][0]["death_mode"] == "selected_but_not_executed"
+
+
+def test_artifact_placement_trace_marks_target_file_hit(tmp_path):
+    swarm_dir = tmp_path / "swarm"
+    swarm_dir.mkdir()
+    (swarm_dir / "artifact_commitments.json").write_text(json.dumps({
+        "items": [{
+            "entry_id": "e1",
+            "target_file": "model.xlsx",
+            "native_form": "workbook_row",
+            "verification_terms": ["$1,849,900"],
+            "summary": "Net equity calculation must appear in model.xlsx.",
+            "source": "artifact_commitment",
+        }]
+    }), encoding="utf-8")
+
+    trace = finalize_artifact_placement_trace(
+        tmp_path,
+        {"model.xlsx": "# Sheet: Required Calculations\nNet equity is $1,849,900."},
+    )
+
+    item = trace["items"][0]
+    assert item["found_in_target_file"] is True
+    assert item["death_mode"] is None
+    assert trace["summary"]["found_in_target_file"] == 1
+    assert (swarm_dir / "artifact_placement_trace.json").exists()
+
+
+def test_artifact_placement_trace_classifies_wrong_file(tmp_path):
+    swarm_dir = tmp_path / "swarm"
+    swarm_dir.mkdir()
+    (swarm_dir / "artifact_commitments.json").write_text(json.dumps({
+        "items": [{
+            "entry_id": "e1",
+            "target_file": "model.xlsx",
+            "native_form": "workbook_row",
+            "verification_terms": ["$1,849,900"],
+            "summary": "Net equity calculation must appear in model.xlsx.",
+            "source": "artifact_commitment",
+        }]
+    }), encoding="utf-8")
+
+    trace = finalize_artifact_placement_trace(
+        tmp_path,
+        {
+            "memo.docx": "Net equity is $1,849,900.",
+            "model.xlsx": "# Sheet: Required Calculations\n",
+        },
+    )
+
+    assert trace["items"][0]["found_elsewhere"] is True
+    assert trace["items"][0]["death_mode"] == "wrong_file"
+    assert trace["summary"]["death_modes"] == {"wrong_file": 1}
+
+
+def test_artifact_placement_trace_classifies_wrong_native_form(tmp_path):
+    swarm_dir = tmp_path / "swarm"
+    swarm_dir.mkdir()
+    (swarm_dir / "artifact_commitments.json").write_text(json.dumps({
+        "items": [{
+            "entry_id": "e1",
+            "target_file": "memo.docx",
+            "native_form": "workbook_row",
+            "verification_terms": ["$1,849,900"],
+            "summary": "Net equity calculation must appear as a workbook row.",
+            "source": "artifact_commitment",
+        }]
+    }), encoding="utf-8")
+
+    trace = finalize_artifact_placement_trace(
+        tmp_path,
+        {"memo.docx": "Net equity is $1,849,900."},
+    )
+
+    assert trace["items"][0]["death_mode"] == "wrong_format"
+
+
+def test_finalize_survival_trace_also_finalizes_artifact_placements(tmp_path):
+    swarm_dir = tmp_path / "swarm"
+    swarm_dir.mkdir()
+    (swarm_dir / "artifact_commitments.json").write_text(json.dumps({
+        "items": [{
+            "entry_id": "e1",
+            "target_file": "memo.docx",
+            "native_form": "memo_statement",
+            "verification_terms": ["Section 12.4"],
+            "summary": "Termination issue must cite Section 12.4.",
+            "source": "artifact_commitment",
+        }]
+    }), encoding="utf-8")
+
+    trace = finalize_survival_trace(
+        tmp_path,
+        {"memo.docx": "The termination issue is grounded in Section 12.4."},
+    )
+
+    assert trace == {}
+    placement = json.loads(
+        (swarm_dir / "artifact_placement_trace.json").read_text(encoding="utf-8")
+    )
+    assert placement["summary"]["found_in_target_file"] == 1
