@@ -291,7 +291,7 @@ We believe long-context reasoning over complex documents is an important unsolve
 
 ant-irys uses only vanilla API calls and builds its entire understanding from scratch for every task. **This is intentional** — it's the only fair way to benchmark.
 
-In a real production system, a lawyer doesn't start from zero every time. They've read similar agreements before. They know what a SOFR floor is. They remember that last quarter's credit agreement had the same covenant issue. A real agentic system would persist its learnings, build knowledge graphs over time, maintain document indexes, and run background maintenance to keep its understanding current. Over time, the cost per output drops because the system isn't re-extracting the same concepts from scratch.
+A production version of ant-irys would not start from an empty blackboard. It would already have document indexes from prior ingestion, entity graphs built from previous analyses, and analytical findings persisted across sessions. When a user asks a follow-up about the same credit agreement, the system wouldn't re-extract 2,400 entries — they'd already be there. When a new document arrives on an existing deal, the system would reconcile it against what it already knows, flag contradictions, and update its understanding incrementally. Over time, the cost per output drops because the system is extending its knowledge, not rebuilding it.
 
 ant-irys does none of this. Every task starts with an empty blackboard. No prior knowledge. No document memory. No learned patterns from previous tasks. The $1.30/task cost includes re-discovering concepts that a persistent system would already know.
 
