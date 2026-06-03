@@ -138,4 +138,46 @@ def test_verify_source_claims_can_quarantine_risky_claims(tmp_path, monkeypatch)
 
     assert report["mode"] == "audit_and_quarantine"
     assert "## Source Support Caveats" in deliverable
+    assert "SOURCE-CHECK QUARANTINED" in deliverable
     assert "The project uses Kubernetes executors." in deliverable
+
+
+def test_source_claim_quarantine_removes_unsupported_workbook_rows(tmp_path, monkeypatch):
+    monkeypatch.setenv("SWARM_ENABLE_SOURCE_CLAIM_VERIFICATION", "1")
+    monkeypatch.setenv("SWARM_SOURCE_CLAIM_QUARANTINE", "1")
+    blackboard = Blackboard(
+        task_instruction="Prepare workbook.",
+        output_dir=str(tmp_path),
+        entries=[
+            Entry(
+                id="e1",
+                type="observation",
+                content="The source states 74 total incidents.",
+                source=EntrySource(document="ops_report.md", evidence="74 open incidents"),
+                confidence=0.9,
+            )
+        ],
+    )
+    caller = FakeCaller([json.dumps({
+        "claims": [{
+            "claim": "The total incident count per Q3 Incident Report is 142.",
+            "status": "unsupported",
+            "reason": "No source evidence supports 142 incidents.",
+            "severity": "critical",
+        }]
+    })])
+
+    text = (
+        "# Sheet: Workbook Data\n"
+        "Metric | Value | Source\n"
+        "Total incident count per Q3 Incident Report | 142 | Q3 Incident Report\n"
+        "Total incident count per ops_report.md | 74 | ops_report.md"
+    )
+    deliverable, _, report = verify_source_claims(text, blackboard, caller)
+
+    assert report["summary"]["risky_claims"] == 1
+    body, caveats = deliverable.split("## Source Support Caveats", 1)
+    assert "Total incident count per Q3 Incident Report | 142" not in body
+    assert "SOURCE-CHECK QUARANTINED" in body
+    assert "Total incident count per ops_report.md | 74" in body
+    assert "Quarantined unsupported artifact lines: 1" in caveats

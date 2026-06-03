@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from pathlib import Path
 from typing import Any
 
@@ -204,17 +205,93 @@ def _maybe_quarantine_claims(text: str, file_report: dict) -> str:
     ]
     if not risky:
         return text
+    cleaned_text, quarantined_lines = _quarantine_risky_claim_lines(text, risky)
     lines = [
         "## Source Support Caveats",
         "",
         "The following final-output claims need stronger source support before they should be relied on:",
     ]
+    if quarantined_lines:
+        lines.extend([
+            "",
+            f"Quarantined unsupported artifact lines: {quarantined_lines}.",
+        ])
     for claim in risky[:15]:
         lines.append(
             f"- [{claim.get('status')}] {claim.get('claim')} "
             f"({claim.get('reason', '').strip()})"
         )
-    return text.rstrip() + "\n\n" + "\n".join(lines)
+    return cleaned_text.rstrip() + "\n\n" + "\n".join(lines)
+
+
+def _quarantine_risky_claim_lines(text: str, risky_claims: list[dict]) -> tuple[str, int]:
+    output_lines = []
+    quarantined = 0
+    for line in text.splitlines():
+        claim = _matching_risky_claim(line, risky_claims)
+        if claim:
+            quarantined += 1
+            output_lines.append(
+                "[SOURCE-CHECK QUARANTINED: "
+                f"{claim.get('status', 'needs_source')} "
+                "final-output claim removed; see Source Support Caveats]"
+            )
+        else:
+            output_lines.append(line)
+    return "\n".join(output_lines), quarantined
+
+
+def _matching_risky_claim(line: str, risky_claims: list[dict]) -> dict | None:
+    clean_line = line.strip()
+    if not clean_line:
+        return None
+    line_lower = clean_line.lower()
+    for claim in risky_claims:
+        claim_text = str(claim.get("claim", "") or "").strip()
+        if not claim_text:
+            continue
+        claim_lower = claim_text.lower()
+        if claim_lower in line_lower or line_lower in claim_lower:
+            return claim
+        numbers = _claim_numeric_markers(claim_text)
+        words = _claim_word_markers(claim_text)
+        if numbers and all(number.lower() in line_lower for number in numbers):
+            word_hits = sum(1 for word in words if word in line_lower)
+            if word_hits >= min(3, len(words)):
+                return claim
+    return None
+
+
+def _claim_numeric_markers(text: str) -> list[str]:
+    markers = []
+    for match in re.finditer(
+        r"\$?\b\d{1,3}(?:,\d{3})*(?:\.\d+)?%?\b|"
+        r"\b(?:January|February|March|April|May|June|July|August|"
+        r"September|October|November|December)\s+\d{1,2},?\s+\d{4}\b|"
+        r"\bQ[1-4]\b",
+        text,
+        re.IGNORECASE,
+    ):
+        marker = match.group(0).strip()
+        if marker and marker.lower() not in [m.lower() for m in markers]:
+            markers.append(marker)
+    return markers[:8]
+
+
+def _claim_word_markers(text: str) -> list[str]:
+    stop = {
+        "the", "and", "for", "with", "from", "that", "this", "based",
+        "calculated", "total", "count", "per", "is", "as", "of", "to",
+        "through", "source",
+    }
+    markers = []
+    for word in re.findall(r"[A-Za-z][A-Za-z0-9_-]{3,}", text.lower()):
+        if word in stop or word in markers:
+            continue
+        markers.append(word)
+        if len(markers) >= 12:
+            break
+    return markers
 
 
 def _source_grounded_entries(entries: list[Entry]) -> list[Entry]:
