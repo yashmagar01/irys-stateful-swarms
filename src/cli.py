@@ -426,6 +426,7 @@ def _cmd_summarize_lifecycle(args):
     placement = reports["artifact_placement"]
     audit = reports["prompt_audit"]
     maintenance = reports["blackboard_maintenance"]
+    source_claims = reports.get("source_claim_verification", {})
     print(f"Lifecycle tasks: {summary['tasks']}")
     print(
         "Debt selected/actionable/unresolved: "
@@ -443,6 +444,11 @@ def _cmd_summarize_lifecycle(args):
         "Prompt audit records/forbidden hits: "
         f"{audit['records']}/"
         f"{audit['forbidden_provenance_hits'] + audit['forbidden_text_hits']}"
+    )
+    print(
+        "Source claims checked/risky: "
+        f"{source_claims.get('claims_checked', 0)}/"
+        f"{source_claims.get('risky_claims', 0)}"
     )
 
 

@@ -25,6 +25,7 @@ def aggregate_lifecycle_reports(results_dir: str | Path) -> dict:
             "artifact_placement": _empty_artifact_summary(),
             "prompt_audit": _empty_prompt_audit_summary(),
             "blackboard_maintenance": _empty_maintenance_summary(),
+            "source_claim_verification": _empty_source_claim_summary(),
         },
     }
 
@@ -77,6 +78,16 @@ def aggregate_lifecycle_reports(results_dir: str | Path) -> dict:
                 task_id,
                 maintenance,
                 summary["reports"]["blackboard_maintenance"],
+                task_rows,
+            )
+
+        source_claims = _load_json(swarm_dir / "source_claim_verification.json")
+        if source_claims:
+            task_seen = True
+            _aggregate_source_claims(
+                task_id,
+                source_claims,
+                summary["reports"]["source_claim_verification"],
                 task_rows,
             )
 
@@ -339,6 +350,39 @@ def _aggregate_maintenance(
     ))
 
 
+def _aggregate_source_claims(
+    task_id: str,
+    report: dict,
+    target: dict,
+    rows: list[dict],
+) -> None:
+    report_summary = report.get("summary", {})
+    if not isinstance(report_summary, dict):
+        report_summary = {}
+    files_checked = _int(report_summary.get("files_checked"), 0)
+    claims_checked = _int(report_summary.get("claims_checked"), 0)
+    risky_claims = _int(report_summary.get("risky_claims"), 0)
+    status_counts = _dict_ints(report_summary.get("status_counts"))
+    severity_counts = _dict_ints(report_summary.get("severity_counts"))
+
+    target["tasks"] += 1
+    target["files_checked"] += files_checked
+    target["claims_checked"] += claims_checked
+    target["risky_claims"] += risky_claims
+    _merge_counts(target["status_counts"], status_counts)
+    _merge_counts(target["severity_counts"], severity_counts)
+
+    rows.append(_row(
+        task_id,
+        "source_claim_verification",
+        selected=claims_checked,
+        unresolved=risky_claims,
+        type_counts=status_counts,
+        status_counts=severity_counts,
+        notes=f"mode={report.get('mode', '')}; files_checked={files_checked}",
+    ))
+
+
 def _empty_debt_summary() -> dict:
     return {
         "tasks": 0,
@@ -402,6 +446,17 @@ def _empty_maintenance_summary() -> dict:
         "consolidations_selected": 0,
         "entries_created": 0,
         "entries_superseded": 0,
+    }
+
+
+def _empty_source_claim_summary() -> dict:
+    return {
+        "tasks": 0,
+        "files_checked": 0,
+        "claims_checked": 0,
+        "risky_claims": 0,
+        "status_counts": {},
+        "severity_counts": {},
     }
 
 

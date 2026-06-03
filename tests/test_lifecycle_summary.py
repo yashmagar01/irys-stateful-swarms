@@ -78,6 +78,16 @@ def test_aggregate_lifecycle_reports_writes_run_summary(tmp_path):
             "entries_superseded": 0,
         },
     }), encoding="utf-8")
+    (swarm_dir / "source_claim_verification.json").write_text(json.dumps({
+        "mode": "audit_only",
+        "summary": {
+            "files_checked": 1,
+            "claims_checked": 4,
+            "risky_claims": 2,
+            "status_counts": {"supported": 2, "unsupported": 1, "overstated": 1},
+            "severity_counts": {"high": 2, "medium": 2},
+        },
+    }), encoding="utf-8")
 
     summary = aggregate_lifecycle_reports(tmp_path)
 
@@ -92,6 +102,8 @@ def test_aggregate_lifecycle_reports_writes_run_summary(tmp_path):
     assert summary["reports"]["artifact_placement"]["lost"] == 1
     assert summary["reports"]["prompt_audit"]["forbidden_text_hits"] == 1
     assert summary["reports"]["blackboard_maintenance"]["entries_created"] == 2
+    assert summary["reports"]["source_claim_verification"]["claims_checked"] == 4
+    assert summary["reports"]["source_claim_verification"]["risky_claims"] == 2
     assert (tmp_path / "lifecycle_summary.json").exists()
     assert (tmp_path / "lifecycle_summary.csv").exists()
 

@@ -29,6 +29,10 @@ from .models import (
 from .orchestrator import run_orchestrator
 from .section_index import build_section_index
 from .signals import prioritize_signals
+from .source_claims import (
+    source_claim_verification_enabled,
+    verify_source_claims,
+)
 from .state_conversion import (
     coverage_report_to_entries, run_plan_coverage_review,
     run_plan_coverage_state_repair, run_state_conversion_review,
@@ -422,6 +426,12 @@ def run_swarm(task: Task, caller: ModelCaller, *,
             blackboard, must_include, synth_caller,
         )
     blackboard.add_tokens_from_last_call(synth_tokens)
+
+    if source_claim_verification_enabled():
+        deliverable, claim_tokens, _ = verify_source_claims(
+            deliverable, blackboard, synth_caller,
+        )
+        blackboard.add_tokens_from_last_call(claim_tokens)
 
     blackboard.save_snapshot("final")
 
