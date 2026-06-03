@@ -349,7 +349,7 @@ A production document analysis system would combine swarm coordination (ant-irys
 
 ant-irys was validated on the Harvey LAB benchmark, but the underlying architecture — task decomposition, blackboard state-building, multi-agent coordination — is not legal-specific. We're actively adapting the system to run across multiple benchmarks spanning different fields of knowledge work. The swarm framework is being generalized with benchmark adapters so we can evaluate against diverse task types and domains.
 
-We're a small team, and benchmark runs at scale take real compute and time. We'll be releasing results as we complete them. If you're working on benchmarks for knowledge-intensive tasks — document analysis, research synthesis, compliance, due diligence, or other professional workflows — and would be interested in partnering or having ant-irys evaluated on your benchmark, we'd love to hear from you. Reach out at [devansh@irys.ai](mailto:devansh@irys.ai).
+We're a small team, and benchmark runs at scale take real compute and time. We'll be releasing results as we complete them. If you're working on benchmarks for knowledge-intensive tasks — document analysis, research synthesis, compliance, due diligence, or other professional workflows — and would be interested in partnering or having ant-irys evaluated on your benchmark, we'd love to hear from you. Reach out at [devansh@iqidis.ai](mailto:devansh@iqidis.ai).
 
 ## Installation
 
