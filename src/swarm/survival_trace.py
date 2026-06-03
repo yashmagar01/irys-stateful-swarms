@@ -148,11 +148,18 @@ def _artifact_commitment_trace_item(
     found_in_target = bool(target_locations)
     found_elsewhere = bool(locations) and not found_in_target
     wrong_format = _native_form_wrong_for_target(native_form, target_file)
+    target_text = artifact_texts.get(target_file, "") if target_file else ""
+    native_check = _native_form_satisfaction(
+        native_form, target_file, target_text, target_locations,
+    )
+    native_satisfied = bool(native_check.get("satisfied"))
     death_mode = None
     if wrong_format:
         death_mode = "wrong_format"
-    elif found_in_target:
+    elif found_in_target and native_satisfied:
         death_mode = None
+    elif found_in_target:
+        death_mode = "native_form_missing"
     elif found_elsewhere:
         death_mode = "wrong_file"
     elif target_file and target_file not in artifact_texts:
@@ -170,6 +177,8 @@ def _artifact_commitment_trace_item(
         "required_source_refs": commitment.get("required_source_refs", commitment.get("source_refs", [])),
         "verification_terms": verification_terms,
         "found_in_target_file": found_in_target,
+        "native_form_satisfied": native_satisfied,
+        "native_form_checks": native_check.get("checks", []),
         "found_elsewhere": found_elsewhere,
         "artifact_locations": locations,
         "death_mode": death_mode,
@@ -193,9 +202,92 @@ def _artifact_commitment_locations(
     for filename, text in artifact_texts.items():
         for term in verification_terms:
             if value_survives_in_text(term, text, context_terms):
-                locations.append({"file": filename, "evidence": term})
+                location = {"file": filename, "evidence": term}
+                line = _first_matching_line(term, text, context_terms)
+                if line:
+                    location["line"] = line
+                locations.append(location)
                 break
     return locations
+
+
+def _native_form_satisfaction(
+    native_form: str,
+    target_file: str,
+    target_text: str,
+    target_locations: list[dict],
+) -> dict:
+    checks = []
+    if not native_form:
+        return {"satisfied": bool(target_locations), "checks": checks}
+    if not target_locations:
+        return {
+            "satisfied": False,
+            "checks": [{"name": "verification_term_in_target", "passed": False}],
+        }
+
+    lines = [str(loc.get("line", "") or "") for loc in target_locations]
+    lower_file = target_file.lower()
+
+    if native_form == "workbook_row":
+        has_sheet = lower_file.endswith(".csv") or any(
+            line.strip().lower().startswith("# sheet:")
+            for line in target_text.splitlines()
+        )
+        has_row = any(_is_workbook_row_line(line, lower_file) for line in lines)
+        checks.extend([
+            {"name": "workbook_sheet_present", "passed": has_sheet},
+            {"name": "verification_term_in_table_row", "passed": has_row},
+        ])
+        return {"satisfied": has_sheet and has_row, "checks": checks}
+
+    if native_form == "slide_bullet":
+        has_slide = any(
+            line.strip().lower().startswith("# slide")
+            for line in target_text.splitlines()
+        )
+        checks.append({"name": "slide_marker_present", "passed": has_slide})
+        return {"satisfied": has_slide, "checks": checks}
+
+    if native_form == "drafting_clause":
+        target_lower = target_text.lower()
+        has_drafting_marker = any(
+            marker in target_lower
+            for marker in (
+                "revised language", "drafting note", "redline",
+                "replace", "insert", "delete", "clause",
+            )
+        )
+        checks.append({
+            "name": "drafting_marker_present",
+            "passed": has_drafting_marker,
+        })
+        return {"satisfied": has_drafting_marker, "checks": checks}
+
+    checks.append({"name": "verification_term_in_target", "passed": True})
+    return {"satisfied": True, "checks": checks}
+
+
+def _is_workbook_row_line(line: str, lower_file: str) -> bool:
+    stripped = line.strip()
+    if not stripped or stripped.lower().startswith("# sheet:"):
+        return False
+    if "|" in stripped:
+        return True
+    if lower_file.endswith(".csv") and "," in stripped:
+        return True
+    return False
+
+
+def _first_matching_line(
+    term: str,
+    text: str,
+    context_terms: list[str],
+) -> str:
+    for line in text.splitlines():
+        if value_survives_in_text(term, line, context_terms):
+            return line.strip()[:500]
+    return ""
 
 
 def _artifact_verification_terms(commitment: dict) -> list[str]:
@@ -322,13 +414,15 @@ def _summarize_artifact_placements(items: list[dict]) -> dict:
         native = str(item.get("native_form") or "unknown")
         native_forms[native] = native_forms.get(native, 0) + 1
     found_target = sum(1 for item in items if item.get("found_in_target_file"))
+    native_satisfied = sum(1 for item in items if item.get("native_form_satisfied"))
     found_elsewhere = sum(1 for item in items if item.get("found_elsewhere"))
     return {
         "selected": len(items),
         "targeted": sum(1 for item in items if item.get("target_file")),
         "found_in_target_file": found_target,
+        "native_form_satisfied": native_satisfied,
         "found_elsewhere": found_elsewhere,
-        "lost": len(items) - found_target,
+        "lost": len(items) - native_satisfied,
         "death_modes": death_modes,
         "native_forms": native_forms,
     }

@@ -94,11 +94,12 @@ def test_artifact_placement_trace_marks_target_file_hit(tmp_path):
 
     trace = finalize_artifact_placement_trace(
         tmp_path,
-        {"model.xlsx": "# Sheet: Required Calculations\nNet equity is $1,849,900."},
+        {"model.xlsx": "# Sheet: Required Calculations\nMetric | Result\nNet equity | $1,849,900"},
     )
 
     item = trace["items"][0]
     assert item["found_in_target_file"] is True
+    assert item["native_form_satisfied"] is True
     assert item["death_mode"] is None
     assert item["artifact_function"] == "workbook_calculation"
     assert item["satisfaction_conditions"] == [
@@ -106,7 +107,37 @@ def test_artifact_placement_trace_marks_target_file_hit(tmp_path):
     ]
     assert item["required_source_refs"] == [{"document": "schedule.xlsx"}]
     assert trace["summary"]["found_in_target_file"] == 1
+    assert trace["summary"]["native_form_satisfied"] == 1
     assert (swarm_dir / "artifact_placement_trace.json").exists()
+
+
+def test_artifact_placement_trace_detects_native_form_missing(tmp_path):
+    swarm_dir = tmp_path / "swarm"
+    swarm_dir.mkdir()
+    (swarm_dir / "artifact_commitments.json").write_text(json.dumps({
+        "items": [{
+            "entry_id": "e1",
+            "target_file": "model.xlsx",
+            "native_form": "workbook_row",
+            "verification_terms": ["$1,849,900"],
+            "summary": "Net equity calculation must appear in model.xlsx.",
+            "source": "artifact_commitment",
+        }]
+    }), encoding="utf-8")
+
+    trace = finalize_artifact_placement_trace(
+        tmp_path,
+        {"model.xlsx": "# Sheet: Required Calculations\nNet equity is $1,849,900."},
+    )
+
+    item = trace["items"][0]
+    assert item["found_in_target_file"] is True
+    assert item["native_form_satisfied"] is False
+    assert item["death_mode"] == "native_form_missing"
+    assert trace["summary"]["found_in_target_file"] == 1
+    assert trace["summary"]["native_form_satisfied"] == 0
+    assert trace["summary"]["lost"] == 1
+    assert trace["summary"]["death_modes"] == {"native_form_missing": 1}
 
 
 def test_artifact_placement_trace_classifies_wrong_file(tmp_path):
