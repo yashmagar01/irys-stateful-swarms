@@ -4,10 +4,12 @@ from src.swarm.blackboard import Blackboard
 from src.swarm.debt_sensors import (
     debt_sensor_items_to_gap_entries,
     execute_relation_debt_items,
+    execute_source_object_debt_items,
     normalize_debt_sensor_items,
     run_debt_sensors,
 )
-from src.swarm.models import Entry, EntrySource, ModelResult
+from src.swarm.models import DocumentStatus, Entry, EntrySource, ModelResult
+from src.swarm.section_index import build_section_index
 
 
 class SequenceCaller:
@@ -245,3 +247,140 @@ def test_run_debt_sensors_executes_relation_without_gap(tmp_path, monkeypatch):
     assert created.type == "analysis"
     written = json.loads((tmp_path / "swarm" / "debt_sensors.json").read_text())
     assert written["relation_execution_summary"]["entries_created"] == 1
+
+
+def test_execute_source_object_debt_items_rereads_target_document(tmp_path, monkeypatch):
+    monkeypatch.setenv("SWARM_SOURCE_OBJECT_DEBT_EXECUTE", "1")
+    text = "# Schedule A\nRow 1: Alpha LLC owes $10.\nRow 2: Beta LLC owes $20."
+    blackboard = Blackboard(
+        task_instruction="Extract all schedule rows.",
+        output_dir=str(tmp_path),
+        documents=[
+            DocumentStatus(
+                id="d1",
+                name="schedule.md",
+                headings=["Schedule A"],
+                sections_unread=["Schedule A"],
+                section_index=build_section_index(text),
+                text=text,
+            )
+        ],
+    )
+    items = normalize_debt_sensor_items([{
+        "type": "source_object",
+        "subtype": "missing_population",
+        "reason": "Need all rows from Schedule A.",
+        "target_documents": ["schedule.md"],
+        "confidence": 0.86,
+    }])
+    caller = SequenceCaller([json.dumps({
+        "status": "found",
+        "findings": [
+            {
+                "type": "observation",
+                "content": "Schedule A row 1 states Alpha LLC owes $10.",
+                "source_document": "schedule.md",
+                "source_section": "Schedule A",
+                "evidence": "Row 1: Alpha LLC owes $10.",
+                "confidence": 0.92,
+            },
+            {
+                "type": "observation",
+                "content": "Schedule A row 2 states Beta LLC owes $20.",
+                "source_document": "schedule.md",
+                "source_section": "Schedule A",
+                "evidence": "Row 2: Beta LLC owes $20.",
+                "confidence": 0.92,
+            },
+        ],
+    })])
+
+    report, tokens = execute_source_object_debt_items(blackboard, caller, items)
+
+    assert tokens == 30
+    assert report["summary"]["entries_created"] == 2
+    assert report["items"][0]["status"] == "source_object_executed"
+    assert report["items"][0]["created_entry_ids"] == [
+        report["entries"][0].id,
+        report["entries"][1].id,
+    ]
+    assert report["entries"][0].source.document == "schedule.md"
+    assert "SOURCE EXCERPTS" in caller.prompts[0]
+    assert "Row 2: Beta LLC owes $20." in caller.prompts[0]
+
+
+def test_execute_source_object_debt_items_requires_source_text():
+    blackboard = Blackboard(task_instruction="Extract all schedule rows.")
+    items = normalize_debt_sensor_items([{
+        "type": "source_object",
+        "subtype": "missing_population",
+        "reason": "Need all rows from Schedule A.",
+        "target_documents": ["missing.md"],
+        "confidence": 0.86,
+    }])
+    caller = SequenceCaller(['{"status":"found","findings":[]}'])
+
+    report, tokens = execute_source_object_debt_items(blackboard, caller, items)
+
+    assert tokens == 0
+    assert report["entries"] == []
+    assert report["items"][0]["status"] == "diagnostic_only"
+    assert report["items"][0]["execution_error"] == "no_target_source_document"
+    assert caller.prompts == []
+
+
+def test_run_debt_sensors_executes_source_object_without_gap(tmp_path, monkeypatch):
+    monkeypatch.setenv("SWARM_ENABLE_SOURCE_OBJECT_DEBT", "1")
+    monkeypatch.setenv("SWARM_SOURCE_OBJECT_DEBT_EXECUTE", "1")
+    monkeypatch.setenv("SWARM_PROMPT_AUDIT", "1")
+    text = "# Schedule A\nRow 1: Alpha LLC owes $10."
+    blackboard = Blackboard(
+        task_instruction="Extract all schedule rows.",
+        output_dir=str(tmp_path),
+        documents=[
+            DocumentStatus(
+                id="d1",
+                name="schedule.md",
+                headings=["Schedule A"],
+                sections_unread=["Schedule A"],
+                section_index=build_section_index(text),
+                text=text,
+            )
+        ],
+    )
+    caller = SequenceCaller([
+        json.dumps({
+            "items": [{
+                "type": "source_object",
+                "subtype": "missing_population",
+                "reason": "Need all rows from Schedule A.",
+                "target_documents": ["schedule.md"],
+                "confidence": 0.86,
+            }]
+        }),
+        json.dumps({
+            "status": "found",
+            "findings": [{
+                "type": "observation",
+                "content": "Schedule A row 1 states Alpha LLC owes $10.",
+                "source_document": "schedule.md",
+                "source_section": "Schedule A",
+                "evidence": "Row 1: Alpha LLC owes $10.",
+                "confidence": 0.92,
+            }],
+        }),
+    ])
+
+    report, tokens = run_debt_sensors(blackboard, {}, caller)
+
+    assert tokens == 60
+    assert report["mode"] == "execute_source_object_debt"
+    assert report["created_gap_entry_ids"] == []
+    assert len(report["created_source_object_entry_ids"]) == 1
+    assert len(blackboard.entries) == 1
+    created = blackboard.find_entry(report["created_source_object_entry_ids"][0])
+    assert created is not None
+    assert created.type == "observation"
+    assert "debt_type:source_object" in created.tags
+    written = json.loads((tmp_path / "swarm" / "debt_sensors.json").read_text())
+    assert written["source_object_execution_summary"]["entries_created"] == 1
