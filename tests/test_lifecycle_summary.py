@@ -1,0 +1,128 @@
+import json
+
+from src.swarm.lifecycle_summary import aggregate_lifecycle_reports
+
+
+def test_aggregate_lifecycle_reports_writes_run_summary(tmp_path):
+    task_dir = tmp_path / "repo_alpha" / "hard_question"
+    swarm_dir = task_dir / "swarm"
+    swarm_dir.mkdir(parents=True)
+
+    (swarm_dir / "debt_sensors.json").write_text(json.dumps({
+        "mode": "execute_relation_and_severity_debt",
+        "items": [
+            {
+                "id": "ds_001",
+                "type": "relation",
+                "status": "relation_executed",
+                "created_entry_ids": ["e10"],
+            },
+            {
+                "id": "ds_002",
+                "type": "severity",
+                "status": "actionable_gap",
+            },
+        ],
+        "summary": {
+            "selected": 2,
+            "actionable": 1,
+            "type_counts": {"relation": 1, "severity": 1},
+            "status_counts": {"relation_executed": 1, "actionable_gap": 1},
+        },
+        "relation_execution_summary": {"entries_created": 1},
+        "severity_execution_summary": {"entries_created": 0},
+        "created_gap_entry_ids": ["e11"],
+    }), encoding="utf-8")
+    (swarm_dir / "derived_work_items.json").write_text(json.dumps({
+        "items": [{
+            "id": "dw_001",
+            "status": "executed",
+            "execution_eligible": True,
+            "created_entry_ids": ["e12"],
+        }]
+    }), encoding="utf-8")
+    (swarm_dir / "commitment_survival_trace.json").write_text(json.dumps({
+        "items": [{
+            "derived_work_id": "dw_001",
+            "obligated": True,
+            "found_in_artifact": False,
+            "death_mode": "artifact_missing",
+        }]
+    }), encoding="utf-8")
+    (swarm_dir / "artifact_placement_trace.json").write_text(json.dumps({
+        "summary": {
+            "selected": 2,
+            "targeted": 2,
+            "found_in_target_file": 1,
+            "found_elsewhere": 1,
+            "lost": 1,
+            "death_modes": {"wrong_file": 1},
+            "native_forms": {"workbook_row": 1, "drafting_clause": 1},
+        }
+    }), encoding="utf-8")
+    (swarm_dir / "prompt_audit.json").write_text(json.dumps({
+        "summary": {
+            "records": 3,
+            "forbidden_provenance_hits": 0,
+            "forbidden_text_hits": 1,
+            "stages": {"debt_sensor": 2, "blackboard_maintenance": 1},
+        }
+    }), encoding="utf-8")
+    (swarm_dir / "blackboard_maintenance.json").write_text(json.dumps({
+        "mode": "consolidate_only",
+        "candidate_entry_count": 20,
+        "created_entry_ids": ["e13", "e14"],
+        "summary": {
+            "consolidations_selected": 2,
+            "entries_created": 2,
+            "entries_superseded": 0,
+        },
+    }), encoding="utf-8")
+
+    summary = aggregate_lifecycle_reports(tmp_path)
+
+    assert summary["tasks"] == 1
+    assert summary["reports"]["debt_sensors"]["selected"] == 2
+    assert summary["reports"]["debt_sensors"]["actionable"] == 1
+    assert summary["reports"]["debt_sensors"]["execution_entries_created"]["relation"] == 1
+    assert summary["reports"]["debt_sensors"]["unresolved_actionable"] == 1
+    assert summary["reports"]["derived_work"]["lost"] == 1
+    assert summary["reports"]["derived_work"]["death_modes"]["artifact_missing"] == 1
+    assert summary["reports"]["artifact_placement"]["found_in_target_file"] == 1
+    assert summary["reports"]["artifact_placement"]["lost"] == 1
+    assert summary["reports"]["prompt_audit"]["forbidden_text_hits"] == 1
+    assert summary["reports"]["blackboard_maintenance"]["entries_created"] == 2
+    assert (tmp_path / "lifecycle_summary.json").exists()
+    assert (tmp_path / "lifecycle_summary.csv").exists()
+
+
+def test_aggregate_lifecycle_reports_counts_artifact_fallback_items(tmp_path):
+    swarm_dir = tmp_path / "task" / "swarm"
+    swarm_dir.mkdir(parents=True)
+    (swarm_dir / "artifact_placement_trace.json").write_text(json.dumps({
+        "items": [
+            {
+                "target_file": "memo.docx",
+                "native_form": "drafting_clause",
+                "found_in_target_file": False,
+                "found_elsewhere": True,
+                "death_mode": "wrong_file",
+            },
+            {
+                "target_file": "model.xlsx",
+                "native_form": "workbook_row",
+                "found_in_target_file": False,
+                "found_elsewhere": False,
+                "death_mode": "artifact_missing",
+            },
+        ]
+    }), encoding="utf-8")
+
+    summary = aggregate_lifecycle_reports(tmp_path)
+
+    placement = summary["reports"]["artifact_placement"]
+    assert placement["selected"] == 2
+    assert placement["targeted"] == 2
+    assert placement["lost"] == 2
+    assert placement["death_modes"] == {"wrong_file": 1, "artifact_missing": 1}
+    assert placement["native_forms"] == {"drafting_clause": 1, "workbook_row": 1}

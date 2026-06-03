@@ -64,6 +64,13 @@ def main():
     )
     derived_p.add_argument("results_dir", type=Path, help="Results directory")
 
+    # Summarize reasoning lifecycle sidecars
+    lifecycle_p = sub.add_parser(
+        "summarize-lifecycle",
+        help="Aggregate swarm lifecycle reports for a run",
+    )
+    lifecycle_p.add_argument("results_dir", type=Path, help="Results directory")
+
     args = parser.parse_args()
     if not args.command:
         parser.print_help()
@@ -81,6 +88,8 @@ def main():
         _cmd_analyze(args)
     elif args.command == "summarize-derived-work":
         _cmd_summarize_derived_work(args)
+    elif args.command == "summarize-lifecycle":
+        _cmd_summarize_lifecycle(args)
 
 
 def _cmd_run(args):
@@ -405,6 +414,35 @@ def _cmd_summarize_derived_work(args):
     print(
         "Forbidden provenance hits: "
         f"{summary['contamination_audit']['forbidden_provenance_hits']}"
+    )
+
+
+def _cmd_summarize_lifecycle(args):
+    from .swarm.lifecycle_summary import aggregate_lifecycle_reports
+
+    summary = aggregate_lifecycle_reports(args.results_dir)
+    reports = summary["reports"]
+    debt = reports["debt_sensors"]
+    placement = reports["artifact_placement"]
+    audit = reports["prompt_audit"]
+    maintenance = reports["blackboard_maintenance"]
+    print(f"Lifecycle tasks: {summary['tasks']}")
+    print(
+        "Debt selected/actionable/unresolved: "
+        f"{debt['selected']}/{debt['actionable']}/{debt['unresolved_actionable']}"
+    )
+    print(
+        "Artifact placement found/lost: "
+        f"{placement['found_in_target_file']}/{placement['lost']}"
+    )
+    print(
+        "Maintenance consolidations/entries: "
+        f"{maintenance['consolidations_selected']}/{maintenance['entries_created']}"
+    )
+    print(
+        "Prompt audit records/forbidden hits: "
+        f"{audit['records']}/"
+        f"{audit['forbidden_provenance_hits'] + audit['forbidden_text_hits']}"
     )
 
 
