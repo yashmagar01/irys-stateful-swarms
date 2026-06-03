@@ -1,0 +1,29 @@
+{
+  "parse_error": false,
+  "entries_created": 20,
+  "entries_dropped_no_source": 0,
+  "created_entry_ids": [
+    "e2300",
+    "e2301",
+    "e2302",
+    "e2303",
+    "e2304",
+    "e2305",
+    "e2306",
+    "e2307",
+    "e2308",
+    "e2309",
+    "e2310",
+    "e2311",
+    "e2312",
+    "e2313",
+    "e2314",
+    "e2315",
+    "e2316",
+    "e2317",
+    "e2318",
+    "e2319"
+  ],
+  "observation_candidates": 184,
+  "analytical_entries_before": 171
+}

@@ -1,0 +1,414 @@
+{
+  "task_instruction": "Draft the post-money SAFE, side letter, and drafting issues memo for this seed financing using the attached term sheet, existing SAFE, cap table, counsel emails, and diligence memo. Output: `safe-agreement-brightloom-canopy.docx`, `side-letter-canopy.docx`, and `drafting-issues-memo.docx`.",
+  "documents": [
+    {
+      "id": "doc_40fc295a",
+      "name": "cap-table-brightloom.xlsx",
+      "size_bytes": 12247,
+      "headings": [
+        "Full Document"
+      ],
+      "structural_profile": {
+        "numbered_items": 0,
+        "tables": 1,
+        "sections": 1,
+        "document_type": "other",
+        "key_entities": [
+          "Brightloom"
+        ],
+        "estimated_complexity": "simple"
+      },
+      "read_status": "unread",
+      "sections_read": [],
+      "sections_unread": [
+        "Full Document"
+      ]
+    },
+    {
+      "id": "doc_d161024a",
+      "name": "counsel-email-thread.eml",
+      "size_bytes": 25067,
+      "headings": [
+        "Full Document"
+      ],
+      "structural_profile": {
+        "numbered_items": 3,
+        "tables": 0,
+        "sections": 3,
+        "document_type": "letter",
+        "key_entities": [
+          "Celine Vargas",
+          "Ridgeway Hooper LLP",
+          "Priya Suresh",
+          "Fenwick Hale",
+          "Jordan Kessler",
+          "Canopy Ventures",
+          "Brightloom AI, Inc.",
+          "Canopy Ventures Fund II, LP",
+          "Greenhouse Angels LLC",
+          "Dr. Patel"
+        ],
+        "estimated_complexity": "medium"
+      },
+      "read_status": "unread",
+      "sections_read": [],
+      "sections_unread": [
+        "Full Document"
+      ]
+    },
+    {
+      "id": "doc_28d3f4c4",
+      "name": "diligence-memo-canopy.docx",
+      "size_bytes": 52344,
+      "headings": [
+        "Full Document"
+      ],
+      "structural_profile": {
+        "numbered_items": 7,
+        "tables": 0,
+        "sections": 7,
+        "document_type": "memo",
+        "key_entities": [
+          "Canopy Ventures Fund II, LP",
+          "Brightloom AI, Inc.",
+          "Jordan Kessler",
+          "Dr. Anisha Patel",
+          "Marcus Tan",
+          "Ridgeway Hooper LLP",
+          "Celine Vargas"
+        ],
+        "estimated_complexity": "medium"
+      },
+      "read_status": "unread",
+      "sections_read": [],
+      "sections_unread": [
+        "Full Document"
+      ]
+    },
+    {
+      "id": "doc_679928a8",
+      "name": "greenhouse-angels-safe.docx",
+      "size_bytes": 46966,
+      "headings": [
+        "Full Document"
+      ],
+      "structural_profile": {
+        "numbered_items": 1,
+        "tables": 1,
+        "sections": 1,
+        "document_type": "agreement",
+        "key_entities": [
+          "Brightloom AI, Inc.",
+          "Greenhouse Angels LLC"
+        ],
+        "estimated_complexity": "simple"
+      },
+      "read_status": "unread",
+      "sections_read": [],
+      "sections_unread": [
+        "Full Document"
+      ]
+    },
+    {
+      "id": "doc_87340f97",
+      "name": "term-sheet-canopy.docx",
+      "size_bytes": 45156,
+      "headings": [
+        "Full Document"
+      ],
+      "structural_profile": {
+        "numbered_items": 3,
+        "tables": 0,
+        "sections": 2,
+        "document_type": "agreement",
+        "key_entities": [
+          "Brightloom AI, Inc.",
+          "Canopy Ventures Fund II, LP",
+          "Dr. Anisha Patel",
+          "Jordan Kessler",
+          "Fenwick & Hale LLP",
+          "Ridgeway Hooper LLP"
+        ],
+        "estimated_complexity": "simple"
+      },
+      "read_status": "unread",
+      "sections_read": [],
+      "sections_unread": [
+        "Full Document"
+      ]
+    }
+  ],
+  "entries": [
+    {
+      "id": "e658",
+      "type": "strategy",
+      "content": "This task requires a hybrid approach combining extraction, calculation, comparison, and drafting. We will extract key terms and risks from the term sheet, emails, and diligence memo; compare the existing Greenhouse SAFE with the proposed Canopy terms to identify conflicts; calculate the post-money capitalization and option pool dilution using the cap table; and draft the final SAFE, side letter, and a comprehensive issues memo highlighting unresolved risks and drafting choices.",
+      "source": null,
+      "epistemic": null,
+      "created_by": {
+        "worker_id": "seed_planner",
+        "description": "analytical_framework",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e659",
+      "type": "strategy",
+      "content": "COMPLETENESS CRITERION: The draft 'safe-agreement-brightloom-canopy.docx' must accurately reflect the valuation cap, discount, and investment amount from the term sheet, using the standard post-money SAFE template modified per counsel emails.",
+      "source": null,
+      "epistemic": null,
+      "created_by": {
+        "worker_id": "seed_planner",
+        "description": "completeness_criteria",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e660",
+      "type": "strategy",
+      "content": "COMPLETENESS CRITERION: The draft 'side-letter-canopy.docx' must include all negotiated investor rights (pro-rata, information, MFN, etc.) and match the entity names and definitions used in the SAFE.",
+      "source": null,
+      "epistemic": null,
+      "created_by": {
+        "worker_id": "seed_planner",
+        "description": "completeness_criteria",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e661",
+      "type": "strategy",
+      "content": "COMPLETENESS CRITERION: The 'drafting-issues-memo.docx' must identify and analyze at least three major legal or financial risks (e.g., IP assignment, option pool dilution, MFN triggers) with recommended resolutions.",
+      "source": null,
+      "epistemic": null,
+      "created_by": {
+        "worker_id": "seed_planner",
+        "description": "completeness_criteria",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e662",
+      "type": "strategy",
+      "content": "COMPLETENESS CRITERION: The capitalization math used to define 'Company Capitalization' in the SAFE must be mathematically reconciled with the 'cap-table-brightloom.xlsx' data.",
+      "source": null,
+      "epistemic": null,
+      "created_by": {
+        "worker_id": "seed_planner",
+        "description": "completeness_criteria",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e663",
+      "type": "strategy",
+      "content": "COMPLETENESS CRITERION: All documents must have consistent party names, addresses, governing law provisions, and signature blocks.",
+      "source": null,
+      "epistemic": null,
+      "created_by": {
+        "worker_id": "seed_planner",
+        "description": "completeness_criteria",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e664",
+      "type": "strategy",
+      "content": "COMPLETENESS CRITERION: Any conditions precedent or covenants identified in the diligence memo must be addressed either as closing conditions in the SAFE/side letter or as outstanding items in the drafting issues memo.",
+      "source": null,
+      "epistemic": null,
+      "created_by": {
+        "worker_id": "seed_planner",
+        "description": "completeness_criteria",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    }
+  ],
+  "signals": [
+    {
+      "id": "s168",
+      "type": "question",
+      "content": "What is the exact investment amount (purchase price) and valuation cap/discount rate specified for Canopy Ventures Fund II, LP in the term sheet?",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s169",
+      "type": "question",
+      "content": "What are the specific side letter rights requested by Canopy (e.g., major investor status, pro-rata rights, information rights, MFN, board observer rights)?",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s170",
+      "type": "question",
+      "content": "How does the existing Greenhouse Angels SAFE interact with the proposed Canopy SAFE? Does it have an MFN clause or amendment provisions that are triggered by this round?",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s171",
+      "type": "question",
+      "content": "What is the exact current capitalization of Brightloom AI, Inc. (common stock, outstanding options, unallocated option pool, and existing SAFEs) according to the cap table?",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s172",
+      "type": "question",
+      "content": "Is there an option pool expansion required prior to or in connection with this financing, and how is it factored into the post-money capitalization calculation?",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s173",
+      "type": "question",
+      "content": "What specific drafting disputes, open issues, or instructions are highlighted in the counsel email thread between Fenwick Hale and Ridgeway Hooper?",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s174",
+      "type": "question",
+      "content": "What key diligence risks, IP ownership issues, or employment/vesting concerns are flagged in the Canopy diligence memo that must be addressed in the drafting issues memo or side letter?",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s175",
+      "type": "question",
+      "content": "Who are the authorized signatories and their exact titles for Brightloom AI, Inc., Canopy Ventures, and Greenhouse Angels?",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s176",
+      "type": "question",
+      "content": "What is the governing law and dispute resolution mechanism specified for these agreements?",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s177",
+      "type": "read_request",
+      "content": "In 'term-sheet-canopy.docx': Extract the investment amount, valuation cap, discount rate, investor rights (pro-rata, information, board representation), governing law, expenses, and closing conditions.",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s178",
+      "type": "read_request",
+      "content": "In 'greenhouse-angels-safe.docx': Extract the valuation cap, discount rate, MFN clause, definition of Company Capitalization, and amendment/termination provisions.",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s179",
+      "type": "read_request",
+      "content": "In 'cap-table-brightloom.xlsx': Extract the total outstanding common shares, preferred shares (if any), issued options, unissued/reserved option pool, and details of any outstanding convertible securities.",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s180",
+      "type": "read_request",
+      "content": "In 'counsel-email-thread.eml': Extract specific drafting instructions, points of disagreement between counsel (e.g., definition of capitalization, reps and warranties, side letter terms), and agreed-upon compromises.",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s181",
+      "type": "read_request",
+      "content": "In 'diligence-memo-canopy.docx': Extract key legal, financial, and operational risks, specifically focusing on IP assignments, founder vesting, material contracts, and regulatory compliance issues.",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    }
+  ],
+  "iteration": 0,
+  "total_tokens_used": 6338,
+  "token_budget": 3000000
+}

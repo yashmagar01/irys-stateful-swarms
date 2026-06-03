@@ -1,0 +1,378 @@
+{
+  "score": 0.0,
+  "max_score": 1.0,
+  "all_pass": false,
+  "n_criteria": 61,
+  "n_passed": 56,
+  "criteria_results": [
+    {
+      "id": "C-001",
+      "title": "Identifies 3-year supply agreement as shorter than precedent (ISSUE_001)",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly identifies the 3-year duration of the Transitional Supply Agreement (TSA) for the CeralGuard (Remedy A) divestiture as a deviation from precedent, noting it is 40% shorter than the 5-year duration in Case M.9876 and 25% shorter than the 4-year duration in Case M.10891."
+    },
+    {
+      "id": "C-002",
+      "title": "Links short supply period to Chief Economist manufacturing timeline finding",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly links the 3-year TSA/TMA duration to the Chief Economist Team's finding that chemical manufacturing certification requires 3-4 years, correctly identifying the resulting supply gap and operational risk."
+    },
+    {
+      "id": "C-003",
+      "title": "Rates the supply agreement duration gap as high risk",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly identifies the 3-year supply agreement duration as a 'High' risk in multiple sections, including the 'Summary of Deviations and Risks' table and the 'Risk Assessment' section, where it notes the 3-year duration is 'entirely insufficient' and creates a 'severe' cliff-edge risk."
+    },
+    {
+      "id": "C-004",
+      "title": "Identifies absence of dedicated manufacturing facility in Remedy A (ISSUE_002)",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly identifies that Remedy A lacks a dedicated manufacturing facility, noting it only provides equipment and a toll manufacturing agreement. It further contrasts this with Case M.9876 (Terrano/Fieldmark), which required the divestiture of a complete, standalone manufacturing plant (the Rouen facility) and approximately 85 FTEs."
+    },
+    {
+      "id": "C-005",
+      "title": "Notes Case M.10891 required manufacturing technology transfer within 2 years",
+      "verdict": "fail",
+      "reasoning": "The agent's output fails to mention the specific requirement from Case M.10891 (NovaBio/CropGenix) regarding the commitment to transfer manufacturing technology within 2 years of closing."
+    },
+    {
+      "id": "C-006",
+      "title": "Identifies behavioral-only remedy for fungicide market as deviation (ISSUE_003)",
+      "verdict": "pass",
+      "reasoning": "The agent correctly identifies that Remedy B is a purely behavioral remedy and explicitly contrasts this with the structural divestiture required in precedent Case M.9876 (Terrano/Fieldmark), which included a dedicated production line and product registrations for a niche fungicide line."
+    },
+    {
+      "id": "C-007",
+      "title": "Cites Commission preference for structural over behavioral remedies",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly cites the Commission's preference for structural remedies over behavioral ones in the 'Remedy Standards' section, referencing Case M.10891 and stating that where market concentration exceeds specific thresholds, 'there is a strong regulatory presumption that behavioral remedies are insufficient to address horizontal competition concerns, necessitating structural divestitures instead.'"
+    },
+    {
+      "id": "C-008",
+      "title": "Distinguishes Denmark behavioral precedent as inapplicable",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly distinguishes the M.10891 (NovaBio/CropGenix) precedent in the 'Remedy Standards' section, noting that behavioral commitments were only acceptable there because the combined market share was below 25% and the HHI delta was below 150. It correctly contrasts this with the current transaction's market concentration and the specific vertical foreclosure concerns in the fungicide market, thereby explaining why the precedent is not analogous."
+    },
+    {
+      "id": "C-009",
+      "title": "Identifies non-exclusive license vs. full divestiture for biologicals (ISSUE_004)",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly identifies that Remedy C proposes a non-exclusive patent license rather than a full divestiture of the BioShield business. It further contrasts this with Case M.10234 (Verdana/AgraStar), noting that the Commission required a full divestiture of the biological crop protection division in that precedent, and highlights this as a significant structural deficiency and deviation."
+    },
+    {
+      "id": "C-010",
+      "title": "Cites M.10234 explicit rejection of licensing for biologicals",
+      "verdict": "fail",
+      "reasoning": "The agent's output does not contain the specific required quote or a close paraphrase of the Commission's statement from Case M.10234 regarding the insufficiency of a non-exclusive license of biological crop protection IP without the transfer of manufacturing capabilities and know-how."
+    },
+    {
+      "id": "C-011",
+      "title": "Notes M.10891 also required divestiture for biologicals including strain collection",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly references Case M.10891 (NovaBio/CropGenix) in the 'Remedy C' and 'Deviation Assessment' sections, noting that the Commission required the full divestiture of biological assets, including the microbial strain library, to resolve horizontal competition concerns, thereby supporting the argument for divestiture over licensing."
+    },
+    {
+      "id": "C-012",
+      "title": "Identifies exclusion of microbial strain bank from BioShield license",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly identifies that Remedy C excludes the proprietary microbial strain bank (containing over 340 strains) and fermentation process know-how, noting the $94 million in historical R&D investment and the 12-year development timeline."
+    },
+    {
+      "id": "C-013",
+      "title": "Contrasts strain bank exclusion with M.10234 and M.10891 precedent requirements",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly contrasts the exclusion of the BioShield microbial strain bank with the precedent requirements of Case M.10234 and Case M.10891 in multiple sections, including the 'Remedy Assessment' and 'Deviation Assessment' sections, correctly identifying these as core competitive assets that must be transferred."
+    },
+    {
+      "id": "C-014",
+      "title": "Identifies strain bank as BioShield's core competitive asset",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly identifies the microbial strain bank as a core competitive asset in multiple sections (e.g., 'Remedy Assessment', 'Gap Analysis', 'Asset Valuation'). It further explains that the exclusion of this asset renders the proposed license commercially non-viable and hollow, as it prevents the licensee from operating as an independent competitor."
+    },
+    {
+      "id": "C-015",
+      "title": "Identifies above-market royalty rate for BioShield license (ISSUE_006)",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly identifies the 4.5% royalty rate as 'highly off-market' compared to the 2.42% average derived from comparable transactions, and correctly flags that this rate undermines the licensee's cost-competitiveness."
+    },
+    {
+      "id": "C-016",
+      "title": "Contrasts royalty with M.10234 royalty-free cross-license requirement",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly compares the proposed 4.5% royalty rate in Remedy C against the precedent set in Case M.10234, noting that the latter required a royalty-free cross-license for improvement patents for 10 years, and correctly identifies the proposed royalty as being out of step with this precedent."
+    },
+    {
+      "id": "C-017",
+      "title": "Identifies Stonebridge monitoring trustee independence conflict (ISSUE_007)",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly identifies the conflict of interest regarding Stonebridge Advisory Partners, noting their 2023 market study for AgriVantage (a merging party). It correctly contrasts this with the independence requirements established in Case M.9876, which mandates no prior relationship with either merging party within the preceding 3 to 5 years."
+    },
+    {
+      "id": "C-018",
+      "title": "Recommends nominating an alternative monitoring trustee",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly identifies the conflict of interest regarding Stonebridge Advisory Partners, labels it a critical risk, and recommends both the disqualification of the current nominee and the selection of an alternative, independent monitoring trustee."
+    },
+    {
+      "id": "C-019",
+      "title": "Identifies shortened divestiture trustee period (ISSUE_008)",
+      "verdict": "pass",
+      "reasoning": "The agent correctly identifies in the 'Deviation Assessment' and 'Timeline' sections that the proposed 9-month divestiture period (6 months initial + 3 months trustee) is a significant deviation from the 12-month standard observed in precedent cases like M.9876 and M.10891."
+    },
+    {
+      "id": "C-020",
+      "title": "Identifies absence of upfront buyer requirement (ISSUE_009)",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly identifies the absence of an upfront buyer requirement in the proposed remedies package (Remedy A) and contrasts this with the precedent set in Case M.9876 (Terrano/Fieldmark), which mandated an upfront buyer."
+    },
+    {
+      "id": "C-021",
+      "title": "Links upfront buyer absence to viability concerns of divested package",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly links the absence of an upfront buyer to the high execution risks and structural vulnerabilities of the CeralGuard divestiture (Remedy A), specifically noting that the lack of a dedicated manufacturing facility, the short 3-year toll manufacturing agreement, and the limited personnel transfer make an upfront buyer necessary to ensure the divested business is viable and independent."
+    },
+    {
+      "id": "C-022",
+      "title": "Identifies insufficient employee transfer of 14 vs. ~85 FTEs (ISSUE_010)",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly identifies the deviation in personnel transfer, noting that Remedy A proposes transferring only 14 Key Personnel compared to the 85 FTEs required in Case M.9876, and correctly flags this as a deficiency that undermines the operational viability of the divested business."
+    },
+    {
+      "id": "C-023",
+      "title": "Identifies limited 8-year license duration concern (ISSUE_011)",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly identifies the 8-year license duration as a concern in the 'Remedy Assessment' section, noting it is 'highly off-market' and referencing the 2008 Remedies Notice's preference for perpetual or very long-term licenses to ensure ongoing viability."
+    },
+    {
+      "id": "C-024",
+      "title": "Identifies purchaser criteria deviation \u2014 missing registration capability (ISSUE_012)",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly identifies the omission of registration and R&D capabilities in the purchaser criteria as a deviation from precedents M.9876 and M.10234. Specifically, the 'Purchaser Criteria' section states: 'The proposal lacks explicit requirements for registration capability (a key criterion in Case M.9876) and R&D capability (required in Case M.10234)'. Additionally, the 'Remedy Assessment' section notes the omission of financial viability requirements, which aligns with the criterion's requirements."
+    },
+    {
+      "id": "C-025",
+      "title": "Notes purchaser criteria are over-restrictive on distribution breadth",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly identifies that the proposed requirement for distribution in at least five Member States is more restrictive than the three Member States required in Case M.9876, and correctly notes that this unnecessarily narrows the pool of viable, qualified buyers."
+    },
+    {
+      "id": "C-026",
+      "title": "Includes a summary comparison table or structured matrix",
+      "verdict": "pass",
+      "reasoning": "The agent's output includes multiple structured comparison tables, specifically in the 'Deviation Analysis' section (Summary of Deviations Across the Remedy Package), the 'Precedent Analysis' section (Structural Divestiture Precedents and Intellectual Property & Licensing Precedents), and the 'Remedy Assessment' section (Summary of Deviations and Risks), which map key remedy parameters against the required precedent cases."
+    },
+    {
+      "id": "C-027",
+      "title": "Comparison table includes key remedy parameters",
+      "verdict": "pass",
+      "reasoning": "The agent's output includes a summary table in the 'Deviation Analysis' section that explicitly lists (1) divestiture scope, (2) supply agreement duration, (3) employee transfer numbers, (4) purchaser criteria (implied by the context of the remedy package), and (5) behavioral vs. structural remedy type. Additionally, the 'Remedy Assessment' section contains a comprehensive summary table that includes (1) geographic scope, (2) financial viability, (3) royalty rates/duration, (4) scope of assets, (5) personnel transfer, (6) toll manufacturing duration, and (7) remedy type (behavioral vs. structural), thereby exceeding the requirement of 5 out of 6 parameters."
+    },
+    {
+      "id": "C-028",
+      "title": "Comparison table correctly states proposed supply agreement duration as 3 years",
+      "verdict": "pass",
+      "reasoning": "The agent's output correctly identifies the proposed Transitional Supply Agreement (TSA) duration as 3 years (36 months) in multiple sections, including the 'Summary of Deviations Across the Remedy Package' table and the 'TSA Terms' section."
+    },
+    {
+      "id": "C-029",
+      "title": "Comparison table correctly states M.9876 supply agreement as 5 years",
+      "verdict": "pass",
+      "reasoning": "The agent's output correctly identifies the supply agreement duration in Case M.9876 (Terrano/Fieldmark) as 5 years (60 months) in multiple sections, including the 'Summary of Deviations Across the Remedy Package' table and the 'TSA Terms' section."
+    },
+    {
+      "id": "C-030",
+      "title": "Comparison table correctly states M.10891 supply agreement as 4 years",
+      "verdict": "pass",
+      "reasoning": "The agent's output correctly identifies the transitional supply agreement duration for Case M.10891 (NovaBio/CropGenix) as 4 years in multiple sections, including the 'Deviation Assessment' section and the 'M.10891 Precedent' section."
+    },
+    {
+      "id": "C-031",
+      "title": "Comparison table correctly states proposed divestiture period as 9 months total",
+      "verdict": "pass",
+      "reasoning": "The agent's output consistently identifies the proposed divestiture period as 9 months total, consisting of a 6-month first divestiture period and a 3-month trustee extension, as seen in the 'Summary of Deviations Across the Remedy Package' table and the 'Timeline' section."
+    },
+    {
+      "id": "C-032",
+      "title": "Comparison table correctly states M.9876 divestiture period as 12 months (6+6)",
+      "verdict": "pass",
+      "reasoning": "The agent correctly identifies in the 'Commitments' section that Case M.9876 (Terrano/Fieldmark) mandated a 12-month total divestiture period, structured as an initial 6-month period followed by a 6-month divestiture trustee period."
+    },
+    {
+      "id": "C-033",
+      "title": "Comparison table correctly states M.10891 divestiture period as 12 months (8+4)",
+      "verdict": "fail",
+      "reasoning": "The agent's output states in the 'M.10891 Precedent' section that the total maximum divestiture period permitted under the M.10891 commitments was twelve months, but it does not specify the '8+4' structure required by the criterion. Furthermore, the 'Remedies Gap Analysis' section incorrectly attributes a 9-month divestiture period to the proposed package and does not explicitly confirm the 8+4 structure for M.10891."
+    },
+    {
+      "id": "C-034",
+      "title": "Includes prioritized top 5 issues list",
+      "verdict": "fail",
+      "reasoning": "The agent's output does not contain an explicitly numbered or ranked list of the top 5 priority issues to be addressed before the March 24, 2025 oral hearing. While the document contains various sections on risks and mitigation, it lacks the specific prioritized summary requested by the criterion."
+    },
+    {
+      "id": "C-035",
+      "title": "Top 5 includes licensing-instead-of-divestiture for biologicals",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly identifies the use of a non-exclusive license instead of a full divestiture for the biological crop protection market (Remedy C) as a critical deficiency and high-risk issue in multiple sections, including the 'Summary of Deviations and Risks' table and the 'Remedies Gap Analysis' section, effectively prioritizing it as a top concern."
+    },
+    {
+      "id": "C-036",
+      "title": "Top 5 includes behavioral-only fungicide remedy",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly identifies the behavioral nature of Remedy B (fungicides) as a critical deficiency and a high risk of rejection in multiple sections, including the 'Summary of Deviations and Risks' table and the 'Remedy Assessment' section, where it is listed as a 'Critical' risk."
+    },
+    {
+      "id": "C-037",
+      "title": "Top 5 includes absence of manufacturing facility in herbicide divestiture",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly identifies the absence of a dedicated manufacturing facility in the CeralGuard (Remedy A) divestiture as a critical structural deficiency and a primary driver for the 'High' risk rating of rejection in multiple sections, including the 'Summary of Deviations Across the Remedy Package' table and the 'Risk Assessment' section."
+    },
+    {
+      "id": "C-038",
+      "title": "Recommends extending supply agreement to at least 4\u20135 years",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly recommends extending the Transitional Supply Agreement (TSA) and Toll Manufacturing Agreement (TMA) to a firm 5-year term in the 'Mitigation Strategies' section, and further reinforces this in the 'Remedy A Mitigation' section by citing the precedent established in Case M.9876."
+    },
+    {
+      "id": "C-039",
+      "title": "Recommends including dedicated manufacturing facility or technology transfer",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly recommends including a dedicated manufacturing facility in the herbicide divestiture package (Remedy A) and discusses the necessity of transferring manufacturing know-how and technology to ensure the purchaser's viability, referencing the precedents and the operational gaps identified."
+    },
+    {
+      "id": "C-040",
+      "title": "Recommends structural remedy component for fungicide market",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly recommends shifting Remedy B from a behavioral framework to a full structural divestiture of a niche fungicide product line, citing the Commission's preference for structural remedies in vertical foreclosure cases and drawing on precedent M.9876."
+    },
+    {
+      "id": "C-041",
+      "title": "Recommends full divestiture or substantially enhanced remedy for biologicals",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly recommends a 'full structural divestiture of the BioShield business' in the 'Mitigation Strategies' section and the 'Remedy C Mitigation' section, specifically noting that this must include the transfer of the proprietary microbial strain bank, fermentation process know-how, and associated R&D assets to ensure viability."
+    },
+    {
+      "id": "C-042",
+      "title": "Recommends reducing or eliminating the royalty rate",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly identifies the 4.5% royalty rate as 'highly off-market' and 'severely undermining the licensee's cost-competitiveness' compared to the 2-3% industry norm. It further recommends in the 'Remedy C Mitigation' section that the remedy be restructured into a full structural divestiture, which effectively eliminates the royalty burden, and notes that the current rate is likely to be deemed non-viable by the Commission."
+    },
+    {
+      "id": "C-043",
+      "title": "Recommends extending divestiture period to 12 months total",
+      "verdict": "fail",
+      "reasoning": "The agent identifies that the proposed 9-month divestiture timeline is a deviation from the 12-month precedent norm, but it does not explicitly recommend extending the divestiture period to 12 months in its mitigation strategies or recommendations."
+    },
+    {
+      "id": "C-044",
+      "title": "Recommends adding upfront buyer requirement or preparing for Commission demand",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly identifies the lack of an upfront buyer as a high-risk deficiency and recommends that the parties proactively address this, noting that the Commission is highly likely to demand an upfront buyer for the CeralGuard divestiture."
+    },
+    {
+      "id": "C-045",
+      "title": "Recommends increasing employee transfer numbers",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly recommends increasing the number of transferred personnel from 14 to at least 40 FTEs in the 'Remedy A Mitigation' section, citing the need for standalone viability and referencing the precedent of Case M.9876."
+    },
+    {
+      "id": "C-046",
+      "title": "Recommends revising purchaser criteria to include registration capability",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly identifies the purchaser criteria as overly restrictive and deficient. It recommends revising these criteria to include registration and R&D capabilities (citing precedents M.9876 and M.10234) and notes the need to reconsider the 5 Member State distribution requirement."
+    },
+    {
+      "id": "C-047",
+      "title": "Correctly identifies Case M.11247 as the current case number",
+      "verdict": "pass",
+      "reasoning": "The agent's output consistently and correctly identifies the current case as M.11247 throughout the memorandum."
+    },
+    {
+      "id": "C-048",
+      "title": "Correctly cites Case M.9876 (Terrano/Fieldmark)",
+      "verdict": "pass",
+      "reasoning": "The agent correctly and consistently cites Case M.9876 as 'Terrano/Fieldmark' throughout the memorandum, including in the 'Precedent Overview' and 'Deviation Assessment' sections."
+    },
+    {
+      "id": "C-049",
+      "title": "Correctly cites Case M.10234 (Verdana/AgraStar)",
+      "verdict": "pass",
+      "reasoning": "The agent correctly cites Case M.10234 (Verdana/AgraStar) multiple times throughout the memorandum, including in the 'Precedent Analysis', 'Remedy Assessment', and 'M.10234 Precedent' sections."
+    },
+    {
+      "id": "C-050",
+      "title": "Correctly cites Case M.10891 (NovaBio/CropGenix)",
+      "verdict": "pass",
+      "reasoning": "The agent correctly cites Case M.10891 (NovaBio/CropGenix) multiple times throughout the memorandum, including in the 'Precedent Analysis' and 'M.10891 Precedent' sections."
+    },
+    {
+      "id": "C-051",
+      "title": "Rates biologicals licensing remedy (Remedy C) as high risk",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly identifies Remedy C as a 'Critical' risk in the 'Summary of Deviations and Risks' table and the 'Remedy Assessment' section, noting that the non-exclusive license fails to transfer core assets and deviates from the full divestiture requirement established in Case M.10234."
+    },
+    {
+      "id": "C-052",
+      "title": "Rates behavioral fungicide remedy (Remedy B) as high risk",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly rates Remedy B (the behavioral fungicide remedy) as 'Critical' risk in the 'Summary of Deviations and Risks' table and 'High Risk of Rejection' in the 'Remedy Assessment' section, noting that it contradicts the Commission's preference for structural remedies established in precedent M.9876."
+    },
+    {
+      "id": "C-053",
+      "title": "Identifies the oral hearing date as March 24, 2025",
+      "verdict": "pass",
+      "reasoning": "The agent's output correctly identifies the oral hearing date as March 24, 2025, in multiple sections, including the 'Timeline' and 'DG COMP Feedback' sections, and correctly frames it as a critical milestone for addressing priority issues."
+    },
+    {
+      "id": "C-054",
+      "title": "References DG COMP case handler inquiry about upfront buyer from state of play call",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly references the DG COMP case handler's signal regarding the potential requirement for an upfront buyer for the CeralGuard divestiture (Remedy A) during exploratory market contacts, which aligns with the strategic context provided in the partner email thread."
+    },
+    {
+      "id": "C-055",
+      "title": "References Stonebridge conflict concern raised informally by case team",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly references the Stonebridge conflict of interest and notes that the Commission's case handler has raised formal concerns regarding this independence, citing the Case M.9876 precedent, which aligns with the strategic context provided in the partner email thread."
+    },
+    {
+      "id": "C-056",
+      "title": "Correctly states M.9876 required ~85 FTEs transferred",
+      "verdict": "pass",
+      "reasoning": "The agent correctly identifies in multiple sections (e.g., 'Deviation Analysis' and 'Precedent Analysis') that Case M.9876 required the transfer of approximately 85 FTEs."
+    },
+    {
+      "id": "C-057",
+      "title": "Correctly states proposed employee transfer is 14",
+      "verdict": "pass",
+      "reasoning": "The agent's output correctly identifies in multiple sections (e.g., 'Deviation Analysis', 'Remedy A', and 'Remedy Assessment') that the proposed Remedy A includes the transfer of 14 Key Personnel."
+    },
+    {
+      "id": "C-058",
+      "title": "Correctly identifies the three BioShield patent numbers",
+      "verdict": "pass",
+      "reasoning": "The agent correctly identified and listed all three BioShield patent numbers (EP 3,412,007; EP 3,558,219; and EP 3,701,445) in the 'Remedy Assessment' section of the memorandum."
+    },
+    {
+      "id": "C-059",
+      "title": "Rates monitoring trustee independence issue as medium or high risk",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly identifies the conflict of interest regarding Stonebridge Advisory Partners as a 'High / Critical' risk in the 'Monitoring Trustee' section and the 'Risk Assessment' section, which satisfies the criterion."
+    },
+    {
+      "id": "C-060",
+      "title": "Synthesizes Remedy A weaknesses into standalone viability assessment",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly connects the lack of a dedicated manufacturing facility, the insufficient 3-year TSA/TMA duration, and the limited transfer of only 14 personnel to the conclusion that the divested business cannot operate as a standalone, viable competitor. These three weaknesses are synthesized throughout the 'Deviation Analysis', 'Risk Assessment', and 'Remedy Assessment' sections to demonstrate the failure of the remedy to restore effective competition."
+    },
+    {
+      "id": "C-061",
+      "title": "Correctly states proposed royalty rate as 4.5% vs. industry norm of 2-3%",
+      "verdict": "pass",
+      "reasoning": "The agent correctly identifies the proposed royalty rate as 4.5% and the industry norm as 2-3% in the 'Remedy Assessment' section."
+    }
+  ],
+  "run_id": "antitrust-competition/compare-proposed-merger-remedies-against-precedent-commitment-decisions",
+  "task": "antitrust-competition/compare-proposed-merger-remedies-against-precedent-commitment-decisions",
+  "judge_model": "gemini-3.1-flash-lite"
+}

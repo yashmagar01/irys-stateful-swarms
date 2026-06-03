@@ -1,0 +1,323 @@
+{
+  "parse_error": false,
+  "error": "",
+  "errors": [],
+  "seed_coverage": [
+    {
+      "id": "q1",
+      "status": "partial",
+      "answer_summary": "For Crestmoor Trading AG, the UBO is Nikolai V. Petrov (Russian national, Swiss resident) who holds 38% via Petrov Family Holdings SA, and Isabelle M. Renard is a key executive (Vice Chairperson and CCO) and 27% shareholder. For Zenith Petrochemical Industries LLC, Dmitri K. Volkov (Russian national, UAE resident) is the UBO of the 49% shareholder Orion Gulf Investments Ltd. The remaining 51% is held by the Al-Rashidi Family Trust, whose beneficiaries, trustees, and settlors are unidentified.",
+      "evidence_summary": "The blackboard identifies Nikolai V. Petrov as a Russian national with Swiss residency owning 38% of Crestmoor, and Isabelle M. Renard as CCO/27% owner. It identifies Dmitri K. Volkov as a Russian national with a UAE residence visa owning 49% of Zenith via Orion Gulf, while the 51% owner (Al-Rashidi Family Trust) has unidentified beneficiaries.",
+      "supporting_entries": [
+        "e21",
+        "e35",
+        "e36",
+        "e74",
+        "e75",
+        "e117",
+        "e134",
+        "e152",
+        "e246",
+        "e674",
+        "e677",
+        "e678",
+        "e699"
+      ],
+      "missing_reason": "The citizenships and countries of residence for Isabelle M. Renard (Crestmoor) and Farhan Al-Rashidi (Zenith) are missing. Furthermore, the key executives of Zenith Petrochemical Industries LLC and the natural persons behind the Al-Rashidi Family Trust (51% owner of Zenith) are not identified in the analytical state.",
+      "missing_work_type": "extract_more",
+      "materiality": "high"
+    },
+    {
+      "id": "q2",
+      "status": "answered",
+      "answer_summary": "Yes, multiple identified individuals and entities have matches on global sanctions lists or regulatory advisories. Dmitri K. Volkov (UBO of Zenith's 49% shareholder) is a high-confidence match for OFAC SDN-listed 'VOLKOV, Dmitriy Konstantinovich'. Nikolai V. Petrov (UBO of Crestmoor) is a possible match for EU-listed 'Nikolai Vladimirovich Petrov'. Crestmoor Trading AG and Zenith Petrochemical Industries LLC have fuzzy matches against FinCEN and UAE Central Bank advisories, respectively. Shippers and logistics providers are cleared, while the insurers were omitted from screening.",
+      "evidence_summary": "The analytical state details a high-confidence OFAC SDN match for Dmitri K. Volkov, a possible EU list match for Nikolai V. Petrov, and fuzzy matches for the applicant and beneficiary against regulatory advisories. It also notes that the vessel and logistics provider are cleared, but the insurers were not screened.",
+      "supporting_entries": [
+        "e81",
+        "e88",
+        "e89",
+        "e115",
+        "e118",
+        "e121",
+        "e132",
+        "e133",
+        "e225",
+        "e226",
+        "e227",
+        "e228",
+        "e1353",
+        "e1354"
+      ],
+      "missing_reason": "",
+      "missing_work_type": "none",
+      "materiality": "critical"
+    },
+    {
+      "id": "q3",
+      "status": "answered",
+      "answer_summary": "The goods being traded are Linear Low-Density Polyethylene (LLDPE) Resin Pellets, Grade C4-0218 (HS Code 3901.10), with a volume of 7,500 MT and a total monetary value of USD 14,750,000.00. They do not fall under dual-use or export-controlled categories, as they are not listed on international dual-use control lists (such as the Wassenaar Arrangement, NSG, or MTCR) or Pakistan's Strategic Export Control List (SECL).",
+      "evidence_summary": "The analytical state contains the exact nature, volume, and value of the goods (e120, e129), and confirms they are not dual-use or export-controlled (e93, e129, e654, e658).",
+      "supporting_entries": [
+        "e93",
+        "e120",
+        "e129",
+        "e654",
+        "e658"
+      ],
+      "missing_reason": "",
+      "missing_work_type": "none",
+      "materiality": "critical"
+    },
+    {
+      "id": "q4",
+      "status": "partial",
+      "answer_summary": "The transaction involves loading at Jebel Ali Port (UAE), transshipment via Muscat (Oman), and discharge/destination in Pakistan. Jebel Ali Port is not flagged as sanctioned, but JAFZA requires enhanced scrutiny. A critical gap exists because there is no historical port call data for the vessel M/T 'Aegean Horizon' to verify potential visits to sanctioned jurisdictions (Iran, Syria, or North Korea), and the identities of port agents/handlers in Muscat are unknown.",
+      "evidence_summary": "Jebel Ali Port is identified as the port of loading (e82). Muscat, Oman is the transshipment point (e1298), but its port agents are unknown (e437). Pakistan is the destination country (e440). JAFZA involvement triggers enhanced scrutiny (e432). Automated screening failed to verify historical port calls to sanctioned countries (e122, e1295).",
+      "supporting_entries": [
+        "e82",
+        "e122",
+        "e432",
+        "e437",
+        "e440",
+        "e1295",
+        "e1298"
+      ],
+      "missing_reason": "The specific port of discharge in Pakistan (the exact port name) and the complete step-by-step shipping route are not explicitly detailed in the analytical state.",
+      "missing_work_type": "extract_more",
+      "materiality": "high"
+    },
+    {
+      "id": "q5",
+      "status": "unanswered",
+      "answer_summary": "",
+      "evidence_summary": "",
+      "supporting_entries": [],
+      "missing_reason": "The analytical state contains no information regarding 'Hartmann Dufour & Associ\u00e9s' or its relationship with Crestmoor Trading AG and Zenith Petrochemical Industries LLC.",
+      "missing_work_type": "extract_more",
+      "materiality": "high"
+    },
+    {
+      "id": "q6",
+      "status": "answered",
+      "answer_summary": "Nikolai V. Petrov is a Russian national with Swiss permanent residency (Permit C) who serves as the Ultimate Beneficial Owner (UBO) of the transaction applicant, Crestmoor Trading AG, holding a 38% indirect stake through his 100% ownership of Petrov Family Holdings SA (Luxembourg). He has a potential sanctions connection as a possible match (88% name match) to EU Consolidated List entry EU-2023-4491 (Nikolai Vladimirovich Petrov, designated under Regulation 269/2014), although a 7-year DOB discrepancy (1975 vs. 1968) remains unresolved. No PEP connections are identified in the provided files.",
+      "evidence_summary": "The analytical state identifies Petrov's nationality, residency, and ownership structure in Crestmoor Trading AG, and details his potential match to EU-listed individual Nikolai Vladimirovich Petrov, noting the 7-year DOB discrepancy and the lack of secondary verification documents.",
+      "supporting_entries": [
+        "e74",
+        "e78",
+        "e100",
+        "e118",
+        "e150",
+        "e226",
+        "e232",
+        "e233",
+        "e246",
+        "e446",
+        "e699",
+        "e702",
+        "e978",
+        "e1350",
+        "e1354"
+      ],
+      "missing_reason": "",
+      "missing_work_type": "none",
+      "materiality": "critical"
+    },
+    {
+      "id": "q7",
+      "status": "answered",
+      "answer_summary": "Several discrepancies exist across the transaction documents and KYC profiles. First, there is an invoice number mismatch: the LC application lists the draft invoice as 'ZPI-INV-2025-0412', whereas the actual Commercial Invoice Draft lists 'ZPI-INV-2025-04138'. Second, a financial discrepancy exists where some analyses reference a transaction value of $4,250,000 exceeding a $3,000,000 credit limit, whereas the actual LC application and commercial invoice list the amount as USD 14,750,000.00. Third, there are conflicting references to 'Apex Logistics' and 'Apex Global Shipping' which do not appear in the primary transaction documents.",
+      "evidence_summary": "The discrepancies are documented in the transaction files and email chains, specifically regarding the invoice reference numbers, transaction values, and logistics entity names.",
+      "supporting_entries": [
+        "e123",
+        "e124",
+        "e131"
+      ],
+      "missing_reason": "",
+      "missing_work_type": "none",
+      "materiality": "high"
+    },
+    {
+      "id": "q8",
+      "status": "answered",
+      "answer_summary": "The screening matches generated in sentinel-screening-results.docx include: Hit #1: Dmitri K. Volkov (91% name, 100% DOB match against OFAC SDN List, classified as a Critical Risk Trigger/high-confidence true match); Hit #2: Nikolai V. Petrov (88% name match against EU Consolidated List, possible match with a 7-year DOB discrepancy); Hit #3: Crestmoor Trading AG (74% fuzzy match against FinCEN Advisory 2022 for Crestmoor Trade & Supply GmbH); and Hit #4: Zenith Petrochemical Industries LLC (68% fuzzy match against UAE Central Bank Circular 2023 for Zenith Petroleum Industries FZE).",
+      "evidence_summary": "The blackboard details all four screening hits, their match percentages, the target lists, and their risk levels/policy classifications.",
+      "supporting_entries": [
+        "e115",
+        "e125",
+        "e132",
+        "e133",
+        "e149",
+        "e150",
+        "e151",
+        "e152",
+        "e225",
+        "e226",
+        "e227",
+        "e228"
+      ],
+      "missing_reason": "",
+      "missing_work_type": "none",
+      "materiality": "critical"
+    },
+    {
+      "id": "q9",
+      "status": "partial",
+      "answer_summary": "The blackboard contains partial details from the HNB Screening Policy (HNB-COMP-POL-2024-007), such as the 'Critical Risk Trigger' for exact or confirmed SDN matches (which mandates an immediate transaction freeze and escalation) and a requirement for enhanced scrutiny for transactions involving JAFZA. However, the complete set of specific compliance thresholds and the full escalation protocols are not fully detailed or are truncated.",
+      "evidence_summary": "Entry e125 outlines the 'Critical Risk Trigger' and immediate freeze/escalation mandate, while entry e432 notes the JAFZA enhanced scrutiny requirement under Section 5.2.",
+      "supporting_entries": [
+        "e125",
+        "e432"
+      ],
+      "missing_reason": "The exact numerical compliance thresholds (such as fuzzy match percentage rules) and the complete, untruncated escalation protocols (such as the specific department or officer to whom issues are escalated) are missing from the analytical state.",
+      "missing_work_type": "extract_more",
+      "materiality": "high"
+    },
+    {
+      "id": "q10",
+      "status": "partial",
+      "answer_summary": "Derek R. Liu raised concerns regarding the unknown identity of port agents, terminal operators, or cargo handlers at the Muscat, Oman transshipment point, and ordered supplemental screening for omitted insurance parties. Margaret T. Solano highlighted the complex, multi-jurisdictional footprint of the transaction (involving Switzerland, UAE, Greece, Pakistan, UK, and Luxembourg/BVI). However, specific concerns raised by Priya Chandrasekaran are missing from the analytical state.",
+      "evidence_summary": "The analytical state documents Derek R. Liu's concerns about Muscat transshipment agents (e437) and his order for supplemental screening (e1337), as well as Margaret T. Solano's analysis of the multi-jurisdictional footprint (e440). It lacks any mention of Priya Chandrasekaran's specific concerns.",
+      "supporting_entries": [
+        "e437",
+        "e440",
+        "e1337"
+      ],
+      "missing_reason": "The analytical state does not contain any entries detailing the specific concerns or issues raised by Priya Chandrasekaran in the email chain.",
+      "missing_work_type": "extract_more",
+      "materiality": "medium"
+    },
+    {
+      "id": "q11",
+      "status": "answered",
+      "answer_summary": "No, the maritime insurers (Eastport Maritime Insurance Brokers Ltd and Caledonia Mutual Underwriters / Lloyd's Syndicate 4417) are not currently properly vetted. They were omitted from the initial Sentinel 5.0 screening batch on April 3, 2025, leaving their sanctions status undetermined, although a supplemental screening has since been ordered.",
+      "evidence_summary": "The analytical state confirms that Eastport Maritime and Caledonia Mutual (Lloyd's Syndicate 4417) were omitted from the automated screening process, meaning their sanctions status remains unknown, which violates compliance policy and has prompted a request for supplemental screening.",
+      "supporting_entries": [
+        "e86",
+        "e89",
+        "e121",
+        "e126",
+        "e127",
+        "e232",
+        "e233",
+        "e1335",
+        "e1336",
+        "e1337"
+      ],
+      "missing_reason": "",
+      "missing_work_type": "none",
+      "materiality": "high"
+    }
+  ],
+  "criteria_coverage": [
+    {
+      "id": "c1",
+      "status": "unsatisfied",
+      "answer_summary": "",
+      "evidence_summary": "The analytical state defines the requirement for a comprehensive entity map in [e2] and contains fragmented details of various entities, roles, and jurisdictions across multiple entries (such as [e35], [e36], [e67], [e74], [e75], [e127], [e606], and [e607]), but it lacks a single, unified, and comprehensive entity map listing every individual and organization across all 7 documents.",
+      "supporting_entries": [
+        "e2"
+      ],
+      "missing_reason": "A complete, unified entity map listing every individual and organization identified across all 7 documents, along with their specific roles and jurisdictions, is not compiled or present in the analytical state.",
+      "missing_work_type": "extract_more",
+      "materiality": "high"
+    },
+    {
+      "id": "c2",
+      "status": "satisfied",
+      "answer_summary": "The UBO of Crestmoor Trading AG is determined down to the individual level: Nikolai V. Petrov (38% indirect via Petrov Family Holdings SA) and Isabelle M. Renard (27% direct). For Zenith Petrochemical Industries LLC, the UBO is partially determined: Dmitri K. Volkov holds 49% (indirect via Orion Gulf Investments Ltd), but the remaining 51% held by the Al-Rashidi Family Trust cannot be determined down to the individual level because its beneficiaries, trustees, and settlors are completely unidentified and undisclosed in the KYC files.",
+      "evidence_summary": "The analytical state details the shareholding structures and individual owners for both entities, explicitly identifying the individuals (Petrov, Renard, Volkov) and explaining the critical KYC gap regarding the Al-Rashidi Family Trust's unidentified beneficiaries.",
+      "supporting_entries": [
+        "e35",
+        "e36",
+        "e74",
+        "e75",
+        "e117",
+        "e118",
+        "e134",
+        "e673"
+      ],
+      "missing_reason": "",
+      "missing_work_type": "none",
+      "materiality": "critical"
+    },
+    {
+      "id": "c3",
+      "status": "unsatisfied",
+      "answer_summary": "The analytical state identifies individual discrepancies (such as invoice number mismatches and credit limit discrepancies) but lacks the required detailed reconciliation table comparing the LC application, commercial invoice, and KYC files.",
+      "evidence_summary": "Entry e4 defines the reconciliation table as a completeness criterion, while entries e123, e124, and e131 note specific discrepancies without consolidating them into a structured table.",
+      "supporting_entries": [
+        "e4",
+        "e123",
+        "e124",
+        "e131"
+      ],
+      "missing_reason": "The actual detailed reconciliation table comparing the transaction details across the LC application, commercial invoice, and KYC files is completely missing from the analytical state.",
+      "missing_work_type": "compare",
+      "materiality": "high"
+    },
+    {
+      "id": "c4",
+      "status": "partial",
+      "answer_summary": "The blackboard contains detailed analysis of all four screening hits from sentinel-screening-results.docx, but does not definitively classify each one as a false positive or true match.",
+      "evidence_summary": "Dmitri K. Volkov (Hit #1) is classified as a high-confidence true match (e115, e154). Nikolai V. Petrov (Hit #2) is analyzed as a potential false positive but remains unresolved due to missing documents (e118, e446, e660). Crestmoor Trading AG (Hit #3) and Zenith Petrochemical Industries LLC (Hit #4) are analyzed as high-risk fuzzy matches (e132, e133) but are not explicitly classified as true matches or false positives.",
+      "supporting_entries": [
+        "e115",
+        "e118",
+        "e132",
+        "e133",
+        "e154",
+        "e225",
+        "e226",
+        "e227",
+        "e228",
+        "e446",
+        "e660"
+      ],
+      "missing_reason": "Definitive classifications (true match vs. false positive) and supporting evidence for Hit #3 (Crestmoor Trading AG vs. Crestmoor Trade & Supply GmbH) and Hit #4 (Zenith Petrochemical Industries LLC vs. Zenith Petroleum Industries FZE) are missing.",
+      "missing_work_type": "compare",
+      "materiality": "high"
+    },
+    {
+      "id": "c5",
+      "status": "satisfied",
+      "answer_summary": "The analytical state documents the sanctions review for all specified entities: Indus Gateway Logistics Pvt. Ltd was screened and cleared with a 12% match score. In contrast, the maritime insurance entities (Eastport Maritime Insurance Brokers Ltd and Caledonia Mutual Underwriters / Lloyd's Syndicate 4417) were omitted from the initial automated screening batch, leaving their sanctions status undetermined, which constitutes a documented compliance gap.",
+      "evidence_summary": "Indus Gateway was screened and cleared (e88, e235). Eastport and Caledonia (Lloyd's Syndicate 4417) were identified as omitted from the automated screening (e86, e89, e121, e1335, e1336), prompting a supplemental screening order (e1337).",
+      "supporting_entries": [
+        "e86",
+        "e88",
+        "e89",
+        "e121",
+        "e235",
+        "e1335",
+        "e1336",
+        "e1337"
+      ],
+      "missing_reason": "",
+      "missing_work_type": "none",
+      "materiality": "high"
+    },
+    {
+      "id": "c6",
+      "status": "satisfied",
+      "answer_summary": "The final compliance recommendation is a strict NO-GO, meaning the transaction cannot proceed and must be blocked/frozen. This is justified under HNB's Screening Policy (HNB-COMP-POL-2024-007) because the high-confidence SDN match for Dmitri K. Volkov (UBO of Zenith's 49% shareholder) constitutes a 'Critical Risk Trigger' (Exact Match or Confirmed SDN/Blocked Person), which mandates an immediate transaction freeze and escalation.",
+      "evidence_summary": "The analytical state explicitly contains the strict NO-GO recommendation and links it directly to the 'Critical Risk Trigger' threshold defined in HNB's Screening Policy (HNB-COMP-POL-2024-007) due to the SDN match for Dmitri K. Volkov.",
+      "supporting_entries": [
+        "e125",
+        "e126"
+      ],
+      "missing_reason": "",
+      "missing_work_type": "none",
+      "materiality": "critical"
+    },
+    {
+      "id": "c7",
+      "status": "unsatisfied",
+      "answer_summary": "",
+      "evidence_summary": "The analytical state identifies the requirement for an escalation log (e8) and notes some individual concerns from the email chain (e437, e440, e1337), but it does not contain the actual escalation log detailing how these concerns were resolved or addressed in the final recommendation.",
+      "supporting_entries": [],
+      "missing_reason": "The analytical state lacks a compiled escalation log detailing the internal concerns raised in the email chain and their resolution or treatment in the final recommendation.",
+      "missing_work_type": "extract_more",
+      "materiality": "high"
+    }
+  ]
+}

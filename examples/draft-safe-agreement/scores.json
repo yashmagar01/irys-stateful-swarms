@@ -1,0 +1,426 @@
+{
+  "score": 1.0,
+  "max_score": 1.0,
+  "all_pass": true,
+  "n_criteria": 69,
+  "n_passed": 69,
+  "criteria_results": [
+    {
+      "id": "C-001",
+      "title": "SAFE: Correct investment amount of $1,500,000",
+      "verdict": "pass",
+      "reasoning": "The SAFE agreement explicitly states the Purchase Amount as One Million Five Hundred Thousand Dollars ($1,500,000) in the introductory paragraph and confirms this amount in Exhibit A."
+    },
+    {
+      "id": "C-002",
+      "title": "SAFE: Post-money valuation cap of $10,000,000",
+      "verdict": "pass",
+      "reasoning": "The agreement explicitly defines the Valuation Cap as 'Ten Million Dollars ($10,000,000) on a post-money basis' in Section 2, satisfying the criterion."
+    },
+    {
+      "id": "C-003",
+      "title": "SAFE: 20% discount rate (conversion at 80% of Series A price)",
+      "verdict": "pass",
+      "reasoning": "The agreement explicitly defines the 'Discount Price' as 'eighty percent (80%) of the price per share paid by the cash purchasers of Preferred Stock in the Equity Financing (representing a twenty percent (20%) Discount Rate)', which satisfies the criterion."
+    },
+    {
+      "id": "C-004",
+      "title": "SAFE: 'Lesser of' conversion mechanic between cap and discount",
+      "verdict": "pass",
+      "reasoning": "The agent correctly defined the 'Conversion Price' in Section 2 as the 'lesser of' the 'Cap Price' and the 'Discount Price', satisfying the specified criterion."
+    },
+    {
+      "id": "C-005",
+      "title": "SAFE: Correct Company party name",
+      "verdict": "pass",
+      "reasoning": "The agreement correctly identifies the Company as 'Brightloom AI, Inc.', a Delaware corporation, in the introductory paragraph."
+    },
+    {
+      "id": "C-006",
+      "title": "SAFE: Correct Investor party name",
+      "verdict": "pass",
+      "reasoning": "The agent correctly identified the Investor as 'Canopy Ventures Fund II, LP', a Delaware limited partnership, in the preamble and signature block of the agreement."
+    },
+    {
+      "id": "C-007",
+      "title": "SAFE: MFN provision included",
+      "verdict": "pass",
+      "reasoning": "The agent included a comprehensive Most Favored Nation (MFN) provision in Section 2 of the agreement, which explicitly grants the Investor the right to amend the Safe to incorporate more favorable terms if the Company issues subsequent instruments with such terms prior to an Equity Financing."
+    },
+    {
+      "id": "C-008",
+      "title": "SAFE: Equity Financing threshold of $2,000,000",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly defines 'Equity Financing' in Section 2 as a transaction resulting in aggregate gross proceeds of at least Two Million Dollars ($2,000,000), which satisfies the criterion."
+    },
+    {
+      "id": "C-009",
+      "title": "SAFE: Equity Financing threshold excludes SAFE conversions",
+      "verdict": "pass",
+      "reasoning": "The agent's definition of 'Equity Financing' in Section 2 explicitly states that the aggregate gross proceeds calculation excludes 'the conversion of this Safe, other outstanding Safes, and any other outstanding convertible debt or instruments'."
+    },
+    {
+      "id": "C-010",
+      "title": "SAFE: Equity Financing defined as sale of Preferred Stock",
+      "verdict": "pass",
+      "reasoning": "The agent's output defines 'Equity Financing' in Section 2 as a 'bona fide transaction or series of transactions involving the issuance and sale of Preferred Stock of the Company at a fixed pre-money valuation with the principal purpose of raising capital', which fully satisfies the specified criterion."
+    },
+    {
+      "id": "C-011",
+      "title": "SAFE: Liquidity Event option \u2014 cash payment equal to Purchase Amount",
+      "verdict": "pass",
+      "reasoning": "The agreement includes Section 1(b)(1), which explicitly grants the Investor the option to receive a cash payment equal to the Purchase Amount upon a Liquidity Event."
+    },
+    {
+      "id": "C-012",
+      "title": "SAFE: Liquidity Event option \u2014 conversion into Common Stock at cap price",
+      "verdict": "pass",
+      "reasoning": "The agreement includes Section 1(b)(2), which provides that upon a Liquidity Event, the investor may receive shares of Common Stock at the 'Liquidity Price'. The definition of 'Liquidity Price' in Section 2 is 'the price per share equal to the Valuation Cap divided by the Liquidity Capitalization'. This satisfies the requirement for conversion at the cap price."
+    },
+    {
+      "id": "C-013",
+      "title": "SAFE: Dissolution Event payment priority \u2014 subordinate to creditors/preferred, senior to common",
+      "verdict": "pass",
+      "reasoning": "The agent correctly included Section 1(d) 'Liquidation and Dissolution Priority', which explicitly states that the payment of the Purchase Amount is subordinate to creditors and Preferred Stock, and senior to Common Stock, satisfying the criterion."
+    },
+    {
+      "id": "C-014",
+      "title": "ISSUE_001: Company Capitalization definition includes all converting SAFEs",
+      "verdict": "pass",
+      "reasoning": "The agent's definition of 'Company Capitalization' in Section 2 explicitly includes 'All shares of Capital Stock issuable upon the conversion of this Safe and all other outstanding Safes (including the Greenhouse Angels SAFE)' in the denominator for the conversion price calculation."
+    },
+    {
+      "id": "C-015",
+      "title": "ISSUE_001: Memo identifies circularity between multiple SAFEs with different caps",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly identifies the circularity problem in Issue 1, noting that the conversion shares for the Canopy SAFE and the Greenhouse SAFE are interdependent due to the post-money SAFE mechanics, and provides a mathematical resolution to address this."
+    },
+    {
+      "id": "C-016",
+      "title": "ISSUE_001: Memo explains or recommends resolution of SAFE circularity",
+      "verdict": "pass",
+      "reasoning": "The memo explicitly identifies the circularity issue between the existing Greenhouse SAFE and the new Canopy SAFE and provides a specific mathematical resolution using a fixed target percentage methodology to define the conversion shares independently."
+    },
+    {
+      "id": "C-017",
+      "title": "ISSUE_002: Memo identifies verbal equity commitment to Raj Venkatesh (2%)",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly identifies the verbal equity commitment to Raj Venkatesh (2%) in 'ISSUE 2: Undocumented Verbal Equity Commitments to Raj Venkatesh and Lena Vasquez' and notes that it is absent from the current capitalization table."
+    },
+    {
+      "id": "C-018",
+      "title": "ISSUE_002: Memo identifies verbal equity commitment to Lena Vasquez (1.5%)",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly identifies the verbal equity commitment to Lena Vasquez (1.5%) in Issue 2 of the memorandum, noting it is undocumented and absent from the capitalization table."
+    },
+    {
+      "id": "C-019",
+      "title": "ISSUE_002: Memo recommends disclosure or cap table representation addressing verbal commitments",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly addresses the verbal equity commitments in Issue 2, recommending that the Company disclose these commitments in a Capitalization Disclosure Schedule and qualify the Capitalization Representation and Warranty accordingly."
+    },
+    {
+      "id": "C-020",
+      "title": "ISSUE_002: SAFE or disclosure schedule addresses undocumented equity commitments",
+      "verdict": "pass",
+      "reasoning": "The agent included a Capitalization Disclosure Schedule (Exhibit A) which explicitly lists the undocumented verbal equity commitments to two key employees, thereby satisfying the requirement to address these commitments within the capitalization representation."
+    },
+    {
+      "id": "C-021",
+      "title": "ISSUE_003: Memo identifies MFN scope question regarding side letter rights",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly identifies the MFN scope question in Issue 3, specifically discussing whether the clause covers only economic terms or extends to ancillary rights such as pro rata, information, and board observer rights."
+    },
+    {
+      "id": "C-022",
+      "title": "ISSUE_003: Memo discusses Greenhouse Angels follow-on SAFE and MFN interaction",
+      "verdict": "pass",
+      "reasoning": "The memo explicitly addresses the interaction between the Greenhouse Angels follow-on investment and Canopy's MFN provision in Issue 3, correctly noting that identical terms would not trigger the MFN, while more favorable terms (such as a lower valuation cap) would."
+    },
+    {
+      "id": "C-023",
+      "title": "ISSUE_003: MFN clause in SAFE defines 'more favorable' terms",
+      "verdict": "pass",
+      "reasoning": "The MFN provision in Section 2 explicitly defines 'More Favorable Term' as including, without limitation, 'a lower valuation cap, a higher discount rate, or more favorable conversion mechanics,' which satisfies the criterion."
+    },
+    {
+      "id": "C-024",
+      "title": "ISSUE_004: Company Capitalization definition excludes unissued option pool",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly defines 'Company Capitalization' in Section 2 and includes a clear exclusion for the 'Unissued Option Pool', stating: 'For the avoidance of doubt, Company Capitalization shall explicitly exclude: Any shares of Capital Stock reserved and unissued under any equity incentive plan, option pool, or similar plan of the Company that are not subject to outstanding options or awards as of immediately prior to the Equity Financing'."
+    },
+    {
+      "id": "C-025",
+      "title": "ISSUE_004: Memo identifies absence of equity incentive plan",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly identifies the absence of an equity incentive plan in 'ISSUE 4: Absence of Equity Incentive Plan and Series A Option Pool Dilution', noting that the Company has not yet adopted a plan and has 0 shares currently reserved."
+    },
+    {
+      "id": "C-026",
+      "title": "ISSUE_004: Memo discusses option pool risk at Series A and post-money SAFE dilution mechanics",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly addresses the risk of the Series A option pool in Issue 4, noting that institutional investors will require a 10-15% pool and correctly explaining that under post-money SAFE mechanics, this dilution falls on the common stockholders rather than the SAFE holders."
+    },
+    {
+      "id": "C-027",
+      "title": "ISSUE_005: Memo discusses discount vs. cap breakeven economics",
+      "verdict": "pass",
+      "reasoning": "The memo explicitly discusses the breakeven point between the valuation cap and the discount rate, correctly identifying the $12,500,000 pre-money valuation threshold and explaining the mathematical relationship between the two terms."
+    },
+    {
+      "id": "C-028",
+      "title": "SAFE: Cap-based conversion price formula defined",
+      "verdict": "pass",
+      "reasoning": "The agent correctly defined the 'Cap Price' in Section 2 as the price per share equal to the Valuation Cap divided by the Company Capitalization, and the 'Conversion Price' is defined as the lesser of the Cap Price and the Discount Price, which is the standard and correct formula for a post-money SAFE."
+    },
+    {
+      "id": "C-029",
+      "title": "SAFE: Discount-based conversion price formula defined",
+      "verdict": "pass",
+      "reasoning": "The agent correctly defined the 'Discount Price' in Section 2 as 'the price per share equal to eighty percent (80%) of the price per share paid by the cash purchasers of Preferred Stock in the Equity Financing', which satisfies the criterion."
+    },
+    {
+      "id": "C-030",
+      "title": "Side letter: Pro rata right granted for next Equity Financing",
+      "verdict": "pass",
+      "reasoning": "The side letter explicitly grants the Investor a pro rata right in Section 1.1, which covers the next Equity Financing, and defines the Pro Rata Share in Section 1.2 based on as-converted, fully diluted ownership."
+    },
+    {
+      "id": "C-031",
+      "title": "Side letter: Pro rata right exercise mechanics included",
+      "verdict": "pass",
+      "reasoning": "The side letter includes a comprehensive Section 1.4 titled 'Exercise Mechanics' which details the notice period, election period, payment/closing procedures, and the consequences of non-exercise, satisfying all requirements of the criterion."
+    },
+    {
+      "id": "C-032",
+      "title": "Side letter: Quarterly unaudited financial statements required",
+      "verdict": "pass",
+      "reasoning": "Section 2.1 of the Side Letter explicitly requires the Company to deliver unaudited quarterly financial statements to the Investor within forty-five days after the end of each fiscal quarter."
+    },
+    {
+      "id": "C-033",
+      "title": "Side letter: Annual financial statements required",
+      "verdict": "pass",
+      "reasoning": "Section 2.2 of the Side Letter explicitly requires the Company to deliver annual financial statements, specifying that they shall be audited if available or otherwise unaudited and certified by the CEO."
+    },
+    {
+      "id": "C-034",
+      "title": "Side letter: Prompt notice of material adverse events required",
+      "verdict": "pass",
+      "reasoning": "The side letter includes Section 2.3, which explicitly requires the Company to provide prompt written notice (within five business days) to the Investor of any Material Adverse Event."
+    },
+    {
+      "id": "C-035",
+      "title": "ISSUE_006: Memo discusses placement of pro rata/info rights in side letter vs. SAFE",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly addresses the placement of pro rata and information rights in a side letter versus the SAFE body in 'ISSUE 6'. It discusses the rationale for this approach, the potential risks regarding MFN coverage, the need for consistency, and the desire to avoid precedent-setting concerns."
+    },
+    {
+      "id": "C-036",
+      "title": "ISSUE_007: Memo identifies data privacy exposure",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly identifies the data privacy exposure in Issue 7, noting the collection of drone imagery, geolocation, and farm owner data, the use of AWS, and the lack of formal privacy policies and DPAs."
+    },
+    {
+      "id": "C-037",
+      "title": "ISSUE_007: Memo addresses CCPA/CPRA applicability or California data privacy law",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly addresses the applicability of CCPA/CPRA in Issue 7, correctly identifying that the Company's low revenue and small data volume place it below the statutory thresholds for compliance."
+    },
+    {
+      "id": "C-038",
+      "title": "ISSUE_007: SAFE includes or recommends data privacy/compliance representation",
+      "verdict": "pass",
+      "reasoning": "The agent's output satisfies the criterion because Section 3(e) of the SAFE agreement includes a representation regarding compliance with data privacy laws, and Issue 7 of the drafting memo explicitly recommends including a data privacy and compliance representation in the side letter."
+    },
+    {
+      "id": "C-039",
+      "title": "ISSUE_008: Memo identifies open-source license risk with modified ResNet",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly identifies the open-source license risk associated with the modified ResNet architecture, notes that while PyTorch is BSD-licensed, the specific ResNet implementation's license is unknown, and correctly highlights the risk of copyleft licenses (GPL/AGPL) forcing the disclosure of proprietary code."
+    },
+    {
+      "id": "C-040",
+      "title": "ISSUE_008: SAFE includes IP ownership/open-source representation",
+      "verdict": "pass",
+      "reasoning": "The agent included Section 3(d) 'Intellectual Property and Open-Source Software' which contains specific representations regarding the Company's ownership of intellectual property and the use of open-source software, including a requirement to disclose such components in an attached schedule."
+    },
+    {
+      "id": "C-041",
+      "title": "ISSUE_009: SAFE addresses pari passu treatment among multiple SAFE holders on dissolution",
+      "verdict": "pass",
+      "reasoning": "The agreement explicitly states in Section 1(d) that the payment of the Purchase Amount shall be 'Pari Passu (pro-rata) with the payment of the purchase amounts of all other outstanding Safes' and further clarifies that if assets are insufficient, they shall be distributed 'pro-rata among the Investor and such other Safe holders'."
+    },
+    {
+      "id": "C-042",
+      "title": "ISSUE_009: Memo discusses dissolution payment priority among multiple SAFEs",
+      "verdict": "pass",
+      "reasoning": "The memo explicitly addresses Issue 9, discussing the pari passu treatment of the Canopy and Greenhouse Angels SAFEs upon a Dissolution Event, correctly identifying the total obligation of $1,750,000, and recommending standard industry practice for pro rata distribution if assets are insufficient."
+    },
+    {
+      "id": "C-043",
+      "title": "ISSUE_010: Memo discusses reps & warranties scope \u2014 lean SAFE vs. expanded reps",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly addresses Issue 10, which discusses the tension between maintaining a lean SAFE (minimal representations) and including expanded representations (IP, data privacy, etc.) as requested by the investor, and proposes a hybrid solution."
+    },
+    {
+      "id": "C-044",
+      "title": "ISSUE_010: Memo recommends approach for expanded reps (SAFE vs. side letter)",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly recommends a hybrid approach for handling expanded representations, placing the capitalization representation in the SAFE body and detailed operational representations (IP, privacy, etc.) in the side letter. It also discusses the implications of this approach, including maintaining the 'lean' appearance of the SAFE for future rounds while ensuring investor protection."
+    },
+    {
+      "id": "C-045",
+      "title": "SAFE: Company authorization representation included",
+      "verdict": "pass",
+      "reasoning": "The agent included Section 3(a) (Organization, Good Standing, and Qualification) and Section 3(b) (Corporate Power and Authorization), which explicitly state that the Company is duly organized and that all corporate action necessary for the authorization, execution, and delivery of the Safe has been taken."
+    },
+    {
+      "id": "C-046",
+      "title": "SAFE: Investor accredited investor representation included",
+      "verdict": "pass",
+      "reasoning": "The agent included Section 4(b) 'Accredited Investor Status', which explicitly states that the Investor is an 'accredited investor' within the meaning of Rule 501(a) of Regulation D promulgated under the Securities Act."
+    },
+    {
+      "id": "C-047",
+      "title": "Side letter: Correct parties identified",
+      "verdict": "pass",
+      "reasoning": "The side letter correctly identifies the parties as Brightloom AI, Inc. and Canopy Ventures Fund II, LP in the introductory paragraph and the signature block."
+    },
+    {
+      "id": "C-048",
+      "title": "Side letter: References the SAFE agreement",
+      "verdict": "pass",
+      "reasoning": "The side letter explicitly references the SAFE agreement between Brightloom AI, Inc. and Canopy Ventures Fund II, LP, including the correct date (February 14, 2025) and the investment amount ($1,500,000) in the recitals."
+    },
+    {
+      "id": "C-049",
+      "title": "Side letter: Pro rata share calculated based on as-converted ownership",
+      "verdict": "pass",
+      "reasoning": "Section 1.2 of the Side Letter explicitly defines the Investor's Pro Rata Share as the percentage of the Company's capital stock held by the Investor immediately prior to the applicable equity financing, calculated on an as-converted, fully diluted basis, which satisfies the criterion."
+    },
+    {
+      "id": "C-050",
+      "title": "Side letter: Notice period for pro rata right exercise",
+      "verdict": "pass",
+      "reasoning": "The side letter includes Section 1.4, which mandates that the Company provide a 'Financing Notice' at least twenty (20) days prior to the closing and grants the Investor a fifteen (15) day 'Election Period' to exercise its pro rata rights."
+    },
+    {
+      "id": "C-051",
+      "title": "Side letter: Quarterly financial statement delivery timeframe specified",
+      "verdict": "pass",
+      "reasoning": "Section 2.1 of the Side Letter explicitly specifies that the Company shall deliver quarterly financial statements within forty-five (45) days after the end of each fiscal quarter."
+    },
+    {
+      "id": "C-052",
+      "title": "Side letter: Annual financial statements required",
+      "verdict": "pass",
+      "reasoning": "Section 2.2 of the Side Letter explicitly requires the Company to deliver annual financial statements, specifying that they shall be audited if available or otherwise unaudited and certified by the CEO."
+    },
+    {
+      "id": "C-053",
+      "title": "Side letter: Annual financial statement delivery timeframe specified",
+      "verdict": "pass",
+      "reasoning": "Section 2.2 of the Side Letter explicitly specifies that the Company shall deliver annual financial statements within ninety (90) days after the end of each fiscal year."
+    },
+    {
+      "id": "C-054",
+      "title": "Memo: Identifies items requiring client or counterparty input",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly includes a section titled 'OPEN ITEMS REQUIRING IMMEDIATE INPUT' which lists three specific items requiring input from the client (Dr. Patel) and the counterparty (Greenhouse Angels/Canopy)."
+    },
+    {
+      "id": "C-055",
+      "title": "SAFE: Correct Canopy conversion ownership percentage at cap (15.0%)",
+      "verdict": "pass",
+      "reasoning": "The agent correctly identifies and calculates the conversion ownership percentage for the Canopy SAFE as 15.0% ($1,500,000 / $10,000,000) in both the Capitalization Disclosure Schedule (Exhibit A) and the Drafting Issues Memo."
+    },
+    {
+      "id": "C-056",
+      "title": "Memo: References Greenhouse Angels' conversion at approximately 4.17% at its cap",
+      "verdict": "pass",
+      "reasoning": "The memo explicitly states that Greenhouse Angels' target ownership at its cap is approximately 4.17% (specifically 4.1667%), calculated as $250,000 / $6,000,000."
+    },
+    {
+      "id": "C-057",
+      "title": "SAFE: Proper structure following Venture Foundry post-money SAFE template",
+      "verdict": "pass",
+      "reasoning": "The agent's output includes all 6 required structural sections: (1) introductory section, (2) definitions section, (3) conversion events, (4) representations and warranties, (5) miscellaneous provisions, and (6) signature blocks."
+    },
+    {
+      "id": "C-058",
+      "title": "SAFE: Delaware governing law",
+      "verdict": "pass",
+      "reasoning": "The agreement explicitly states in Section 5(a) that it is governed by and construed in accordance with the laws of the State of Delaware."
+    },
+    {
+      "id": "C-059",
+      "title": "SAFE: Signature block for Brightloom AI, Inc.",
+      "verdict": "pass",
+      "reasoning": "The agent included a signature block for Brightloom AI, Inc. with a line for Dr. Anisha Patel as the Chief Executive Officer."
+    },
+    {
+      "id": "C-060",
+      "title": "SAFE: Signature block for Canopy Ventures Fund II, LP",
+      "verdict": "pass",
+      "reasoning": "The agent included a signature block for the Investor, Canopy Ventures Fund II, LP, which correctly identifies the General Partner (Canopy Ventures Management LLC) and provides a line for the authorized signatory (Jordan Kessler, Managing Partner)."
+    },
+    {
+      "id": "C-061",
+      "title": "Consistency: Entity names consistent across all three deliverables",
+      "verdict": "pass",
+      "reasoning": "The entity names 'Brightloom AI, Inc.' and 'Canopy Ventures Fund II, LP' are used consistently and correctly throughout the SAFE agreement, the side letter, and the drafting issues memorandum."
+    },
+    {
+      "id": "C-062",
+      "title": "Consistency: Investment amount ($1,500,000) consistent across deliverables",
+      "verdict": "pass",
+      "reasoning": "The investment amount of $1,500,000 is consistently stated across all three documents: the SAFE agreement, the side letter, and the drafting issues memorandum."
+    },
+    {
+      "id": "C-063",
+      "title": "Consistency: Valuation cap ($10,000,000) consistent across deliverables",
+      "verdict": "pass",
+      "reasoning": "The post-money valuation cap of $10,000,000 is consistently stated as $10,000,000 in both the SAFE agreement and the drafting issues memorandum."
+    },
+    {
+      "id": "C-064",
+      "title": "SAFE: Securities law legends or transfer restrictions",
+      "verdict": "pass",
+      "reasoning": "The agent included Section 5(b) 'Transfer Restrictions and Securities Law Legends', which explicitly addresses that the securities have not been registered under the Securities Act and includes the required restrictive legend."
+    },
+    {
+      "id": "C-065",
+      "title": "Memo: Provides recommendations for each identified issue",
+      "verdict": "pass",
+      "reasoning": "The agent identified ten distinct issues and provided specific, actionable recommendations for each one, including drafting suggestions, covenant requirements, and necessary client actions."
+    },
+    {
+      "id": "C-066",
+      "title": "Memo: References Greenhouse Angels SAFE's $250,000 investment and $6,000,000 cap",
+      "verdict": "pass",
+      "reasoning": "The memo correctly identifies the Greenhouse Angels SAFE as having a $250,000 investment amount and a $6,000,000 post-money valuation cap in both the 'Summary of Key Transaction Terms' table and the 'Issue 1' analysis section."
+    },
+    {
+      "id": "C-067",
+      "title": "Memo: References Greenhouse Angels SAFE has no discount and no MFN",
+      "verdict": "pass",
+      "reasoning": "The memo explicitly states in the 'Summary of Key Transaction Terms' table and in the analysis under 'Issue 3' that the existing Greenhouse SAFE has no discount and no MFN."
+    },
+    {
+      "id": "C-068",
+      "title": "Side letter: Signature block for Brightloom AI, Inc.",
+      "verdict": "pass",
+      "reasoning": "The side letter includes a signature block for Brightloom AI, Inc. under the 'COMPANY' section, including the name of the entity, a signature line, the name of the CEO (Dr. Anisha Patel), and her title."
+    },
+    {
+      "id": "C-069",
+      "title": "Side letter: Signature block for Canopy Ventures Fund II, LP",
+      "verdict": "pass",
+      "reasoning": "The side letter includes a signature block for the Investor, Canopy Ventures Fund II, LP, including the name of the General Partner and the signatory."
+    }
+  ],
+  "run_id": "emerging-companies-venture-capital/draft-safe-agreement",
+  "task": "emerging-companies-venture-capital/draft-safe-agreement",
+  "judge_model": "gemini-3.1-flash-lite"
+}

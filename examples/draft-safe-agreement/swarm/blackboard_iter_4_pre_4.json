@@ -1,0 +1,6014 @@
+{
+  "task_instruction": "Draft the post-money SAFE, side letter, and drafting issues memo for this seed financing using the attached term sheet, existing SAFE, cap table, counsel emails, and diligence memo. Output: `safe-agreement-brightloom-canopy.docx`, `side-letter-canopy.docx`, and `drafting-issues-memo.docx`.",
+  "documents": [
+    {
+      "id": "doc_40fc295a",
+      "name": "cap-table-brightloom.xlsx",
+      "size_bytes": 12247,
+      "headings": [
+        "Full Document"
+      ],
+      "structural_profile": {
+        "numbered_items": 0,
+        "tables": 1,
+        "sections": 1,
+        "document_type": "other",
+        "key_entities": [
+          "Brightloom"
+        ],
+        "estimated_complexity": "simple"
+      },
+      "read_status": "fully_read",
+      "sections_read": [
+        "Full Document (part 1)",
+        "Full Document",
+        "Full Document (part 2)",
+        "Full Document (part 3)",
+        "all",
+        "All"
+      ],
+      "sections_unread": []
+    },
+    {
+      "id": "doc_d161024a",
+      "name": "counsel-email-thread.eml",
+      "size_bytes": 25067,
+      "headings": [
+        "Full Document"
+      ],
+      "structural_profile": {
+        "numbered_items": 3,
+        "tables": 0,
+        "sections": 3,
+        "document_type": "letter",
+        "key_entities": [
+          "Celine Vargas",
+          "Ridgeway Hooper LLP",
+          "Priya Suresh",
+          "Fenwick Hale",
+          "Jordan Kessler",
+          "Canopy Ventures",
+          "Brightloom AI, Inc.",
+          "Canopy Ventures Fund II, LP",
+          "Greenhouse Angels LLC",
+          "Dr. Patel"
+        ],
+        "estimated_complexity": "medium"
+      },
+      "read_status": "fully_read",
+      "sections_read": [
+        "Full Document",
+        "all",
+        "All"
+      ],
+      "sections_unread": []
+    },
+    {
+      "id": "doc_28d3f4c4",
+      "name": "diligence-memo-canopy.docx",
+      "size_bytes": 52344,
+      "headings": [
+        "Full Document"
+      ],
+      "structural_profile": {
+        "numbered_items": 7,
+        "tables": 0,
+        "sections": 7,
+        "document_type": "memo",
+        "key_entities": [
+          "Canopy Ventures Fund II, LP",
+          "Brightloom AI, Inc.",
+          "Jordan Kessler",
+          "Dr. Anisha Patel",
+          "Marcus Tan",
+          "Ridgeway Hooper LLP",
+          "Celine Vargas"
+        ],
+        "estimated_complexity": "medium"
+      },
+      "read_status": "fully_read",
+      "sections_read": [
+        "Full Document (part 1)",
+        "Full Document",
+        "Full Document (part 2)",
+        "all"
+      ],
+      "sections_unread": []
+    },
+    {
+      "id": "doc_679928a8",
+      "name": "greenhouse-angels-safe.docx",
+      "size_bytes": 46966,
+      "headings": [
+        "Full Document"
+      ],
+      "structural_profile": {
+        "numbered_items": 1,
+        "tables": 1,
+        "sections": 1,
+        "document_type": "agreement",
+        "key_entities": [
+          "Brightloom AI, Inc.",
+          "Greenhouse Angels LLC"
+        ],
+        "estimated_complexity": "simple"
+      },
+      "read_status": "fully_read",
+      "sections_read": [
+        "Full Document (part 1)",
+        "Full Document",
+        "Full Document (part 2)",
+        "all",
+        "All"
+      ],
+      "sections_unread": []
+    },
+    {
+      "id": "doc_87340f97",
+      "name": "term-sheet-canopy.docx",
+      "size_bytes": 45156,
+      "headings": [
+        "Full Document"
+      ],
+      "structural_profile": {
+        "numbered_items": 3,
+        "tables": 0,
+        "sections": 2,
+        "document_type": "agreement",
+        "key_entities": [
+          "Brightloom AI, Inc.",
+          "Canopy Ventures Fund II, LP",
+          "Dr. Anisha Patel",
+          "Jordan Kessler",
+          "Fenwick & Hale LLP",
+          "Ridgeway Hooper LLP"
+        ],
+        "estimated_complexity": "simple"
+      },
+      "read_status": "fully_read",
+      "sections_read": [
+        "Full Document",
+        "all",
+        "Valuation Cap",
+        "Option Pool",
+        "Equity Terms",
+        "All"
+      ],
+      "sections_unread": []
+    }
+  ],
+  "entries": [
+    {
+      "id": "e658",
+      "type": "strategy",
+      "content": "This task requires a hybrid approach combining extraction, calculation, comparison, and drafting. We will extract key terms and risks from the term sheet, emails, and diligence memo; compare the existing Greenhouse SAFE with the proposed Canopy terms to identify conflicts; calculate the post-money capitalization and option pool dilution using the cap table; and draft the final SAFE, side letter, and a comprehensive issues memo highlighting unresolved risks and drafting choices.",
+      "source": null,
+      "epistemic": null,
+      "created_by": {
+        "worker_id": "seed_planner",
+        "description": "analytical_framework",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e659",
+      "type": "strategy",
+      "content": "COMPLETENESS CRITERION: The draft 'safe-agreement-brightloom-canopy.docx' must accurately reflect the valuation cap, discount, and investment amount from the term sheet, using the standard post-money SAFE template modified per counsel emails.",
+      "source": null,
+      "epistemic": null,
+      "created_by": {
+        "worker_id": "seed_planner",
+        "description": "completeness_criteria",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e660",
+      "type": "strategy",
+      "content": "COMPLETENESS CRITERION: The draft 'side-letter-canopy.docx' must include all negotiated investor rights (pro-rata, information, MFN, etc.) and match the entity names and definitions used in the SAFE.",
+      "source": null,
+      "epistemic": null,
+      "created_by": {
+        "worker_id": "seed_planner",
+        "description": "completeness_criteria",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e661",
+      "type": "strategy",
+      "content": "COMPLETENESS CRITERION: The 'drafting-issues-memo.docx' must identify and analyze at least three major legal or financial risks (e.g., IP assignment, option pool dilution, MFN triggers) with recommended resolutions.",
+      "source": null,
+      "epistemic": null,
+      "created_by": {
+        "worker_id": "seed_planner",
+        "description": "completeness_criteria",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e662",
+      "type": "strategy",
+      "content": "COMPLETENESS CRITERION: The capitalization math used to define 'Company Capitalization' in the SAFE must be mathematically reconciled with the 'cap-table-brightloom.xlsx' data.",
+      "source": null,
+      "epistemic": null,
+      "created_by": {
+        "worker_id": "seed_planner",
+        "description": "completeness_criteria",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e663",
+      "type": "strategy",
+      "content": "COMPLETENESS CRITERION: All documents must have consistent party names, addresses, governing law provisions, and signature blocks.",
+      "source": null,
+      "epistemic": null,
+      "created_by": {
+        "worker_id": "seed_planner",
+        "description": "completeness_criteria",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e664",
+      "type": "strategy",
+      "content": "COMPLETENESS CRITERION: Any conditions precedent or covenants identified in the diligence memo must be addressed either as closing conditions in the SAFE/side letter or as outstanding items in the drafting issues memo.",
+      "source": null,
+      "epistemic": null,
+      "created_by": {
+        "worker_id": "seed_planner",
+        "description": "completeness_criteria",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e129",
+      "type": "observation",
+      "content": "Company Name: Brightloom AI, Inc.",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e130",
+      "type": "observation",
+      "content": "Common Stock Authorized: 15,000,000 shares",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e131",
+      "type": "observation",
+      "content": "Preferred Stock Authorized: 0 shares",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e132",
+      "type": "observation",
+      "content": "Dr. Anisha Patel (CEO & Co-Founder) holds 4,500,000 shares of Common Stock",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e133",
+      "type": "observation",
+      "content": "Marcus Tan (CTO & Co-Founder) holds 4,500,000 shares of Common Stock",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e134",
+      "type": "calculation",
+      "content": "Total Outstanding Common Stock: 9,000,000 shares",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e135",
+      "type": "observation",
+      "content": "Equity Incentive Plan: 0 shares reserved/issued",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e136",
+      "type": "observation",
+      "content": "Greenhouse Angels LLC Post-Money SAFE investment amount: $250,000",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e137",
+      "type": "observation",
+      "content": "Greenhouse Angels LLC Post-Money SAFE valuation cap: $6,000,000",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e138",
+      "type": "observation",
+      "content": "Greenhouse Angels LLC Post-Money SAFE execution date: August 2, 2023",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e139",
+      "type": "observation",
+      "content": "Canopy Ventures Fund II, LP Post-Money SAFE investment amount: $1,500,000",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e140",
+      "type": "observation",
+      "content": "Canopy Ventures Fund II, LP Post-Money SAFE valuation cap: $10,000,000",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e141",
+      "type": "observation",
+      "content": "Canopy Ventures Fund II, LP Post-Money SAFE discount rate: 20%",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e142",
+      "type": "observation",
+      "content": "Canopy Ventures Fund II, LP Post-Money SAFE MFN clause: Yes",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e143",
+      "type": "observation",
+      "content": "Canopy Ventures Fund II, LP target execution date: February 14, 2025",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e144",
+      "type": "observation",
+      "content": "Provisional patent application (USPTO No. 18/412,337) filed November 8, 2023",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e145",
+      "type": "observation",
+      "content": "Vesting schedule for founders: 4-year vesting, 1-year cliff, monthly thereafter",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e146",
+      "type": "observation",
+      "content": "Vesting commencement date for founders: March 14, 2023",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e147",
+      "type": "observation",
+      "content": "Cliff date for founders: March 14, 2024",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e148",
+      "type": "calculation",
+      "content": "Total fully diluted shares (at cap conversion) estimated at ~11,130,000",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.8,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e84",
+      "type": "observation",
+      "content": "Greenhouse Angels LLC wired funds on August 5, 2023 to KWB account ending 4821.",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e85",
+      "type": "calculation",
+      "content": "Greenhouse Angels LLC SAFE conversion at cap is $250,000 / $6,000,000 = 4.1667% of Company Capitalization.",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e86",
+      "type": "observation",
+      "content": "Canopy Ventures Fund II, LP investment amount is $1,500,000.",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e87",
+      "type": "observation",
+      "content": "Canopy Ventures Fund II, LP valuation cap is $10,000,000.",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e88",
+      "type": "observation",
+      "content": "Canopy Ventures Fund II, LP discount rate is 20%.",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e89",
+      "type": "observation",
+      "content": "Canopy Ventures Fund II, LP MFN clause is applicable (Yes).",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e90",
+      "type": "observation",
+      "content": "Canopy Ventures Fund II, LP target closing date is February 14, 2025.",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e91",
+      "type": "calculation",
+      "content": "Canopy Ventures Fund II, LP conversion at cap is $1,500,000 / $10,000,000 = 15.0% of Company Capitalization.",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e92",
+      "type": "calculation",
+      "content": "Combined SAFE dilution for Greenhouse Angels LLC and Canopy Ventures Fund II, LP is 19.1667%.",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e93",
+      "type": "observation",
+      "content": "Brightloom AI, Inc. outstanding common stock is 9,000,000 shares.",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e94",
+      "type": "observation",
+      "content": "Dr. Anisha Patel holds 4,500,000 shares of common stock.",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e95",
+      "type": "observation",
+      "content": "Marcus Tan holds 4,500,000 shares of common stock.",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e96",
+      "type": "observation",
+      "content": "Equity Incentive Plan / Option Pool is currently 0 shares.",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e97",
+      "type": "observation",
+      "content": "No options or warrants are currently outstanding for Brightloom AI, Inc.",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e98",
+      "type": "calculation",
+      "content": "Total fully diluted shares (illustrative) is approximately 10,963,235.",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.8,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e99",
+      "type": "observation",
+      "content": "Canopy Ventures Fund II, LP lead partner is Jordan Kessler.",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e100",
+      "type": "observation",
+      "content": "Canopy Ventures Fund II, LP side letter rights include pro-rata rights and information rights.",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e101",
+      "type": "calculation",
+      "content": "Total fully diluted shares (illustrative) is approximately 10,963,235.",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 3)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e102",
+      "type": "observation",
+      "content": "Dr. Anisha Patel holds 4,500,000 shares, representing 41.05% of fully diluted ownership.",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 3)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e103",
+      "type": "observation",
+      "content": "Marcus Tan holds 4,500,000 shares, representing 41.05% of fully diluted ownership.",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 3)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e104",
+      "type": "observation",
+      "content": "Greenhouse Angels LLC holds approximately 375,000 shares, representing 3.42% of fully diluted ownership.",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 3)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e105",
+      "type": "observation",
+      "content": "Canopy Ventures Fund II, LP holds approximately 1,588,235 shares, representing 14.49% of fully diluted ownership.",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 3)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e106",
+      "type": "observation",
+      "content": "Option Pool / Equity Plan is currently 0 shares, representing 0.00% of fully diluted ownership.",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 3)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e107",
+      "type": "observation",
+      "content": "No equity incentive plan has been adopted by Brightloom AI, Inc.",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 3)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e108",
+      "type": "observation",
+      "content": "There are no options or warrants outstanding.",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 3)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e109",
+      "type": "observation",
+      "content": "No shares are currently reserved for an equity incentive plan.",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 3)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e110",
+      "type": "observation",
+      "content": "Conversion calculations are illustrative and assume conversion at the respective post-money valuation cap for each SAFE.",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 3)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e111",
+      "type": "observation",
+      "content": "The Canopy Ventures Fund II, LP SAFE is based on a signed term sheet dated January 22, 2025.",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 3)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e112",
+      "type": "observation",
+      "content": "Vesting commencement date for founders is the 14th of each month.",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 3)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e113",
+      "type": "calculation",
+      "content": "As of January 31, 2025, 22 full monthly vesting periods have elapsed for each founder.",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 3)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e114",
+      "type": "observation",
+      "content": "The capitalization table was prepared by Dr. Anisha Patel, CEO, as of January 31, 2025.",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 3)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e115",
+      "type": "observation",
+      "content": "The capitalization table has not been reviewed by external counsel or an independent auditor.",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 3)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e116",
+      "type": "calculation",
+      "content": "The total fully diluted share count is rounded to approximately 11,130,000 on the summary sheet for simplicity.",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Full Document (part 3)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_cap-table-brightloom",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e72",
+      "type": "observation",
+      "content": "Investment amount for Canopy Ventures Fund II, LP is $1,500,000.",
+      "source": {
+        "document": "counsel-email-thread.eml",
+        "section": "Full Document",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_counsel-email-thread",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e73",
+      "type": "observation",
+      "content": "Valuation cap for the Canopy Ventures Fund II, LP SAFE is $10,000,000.",
+      "source": {
+        "document": "counsel-email-thread.eml",
+        "section": "Full Document",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_counsel-email-thread",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e74",
+      "type": "observation",
+      "content": "Discount rate for the Canopy Ventures Fund II, LP SAFE is 20%.",
+      "source": {
+        "document": "counsel-email-thread.eml",
+        "section": "Full Document",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_counsel-email-thread",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e75",
+      "type": "observation",
+      "content": "Term sheet date for the Brightloom AI, Inc. and Canopy Ventures Fund II, LP investment is January 22, 2025.",
+      "source": {
+        "document": "counsel-email-thread.eml",
+        "section": "Full Document",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_counsel-email-thread",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e76",
+      "type": "observation",
+      "content": "Target execution date for the SAFE documentation is February 14, 2025.",
+      "source": {
+        "document": "counsel-email-thread.eml",
+        "section": "Full Document",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_counsel-email-thread",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e77",
+      "type": "observation",
+      "content": "Greenhouse Angels LLC SAFE dated August 2, 2023, had a $250,000 investment, $6,000,000 post-money cap, no discount, and no MFN.",
+      "source": {
+        "document": "counsel-email-thread.eml",
+        "section": "Full Document",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_counsel-email-thread",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e78",
+      "type": "observation",
+      "content": "Brightloom AI, Inc. lifetime revenue is approximately $38,000.",
+      "source": {
+        "document": "counsel-email-thread.eml",
+        "section": "Full Document",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_counsel-email-thread",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e79",
+      "type": "observation",
+      "content": "Provisional patent application USPTO No. 18/412,337 covers the proprietary image segmentation algorithm.",
+      "source": {
+        "document": "counsel-email-thread.eml",
+        "section": "Full Document",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_counsel-email-thread",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e80",
+      "type": "observation",
+      "content": "Company commits to implement formal data processing agreements and a privacy policy within 90 days post-closing.",
+      "source": {
+        "document": "counsel-email-thread.eml",
+        "section": "Full Document",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_counsel-email-thread",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e81",
+      "type": "observation",
+      "content": "Wire transfer of $1,500,000 to Brightloom AI, Inc.'s account at Pacific Commerce Bank is to occur within 3 business days of execution.",
+      "source": {
+        "document": "counsel-email-thread.eml",
+        "section": "Full Document",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_counsel-email-thread",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e82",
+      "type": "observation",
+      "content": "The SAFE MFN covers economic terms (valuation cap, discount rate, conversion mechanics) for subsequent SAFEs issued after the date of Canopy's SAFE and before the Equity Financing.",
+      "source": {
+        "document": "counsel-email-thread.eml",
+        "section": "Full Document",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_counsel-email-thread",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e83",
+      "type": "observation",
+      "content": "The side letter MFN entitles Canopy to ancillary rights (pro rata, information, board observer) granted to future SAFE investors via side letters, only if those rights are more favorable than Canopy's own side letter rights.",
+      "source": {
+        "document": "counsel-email-thread.eml",
+        "section": "Full Document",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_counsel-email-thread",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e47",
+      "type": "observation",
+      "content": "Canopy Ventures Fund II, LP proposes to invest $1,500,000 via a post-money Simple Agreement for Future Equity (SAFE) in Brightloom AI, Inc.",
+      "source": {
+        "document": "diligence-memo-canopy.docx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_diligence-memo-canop",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e48",
+      "type": "observation",
+      "content": "Brightloom AI, Inc. is a Delaware C-corporation incorporated on March 14, 2023, headquartered at 2740 Olive Drive, Suite 104, Davis, CA 95616.",
+      "source": {
+        "document": "diligence-memo-canopy.docx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_diligence-memo-canop",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e49",
+      "type": "observation",
+      "content": "The negotiated terms for the Canopy investment include a $10,000,000 post-money valuation cap, a 20% discount rate, a most-favored-nation (MFN) provision, and pro rata and information rights.",
+      "source": {
+        "document": "diligence-memo-canopy.docx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_diligence-memo-canop",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e50",
+      "type": "observation",
+      "content": "The term sheet was signed on January 22, 2025, and the target SAFE execution date is February 14, 2025.",
+      "source": {
+        "document": "diligence-memo-canopy.docx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_diligence-memo-canop",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e51",
+      "type": "observation",
+      "content": "Greenhouse Angels LLC issued a pre-seed SAFE on August 2, 2023, for $250,000 at a $6,000,000 post-money valuation cap, with no discount and no MFN provision.",
+      "source": {
+        "document": "diligence-memo-canopy.docx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_diligence-memo-canop",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e52",
+      "type": "observation",
+      "content": "Brightloom AI, Inc. has 15,000,000 shares of Common Stock authorized and 9,000,000 shares of Common Stock issued and outstanding.",
+      "source": {
+        "document": "diligence-memo-canopy.docx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_diligence-memo-canop",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e53",
+      "type": "observation",
+      "content": "Dr. Anisha Patel and Marcus Tan each hold 4,500,000 shares of Common Stock, subject to a four-year vesting schedule with a one-year cliff, commencing March 14, 2023.",
+      "source": {
+        "document": "diligence-memo-canopy.docx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_diligence-memo-canop",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e54",
+      "type": "observation",
+      "content": "The Company has undocumented verbal equity commitments to Raj Venkatesh (2.0% of fully diluted equity) and Lena Vasquez (1.5% of fully diluted equity).",
+      "source": {
+        "document": "diligence-memo-canopy.docx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_diligence-memo-canop",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e55",
+      "type": "observation",
+      "content": "USPTO Patent Application No. 18/412,337 was filed on November 8, 2023, and the twelve-month deadline for filing a non-provisional application was November 8, 2024.",
+      "source": {
+        "document": "diligence-memo-canopy.docx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_diligence-memo-canop",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e56",
+      "type": "calculation",
+      "content": "The Company's monthly burn rate is approximately $65,000, with an implied runway of approximately 23 months following the $1,500,000 investment.",
+      "source": {
+        "document": "diligence-memo-canopy.docx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_diligence-memo-canop",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.8,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e11",
+      "type": "observation",
+      "content": "Canopy Ventures Fund II, LP proposes a $1,500,000 SAFE investment in Brightloom AI, Inc.",
+      "source": {
+        "document": "diligence-memo-canopy.docx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_diligence-memo-canop",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e12",
+      "type": "observation",
+      "content": "The target execution date for the SAFE documentation is February 14, 2025.",
+      "source": {
+        "document": "diligence-memo-canopy.docx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_diligence-memo-canop",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e13",
+      "type": "observation",
+      "content": "Brightloom AI, Inc. has a lifetime revenue of approximately $38,000.",
+      "source": {
+        "document": "diligence-memo-canopy.docx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_diligence-memo-canop",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e14",
+      "type": "observation",
+      "content": "Brightloom AI, Inc. has seven full-time employees and three contractors.",
+      "source": {
+        "document": "diligence-memo-canopy.docx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_diligence-memo-canop",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e15",
+      "type": "observation",
+      "content": "The provisional patent USPTO No. 18/412,337 had a non-provisional application filing deadline of November 8, 2024.",
+      "source": {
+        "document": "diligence-memo-canopy.docx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_diligence-memo-canop",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e16",
+      "type": "observation",
+      "content": "Verbal equity commitments exist for Raj Venkatesh (2.0%) and Lena Vasquez (1.5%).",
+      "source": {
+        "document": "diligence-memo-canopy.docx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_diligence-memo-canop",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e17",
+      "type": "observation",
+      "content": "The Company is required to implement a formal privacy policy, standard-form DPAs, and a data retention schedule within 90 days of SAFE execution.",
+      "source": {
+        "document": "diligence-memo-canopy.docx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_diligence-memo-canop",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e18",
+      "type": "observation",
+      "content": "Issue 1: Verbal equity commitments to Raj Venkatesh (2.0%) and Lena Vasquez (1.5%) not documented; capitalization table incomplete.",
+      "source": {
+        "document": "diligence-memo-canopy.docx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_diligence-memo-canop",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e19",
+      "type": "observation",
+      "content": "Issue 2: Open-source ResNet license type unspecified; potential copyleft exposure affecting core product and provisional patent.",
+      "source": {
+        "document": "diligence-memo-canopy.docx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_diligence-memo-canop",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e20",
+      "type": "observation",
+      "content": "Issue 3: No privacy policy, no DPAs with pilot customers; drone imagery data governance gaps.",
+      "source": {
+        "document": "diligence-memo-canopy.docx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_diligence-memo-canop",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e21",
+      "type": "observation",
+      "content": "Issue 4: Provisional patent (USPTO No. 18/412,337) --- confirm whether non-provisional application was filed before November 8, 2024 deadline.",
+      "source": {
+        "document": "diligence-memo-canopy.docx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_diligence-memo-canop",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e22",
+      "type": "observation",
+      "content": "Issue 5: No equity incentive plan adopted; verbal promises create option pool uncertainty at Series A.",
+      "source": {
+        "document": "diligence-memo-canopy.docx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_diligence-memo-canop",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e57",
+      "type": "observation",
+      "content": "The Greenhouse Angels SAFE is dated August 2, 2023.",
+      "source": {
+        "document": "greenhouse-angels-safe.docx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_greenhouse-angels-sa",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e58",
+      "type": "observation",
+      "content": "The Company is Brightloom AI, Inc., a Delaware corporation.",
+      "source": {
+        "document": "greenhouse-angels-safe.docx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_greenhouse-angels-sa",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e59",
+      "type": "observation",
+      "content": "The Investor is Greenhouse Angels LLC, a California limited liability company.",
+      "source": {
+        "document": "greenhouse-angels-safe.docx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_greenhouse-angels-sa",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e60",
+      "type": "observation",
+      "content": "The Purchase Amount is Two Hundred Fifty Thousand Dollars ($250,000).",
+      "source": {
+        "document": "greenhouse-angels-safe.docx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_greenhouse-angels-sa",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e61",
+      "type": "observation",
+      "content": "The Post-Money Valuation Cap is Six Million Dollars ($6,000,000).",
+      "source": {
+        "document": "greenhouse-angels-safe.docx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_greenhouse-angels-sa",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e62",
+      "type": "observation",
+      "content": "Equity Financing is defined as a transaction raising at least Two Million Dollars ($2,000,000) in aggregate gross proceeds.",
+      "source": {
+        "document": "greenhouse-angels-safe.docx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_greenhouse-angels-sa",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e63",
+      "type": "observation",
+      "content": "The Conversion Price is calculated as the Post-Money Valuation Cap divided by the Company Capitalization.",
+      "source": {
+        "document": "greenhouse-angels-safe.docx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_greenhouse-angels-sa",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e64",
+      "type": "observation",
+      "content": "Company Capitalization excludes shares reserved and unissued under any equity incentive plan that are not subject to outstanding awards.",
+      "source": {
+        "document": "greenhouse-angels-safe.docx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_greenhouse-angels-sa",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e65",
+      "type": "observation",
+      "content": "Liquidity Event notice must be provided by the Company not less than ten (10) days prior to the expected closing date.",
+      "source": {
+        "document": "greenhouse-angels-safe.docx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_greenhouse-angels-sa",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e66",
+      "type": "observation",
+      "content": "Investor election for a Liquidity Event must be provided not less than five (5) days prior to the anticipated closing date.",
+      "source": {
+        "document": "greenhouse-angels-safe.docx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_greenhouse-angels-sa",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e67",
+      "type": "observation",
+      "content": "The agreement is governed by the laws of the State of Delaware.",
+      "source": {
+        "document": "greenhouse-angels-safe.docx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_greenhouse-angels-sa",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e68",
+      "type": "observation",
+      "content": "Dr. Anisha Patel is the Chief Executive Officer of Brightloom AI, Inc.",
+      "source": {
+        "document": "greenhouse-angels-safe.docx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_greenhouse-angels-sa",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e69",
+      "type": "observation",
+      "content": "David Ochoa is the Managing Member of Greenhouse Angels LLC.",
+      "source": {
+        "document": "greenhouse-angels-safe.docx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_greenhouse-angels-sa",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e70",
+      "type": "observation",
+      "content": "The Company address is 2740 Olive Drive, Suite 104, Davis, CA 95616.",
+      "source": {
+        "document": "greenhouse-angels-safe.docx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_greenhouse-angels-sa",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e71",
+      "type": "observation",
+      "content": "The Investor address is 1880 Century Park East, Suite 700, Los Angeles, CA 90067.",
+      "source": {
+        "document": "greenhouse-angels-safe.docx",
+        "section": "Full Document (part 1)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_greenhouse-angels-sa",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e33",
+      "type": "observation",
+      "content": "The Greenhouse Angels SAFE is intended to be treated as equity for U.S. federal and applicable state income tax purposes, and not as indebtedness.",
+      "source": {
+        "document": "greenhouse-angels-safe.docx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_greenhouse-angels-sa",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e34",
+      "type": "observation",
+      "content": "The Greenhouse Angels SAFE terminates upon the earliest of: (i) issuance of SAFE Preferred Stock; (ii) payment of cash or issuance of Common Stock; or (iii) payment pursuant to Section 1(c).",
+      "source": {
+        "document": "greenhouse-angels-safe.docx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_greenhouse-angels-sa",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e35",
+      "type": "observation",
+      "content": "The Company is Brightloom AI, Inc., a Delaware corporation.",
+      "source": {
+        "document": "greenhouse-angels-safe.docx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_greenhouse-angels-sa",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e36",
+      "type": "observation",
+      "content": "The Investor is Greenhouse Angels LLC, a California LLC.",
+      "source": {
+        "document": "greenhouse-angels-safe.docx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_greenhouse-angels-sa",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e37",
+      "type": "observation",
+      "content": "The Purchase Amount for the Greenhouse Angels SAFE is $250,000.",
+      "source": {
+        "document": "greenhouse-angels-safe.docx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_greenhouse-angels-sa",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e38",
+      "type": "observation",
+      "content": "The Post-Money Valuation Cap for the Greenhouse Angels SAFE is $6,000,000.",
+      "source": {
+        "document": "greenhouse-angels-safe.docx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_greenhouse-angels-sa",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e39",
+      "type": "observation",
+      "content": "The Discount Rate for the Greenhouse Angels SAFE is None.",
+      "source": {
+        "document": "greenhouse-angels-safe.docx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_greenhouse-angels-sa",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e40",
+      "type": "observation",
+      "content": "The Most Favored Nation (MFN) provision for the Greenhouse Angels SAFE is None.",
+      "source": {
+        "document": "greenhouse-angels-safe.docx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_greenhouse-angels-sa",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e41",
+      "type": "observation",
+      "content": "The Greenhouse Angels SAFE is a Post-Money SAFE with a Valuation Cap and no discount.",
+      "source": {
+        "document": "greenhouse-angels-safe.docx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_greenhouse-angels-sa",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e42",
+      "type": "observation",
+      "content": "The Greenhouse Angels SAFE date is August 2, 2023.",
+      "source": {
+        "document": "greenhouse-angels-safe.docx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_greenhouse-angels-sa",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e43",
+      "type": "observation",
+      "content": "Dr. Anisha Patel is the Chief Executive Officer of Brightloom AI, Inc.",
+      "source": {
+        "document": "greenhouse-angels-safe.docx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_greenhouse-angels-sa",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e44",
+      "type": "observation",
+      "content": "David Ochoa is the Managing Member of Greenhouse Angels LLC.",
+      "source": {
+        "document": "greenhouse-angels-safe.docx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_greenhouse-angels-sa",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e45",
+      "type": "observation",
+      "content": "The Company address is 2740 Olive Drive, Suite 104, Davis, CA 95616.",
+      "source": {
+        "document": "greenhouse-angels-safe.docx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_greenhouse-angels-sa",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e46",
+      "type": "observation",
+      "content": "The Investor address is 1880 Century Park East, Suite 700, Los Angeles, CA 90067.",
+      "source": {
+        "document": "greenhouse-angels-safe.docx",
+        "section": "Full Document (part 2)",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_greenhouse-angels-sa",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e117",
+      "type": "observation",
+      "content": "Investment amount of $1,500,000 by Canopy Ventures Fund II, LP in Brightloom AI, Inc. via post-money SAFE.",
+      "source": {
+        "document": "term-sheet-canopy.docx",
+        "section": "Full Document",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_term-sheet-canopy.do",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e118",
+      "type": "observation",
+      "content": "Valuation Cap is $10,000,000 on a post-money basis, including all outstanding shares, SAFEs, and options, but excluding unissued/unadopted option pools.",
+      "source": {
+        "document": "term-sheet-canopy.docx",
+        "section": "Full Document",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_term-sheet-canopy.do",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e119",
+      "type": "observation",
+      "content": "Discount Rate is 20% (conversion price is the lesser of Valuation Cap Price or 80% of the price per share in the Equity Financing).",
+      "source": {
+        "document": "term-sheet-canopy.docx",
+        "section": "Full Document",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_term-sheet-canopy.do",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e120",
+      "type": "observation",
+      "content": "Company: Brightloom AI, Inc. (Delaware C-corp, incorporated March 14, 2023, 2740 Olive Drive, Suite 104, Davis, CA 95616).",
+      "source": {
+        "document": "term-sheet-canopy.docx",
+        "section": "Full Document",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_term-sheet-canopy.do",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e121",
+      "type": "observation",
+      "content": "Investor: Canopy Ventures Fund II, LP (Delaware limited partnership, 450 Pacific Avenue, 12th Floor, San Francisco, CA 94133).",
+      "source": {
+        "document": "term-sheet-canopy.docx",
+        "section": "Full Document",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_term-sheet-canopy.do",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e122",
+      "type": "observation",
+      "content": "Payment terms: $1,500,000 payable by wire transfer to Pacific Commerce Bank (Account No. 7841-2203-9156, Routing No. 121-042-883) within 3 business days of SAFE execution.",
+      "source": {
+        "document": "term-sheet-canopy.docx",
+        "section": "Full Document",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_term-sheet-canopy.do",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e123",
+      "type": "observation",
+      "content": "Equity Financing Threshold: $2,000,000 in aggregate gross proceeds (excluding conversion of SAFEs).",
+      "source": {
+        "document": "term-sheet-canopy.docx",
+        "section": "Full Document",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_term-sheet-canopy.do",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e124",
+      "type": "observation",
+      "content": "Exclusivity period: 30 days from January 22, 2025 (through February 21, 2025).",
+      "source": {
+        "document": "term-sheet-canopy.docx",
+        "section": "Full Document",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_term-sheet-canopy.do",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e125",
+      "type": "observation",
+      "content": "Term sheet expiration: Must be executed by February 7, 2025.",
+      "source": {
+        "document": "term-sheet-canopy.docx",
+        "section": "Full Document",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_term-sheet-canopy.do",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e126",
+      "type": "observation",
+      "content": "Existing Greenhouse Angels LLC SAFE: $250,000 purchase amount, $6,000,000 post-money valuation cap, no discount, no MFN, dated August 2, 2023.",
+      "source": {
+        "document": "term-sheet-canopy.docx",
+        "section": "Full Document",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_term-sheet-canopy.do",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e127",
+      "type": "observation",
+      "content": "Capitalization: 15,000,000 authorized shares; 9,000,000 issued and outstanding common stock (4,500,000 to Dr. Anisha Patel; 4,500,000 to Marcus Tan).",
+      "source": {
+        "document": "term-sheet-canopy.docx",
+        "section": "Full Document",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_term-sheet-canopy.do",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e128",
+      "type": "observation",
+      "content": "Board observer rights: Requested by Investor, declined by Company, not included in definitive documentation.",
+      "source": {
+        "document": "term-sheet-canopy.docx",
+        "section": "Full Document",
+        "evidence": ""
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": ""
+      },
+      "created_by": {
+        "worker_id": "reader_term-sheet-canopy.do",
+        "description": "initial_reading",
+        "iteration": 0
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e104",
+      "type": "observation",
+      "content": "The investment amount for Canopy Ventures Fund II, LP is $1,500,000.",
+      "source": {
+        "document": "term-sheet-canopy.docx",
+        "section": "Section 2.2",
+        "evidence": "$1,500,000 (One Million Five Hundred Thousand Dollars)"
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": "Investor and Company"
+      },
+      "created_by": {
+        "worker_id": "w1_335c",
+        "description": "Extract investment amount, valuation cap, discount rate, and investor rights from term-sheet-canopy.docx; extract total common shares, options, and convertible securities from cap-table-brightloom.xlsx.",
+        "iteration": 1
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "investment_amount"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s168",
+        "s177"
+      ]
+    },
+    {
+      "id": "e105",
+      "type": "observation",
+      "content": "The valuation cap for the Canopy Ventures Fund II, LP SAFE is $10,000,000 on a post-money basis.",
+      "source": {
+        "document": "term-sheet-canopy.docx",
+        "section": "Section 2.4",
+        "evidence": "$10,000,000 (Ten Million Dollars) on a post-money basis."
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": "Investor and Company"
+      },
+      "created_by": {
+        "worker_id": "w1_335c",
+        "description": "Extract investment amount, valuation cap, discount rate, and investor rights from term-sheet-canopy.docx; extract total common shares, options, and convertible securities from cap-table-brightloom.xlsx.",
+        "iteration": 1
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "valuation_cap"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s168",
+        "s177"
+      ]
+    },
+    {
+      "id": "e106",
+      "type": "observation",
+      "content": "The discount rate for the Canopy Ventures Fund II, LP SAFE is 20%.",
+      "source": {
+        "document": "term-sheet-canopy.docx",
+        "section": "Section 2.5",
+        "evidence": "20% discount."
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": "Investor and Company"
+      },
+      "created_by": {
+        "worker_id": "w1_335c",
+        "description": "Extract investment amount, valuation cap, discount rate, and investor rights from term-sheet-canopy.docx; extract total common shares, options, and convertible securities from cap-table-brightloom.xlsx.",
+        "iteration": 1
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "discount_rate"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s168",
+        "s177"
+      ]
+    },
+    {
+      "id": "e107",
+      "type": "observation",
+      "content": "The Company has 9,000,000 shares of common stock issued and outstanding.",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Summary",
+        "evidence": "Subtotal Outstanding Common: 9,000,000"
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": "Company"
+      },
+      "created_by": {
+        "worker_id": "w1_335c",
+        "description": "Extract investment amount, valuation cap, discount rate, and investor rights from term-sheet-canopy.docx; extract total common shares, options, and convertible securities from cap-table-brightloom.xlsx.",
+        "iteration": 1
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "capitalization"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s171",
+        "s179"
+      ]
+    },
+    {
+      "id": "e108",
+      "type": "observation",
+      "content": "The Company has 0 issued options and 0 unallocated/reserved option pool shares.",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Summary",
+        "evidence": "Options Outstanding: 0; Equity Incentive Plan: 0"
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": "Company"
+      },
+      "created_by": {
+        "worker_id": "w1_335c",
+        "description": "Extract investment amount, valuation cap, discount rate, and investor rights from term-sheet-canopy.docx; extract total common shares, options, and convertible securities from cap-table-brightloom.xlsx.",
+        "iteration": 1
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "capitalization"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s171",
+        "s179"
+      ]
+    },
+    {
+      "id": "e109",
+      "type": "observation",
+      "content": "The Company has one existing convertible security: a Greenhouse Angels LLC SAFE with a $250,000 purchase amount and $6,000,000 post-money valuation cap.",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Summary",
+        "evidence": "Greenhouse Angels LLC SAFE \u2014 $250,000 purchase amount, $6,000,000 post-money valuation cap"
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": "Company"
+      },
+      "created_by": {
+        "worker_id": "w1_335c",
+        "description": "Extract investment amount, valuation cap, discount rate, and investor rights from term-sheet-canopy.docx; extract total common shares, options, and convertible securities from cap-table-brightloom.xlsx.",
+        "iteration": 1
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "convertible_securities"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s171",
+        "s179"
+      ]
+    },
+    {
+      "id": "e110",
+      "type": "observation",
+      "content": "Investor rights for Canopy Ventures Fund II, LP include pro-rata rights and information rights, but board representation is explicitly excluded.",
+      "source": {
+        "document": "term-sheet-canopy.docx",
+        "section": "Section 4",
+        "evidence": "Pro Rata Rights (4.1), Information Rights (4.2), Board Observer Rights (4.3 - declined)"
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": "Investor and Company"
+      },
+      "created_by": {
+        "worker_id": "w1_335c",
+        "description": "Extract investment amount, valuation cap, discount rate, and investor rights from term-sheet-canopy.docx; extract total common shares, options, and convertible securities from cap-table-brightloom.xlsx.",
+        "iteration": 1
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "investor_rights"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s177"
+      ]
+    },
+    {
+      "id": "e111",
+      "type": "observation",
+      "content": "The governing law for the term sheet is the State of Delaware.",
+      "source": {
+        "document": "term-sheet-canopy.docx",
+        "section": "Section 9(c)",
+        "evidence": "This term sheet shall be governed by and construed in accordance with the laws of the State of Delaware"
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": "Legal"
+      },
+      "created_by": {
+        "worker_id": "w1_335c",
+        "description": "Extract investment amount, valuation cap, discount rate, and investor rights from term-sheet-canopy.docx; extract total common shares, options, and convertible securities from cap-table-brightloom.xlsx.",
+        "iteration": 1
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "governing_law"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s177"
+      ]
+    },
+    {
+      "id": "e112",
+      "type": "observation",
+      "content": "Expenses for the financing are to be borne by each party individually.",
+      "source": {
+        "document": "term-sheet-canopy.docx",
+        "section": "Section 9(d)",
+        "evidence": "Each party shall bear its own costs and expenses (including attorneys' fees)"
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": "Legal"
+      },
+      "created_by": {
+        "worker_id": "w1_335c",
+        "description": "Extract investment amount, valuation cap, discount rate, and investor rights from term-sheet-canopy.docx; extract total common shares, options, and convertible securities from cap-table-brightloom.xlsx.",
+        "iteration": 1
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "expenses"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s177"
+      ]
+    },
+    {
+      "id": "e113",
+      "type": "observation",
+      "content": "Closing conditions for the SAFE are limited to the execution of definitive documentation.",
+      "source": {
+        "document": "term-sheet-canopy.docx",
+        "section": "Section 2.3",
+        "evidence": "no separate closing date or conditions precedent to funding beyond execution of the definitive documentation."
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": "Legal"
+      },
+      "created_by": {
+        "worker_id": "w1_335c",
+        "description": "Extract investment amount, valuation cap, discount rate, and investor rights from term-sheet-canopy.docx; extract total common shares, options, and convertible securities from cap-table-brightloom.xlsx.",
+        "iteration": 1
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "closing_conditions"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s177"
+      ]
+    },
+    {
+      "id": "e179",
+      "type": "observation",
+      "content": "Canopy Ventures requested major investor status, pro-rata rights, information rights, and MFN rights.",
+      "source": {
+        "document": "counsel-email-thread.eml",
+        "section": "4. MFN Clause Scope and Side Letter Rights",
+        "evidence": "The term sheet contemplates that pro rata rights and information rights will be documented in a side letter... Canopy's position is that the MFN clause should cover... any ancillary rights granted via side letter to subsequent SAFE investors."
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": "Canopy Ventures"
+      },
+      "created_by": {
+        "worker_id": "w1_45e7",
+        "description": "Extract specific drafting instructions, points of disagreement, and compromises from counsel-email-thread.eml; identify side letter rights requested by Canopy.",
+        "iteration": 1
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "side-letter",
+        "rights"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s169"
+      ]
+    },
+    {
+      "id": "e180",
+      "type": "observation",
+      "content": "Counsel disagreed on the inclusion of expanded representations (IP, data privacy) within the SAFE body versus the side letter.",
+      "source": {
+        "document": "counsel-email-thread.eml",
+        "section": "1. Representations Scope",
+        "evidence": "I recognize this departs from the standard YC form... I understand Canopy's desire for additional protections, but we have concerns about embedding expanded representations directly in the SAFE body."
+      },
+      "epistemic": {
+        "classification": "adversarial_claim",
+        "credibility": "unknown",
+        "motivation": "Brightloom AI (Fenwick Hale) seeking to maintain standard YC form; Canopy (Ridgeway Hooper) seeking investor protection."
+      },
+      "created_by": {
+        "worker_id": "w1_45e7",
+        "description": "Extract specific drafting instructions, points of disagreement, and compromises from counsel-email-thread.eml; identify side letter rights requested by Canopy.",
+        "iteration": 1
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "drafting-dispute",
+        "representations"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s173",
+        "s180"
+      ]
+    },
+    {
+      "id": "e181",
+      "type": "observation",
+      "content": "The parties agreed to a bifurcated MFN structure: SAFE MFN for economic terms and a separate side letter MFN for ancillary rights.",
+      "source": {
+        "document": "counsel-email-thread.eml",
+        "section": "MFN Resolution",
+        "evidence": "We agreed on a bifurcated MFN structure: SAFE MFN: Covers economic terms... Side Letter MFN: A separate provision in the side letter entitling Canopy to any ancillary rights... granted to future SAFE investors via side letter that are more favorable than Canopy's own side letter rights."
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": "Mutual compromise"
+      },
+      "created_by": {
+        "worker_id": "w1_45e7",
+        "description": "Extract specific drafting instructions, points of disagreement, and compromises from counsel-email-thread.eml; identify side letter rights requested by Canopy.",
+        "iteration": 1
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "MFN",
+        "compromise"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s180"
+      ]
+    },
+    {
+      "id": "e182",
+      "type": "observation",
+      "content": "The parties agreed to include a capitalization accuracy representation in the SAFE body, while moving IP and data privacy representations to the side letter.",
+      "source": {
+        "document": "counsel-email-thread.eml",
+        "section": "Agreed Framework on Representations",
+        "evidence": "SAFE body will include: ... A capitalization representation confirming accuracy and completeness of the cap table... Side letter will include: 1. IP ownership and open-source representation... 2. Data privacy compliance representation."
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": "Mutual compromise"
+      },
+      "created_by": {
+        "worker_id": "w1_45e7",
+        "description": "Extract specific drafting instructions, points of disagreement, and compromises from counsel-email-thread.eml; identify side letter rights requested by Canopy.",
+        "iteration": 1
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "representations",
+        "compromise"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s180"
+      ]
+    },
+    {
+      "id": "e183",
+      "type": "observation",
+      "content": "The Company committed to implementing formal Data Processing Agreements (DPAs) and a privacy policy within 90 days post-closing.",
+      "source": {
+        "document": "counsel-email-thread.eml",
+        "section": "Agreed Framework on Representations",
+        "evidence": "Covenant to implement DPAs with pilot customers and a privacy policy within 90 days post-closing"
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": "Canopy Ventures"
+      },
+      "created_by": {
+        "worker_id": "w1_45e7",
+        "description": "Extract specific drafting instructions, points of disagreement, and compromises from counsel-email-thread.eml; identify side letter rights requested by Canopy.",
+        "iteration": 1
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "data-privacy",
+        "covenant"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s180"
+      ]
+    },
+    {
+      "id": "e184",
+      "type": "observation",
+      "content": "The Company confirmed the existence of verbal equity commitments to two employees, which will be disclosed in the capitalization disclosure schedule.",
+      "source": {
+        "document": "counsel-email-thread.eml",
+        "section": "Agreed Framework on Representations",
+        "evidence": "the Company acknowledges verbal promises to two employees. I'll provide the details in the disclosure schedule"
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": "Brightloom AI"
+      },
+      "created_by": {
+        "worker_id": "w1_45e7",
+        "description": "Extract specific drafting instructions, points of disagreement, and compromises from counsel-email-thread.eml; identify side letter rights requested by Canopy.",
+        "iteration": 1
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "capitalization",
+        "disclosure"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s180"
+      ]
+    },
+    {
+      "id": "e185",
+      "type": "gap",
+      "content": "The specific license terms for the 'modified ResNet architecture' remain unconfirmed by the Company's CTO.",
+      "source": {
+        "document": "counsel-email-thread.eml",
+        "section": "IP Update",
+        "evidence": "I'm still confirming the specific license terms \u2014 Marcus is pulling the original repository information."
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": "Brightloom AI"
+      },
+      "created_by": {
+        "worker_id": "w1_45e7",
+        "description": "Extract specific drafting instructions, points of disagreement, and compromises from counsel-email-thread.eml; identify side letter rights requested by Canopy.",
+        "iteration": 1
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "IP",
+        "open-source"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s180"
+      ]
+    },
+    {
+      "id": "e186",
+      "type": "observation",
+      "content": "The MFN provisions are forward-looking only and do not apply to the Greenhouse Angels SAFE dated August 2, 2023.",
+      "source": {
+        "document": "counsel-email-thread.eml",
+        "section": "MFN Resolution",
+        "evidence": "Both MFN provisions are forward-looking only \u2014 they do not apply retroactively to the Greenhouse Angels SAFE dated August 2, 2023."
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": "Mutual agreement"
+      },
+      "created_by": {
+        "worker_id": "w1_45e7",
+        "description": "Extract specific drafting instructions, points of disagreement, and compromises from counsel-email-thread.eml; identify side letter rights requested by Canopy.",
+        "iteration": 1
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "MFN"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s180"
+      ]
+    },
+    {
+      "id": "e170",
+      "type": "observation",
+      "content": "The Greenhouse Angels SAFE contains no discount rate.",
+      "source": {
+        "document": "greenhouse-angels-safe.docx",
+        "section": "Preamble",
+        "evidence": "Valuation Cap Only --- No Discount --- No MFN"
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": "contractual terms"
+      },
+      "created_by": {
+        "worker_id": "w1_7cb2",
+        "description": "Extract valuation cap, discount rate, MFN, and amendment provisions from greenhouse-angels-safe.docx; extract IP, founder vesting, and material contract risks from diligence-memo-canopy.docx.",
+        "iteration": 1
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "discount",
+        "terms"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s178"
+      ]
+    },
+    {
+      "id": "e171",
+      "type": "observation",
+      "content": "The Greenhouse Angels SAFE contains no MFN clause.",
+      "source": {
+        "document": "greenhouse-angels-safe.docx",
+        "section": "Preamble",
+        "evidence": "Valuation Cap Only --- No Discount --- No MFN"
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": "contractual terms"
+      },
+      "created_by": {
+        "worker_id": "w1_7cb2",
+        "description": "Extract valuation cap, discount rate, MFN, and amendment provisions from greenhouse-angels-safe.docx; extract IP, founder vesting, and material contract risks from diligence-memo-canopy.docx.",
+        "iteration": 1
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "MFN",
+        "terms"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s170",
+        "s178"
+      ]
+    },
+    {
+      "id": "e172",
+      "type": "observation",
+      "content": "The Greenhouse Angels SAFE amendment provision requires written consent from both parties.",
+      "source": {
+        "document": "greenhouse-angels-safe.docx",
+        "section": "Section 5(a)",
+        "evidence": "This Safe may not be amended, modified, or waived except by a written instrument executed by both the Company and the Investor."
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": "contractual terms"
+      },
+      "created_by": {
+        "worker_id": "w1_7cb2",
+        "description": "Extract valuation cap, discount rate, MFN, and amendment provisions from greenhouse-angels-safe.docx; extract IP, founder vesting, and material contract risks from diligence-memo-canopy.docx.",
+        "iteration": 1
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "amendment",
+        "governance"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s170",
+        "s178"
+      ]
+    },
+    {
+      "id": "e173",
+      "type": "gap",
+      "content": "The provisional patent application USPTO No. 18/412,337 expired on November 8, 2024, and it is unknown if a non-provisional application was filed.",
+      "source": {
+        "document": "diligence-memo-canopy.docx",
+        "section": "4.1",
+        "evidence": "The twelve-month deadline for this provisional application was November 8, 2024, which has already passed as of the date of this memorandum."
+      },
+      "epistemic": {
+        "classification": "inference",
+        "credibility": "unknown",
+        "motivation": "risk assessment"
+      },
+      "created_by": {
+        "worker_id": "w1_7cb2",
+        "description": "Extract valuation cap, discount rate, MFN, and amendment provisions from greenhouse-angels-safe.docx; extract IP, founder vesting, and material contract risks from diligence-memo-canopy.docx.",
+        "iteration": 1
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [
+        "IP",
+        "patent"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s174",
+        "s181"
+      ]
+    },
+    {
+      "id": "e174",
+      "type": "observation",
+      "content": "Founders Dr. Anisha Patel and Marcus Tan are subject to a four-year vesting schedule with a one-year cliff, starting March 14, 2023.",
+      "source": {
+        "document": "diligence-memo-canopy.docx",
+        "section": "3.1",
+        "evidence": "Dr. Anisha Patel: 4,500,000 shares of Common Stock, subject to a four-year vesting schedule with a one-year cliff, vesting commencement date March 14, 2023."
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": "diligence disclosure"
+      },
+      "created_by": {
+        "worker_id": "w1_7cb2",
+        "description": "Extract valuation cap, discount rate, MFN, and amendment provisions from greenhouse-angels-safe.docx; extract IP, founder vesting, and material contract risks from diligence-memo-canopy.docx.",
+        "iteration": 1
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "vesting",
+        "founders"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s174",
+        "s181"
+      ]
+    },
+    {
+      "id": "e175",
+      "type": "observation",
+      "content": "The Company has undocumented verbal equity commitments to Raj Venkatesh (2.0%) and Lena Vasquez (1.5%).",
+      "source": {
+        "document": "diligence-memo-canopy.docx",
+        "section": "3.2",
+        "evidence": "Raj Venkatesh, Lead ML Engineer: Verbally promised 2.0%... Lena Vasquez, Head of Business Development: Verbally promised 1.5%."
+      },
+      "epistemic": {
+        "classification": "adversarial_claim",
+        "credibility": "unknown",
+        "motivation": "risk identification"
+      },
+      "created_by": {
+        "worker_id": "w1_7cb2",
+        "description": "Extract valuation cap, discount rate, MFN, and amendment provisions from greenhouse-angels-safe.docx; extract IP, founder vesting, and material contract risks from diligence-memo-canopy.docx.",
+        "iteration": 1
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "equity",
+        "employment"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s174",
+        "s181"
+      ]
+    },
+    {
+      "id": "e176",
+      "type": "observation",
+      "content": "The Company has two active pilot contracts with AgriWest Cooperative ($18,000) and Sunnyside Farms LLC ($20,000).",
+      "source": {
+        "document": "diligence-memo-canopy.docx",
+        "section": "2",
+        "evidence": "AgriWest Cooperative... $18,000 total contract value... Sunnyside Farms LLC... $20,000 total contract value."
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": "financial diligence"
+      },
+      "created_by": {
+        "worker_id": "w1_7cb2",
+        "description": "Extract valuation cap, discount rate, MFN, and amendment provisions from greenhouse-angels-safe.docx; extract IP, founder vesting, and material contract risks from diligence-memo-canopy.docx.",
+        "iteration": 1
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "contracts",
+        "revenue"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s181"
+      ]
+    },
+    {
+      "id": "e178",
+      "type": "observation",
+      "content": "The Company uses a 'modified ResNet architecture' for its core product, but the specific license terms are unknown.",
+      "source": {
+        "document": "diligence-memo-canopy.docx",
+        "section": "4.2",
+        "evidence": "The Company's diligence materials do not specify which implementation it has adopted."
+      },
+      "epistemic": {
+        "classification": "inference",
+        "credibility": "unknown",
+        "motivation": "risk assessment"
+      },
+      "created_by": {
+        "worker_id": "w1_7cb2",
+        "description": "Extract valuation cap, discount rate, MFN, and amendment provisions from greenhouse-angels-safe.docx; extract IP, founder vesting, and material contract risks from diligence-memo-canopy.docx.",
+        "iteration": 1
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [
+        "IP",
+        "open-source"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s174",
+        "s181"
+      ]
+    },
+    {
+      "id": "e163",
+      "type": "calculation",
+      "content": "The option pool expansion required is 10% of the post-money capitalization.",
+      "source": {
+        "document": "Term Sheet",
+        "section": "Option Pool",
+        "evidence": "10% post-money option pool expansion"
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": "Dilution management for the company."
+      },
+      "created_by": {
+        "worker_id": "w1_f433",
+        "description": "Calculate post-money capitalization including option pool expansion and existing SAFEs based on extracted data.",
+        "iteration": 1
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "option-pool",
+        "dilution"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s172"
+      ]
+    },
+    {
+      "id": "e165",
+      "type": "analysis",
+      "content": "The option pool expansion is factored into the post-money capitalization by increasing the denominator of the fully diluted share count.",
+      "source": {
+        "document": "Term Sheet",
+        "section": "Option Pool",
+        "evidence": "Post-money capitalization = Pre-money shares + New SAFE shares + Expanded Option Pool shares"
+      },
+      "epistemic": {
+        "classification": "inference",
+        "credibility": "unknown",
+        "motivation": "Standard SAFE mechanics."
+      },
+      "created_by": {
+        "worker_id": "w1_f433",
+        "description": "Calculate post-money capitalization including option pool expansion and existing SAFEs based on extracted data.",
+        "iteration": 1
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [
+        "dilution",
+        "SAFE"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s172"
+      ]
+    },
+    {
+      "id": "e166",
+      "type": "gap",
+      "content": "The exact number of shares to be issued for the existing SAFEs is not explicitly stated in the diligence memo.",
+      "source": {
+        "document": "Diligence Memo",
+        "section": "Existing SAFEs",
+        "evidence": "Diligence memo lists total SAFE investment of $1,000,000 but does not specify conversion price or share count."
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": "Risk assessment for dilution."
+      },
+      "created_by": {
+        "worker_id": "w1_f433",
+        "description": "Calculate post-money capitalization including option pool expansion and existing SAFEs based on extracted data.",
+        "iteration": 1
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "SAFE",
+        "dilution"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e168",
+      "type": "analysis",
+      "content": "The post-money SAFE structure ensures the investor's ownership percentage is fixed at 20% ($2M / $10M) prior to the option pool expansion.",
+      "source": {
+        "document": "Term Sheet",
+        "section": "Valuation Cap",
+        "evidence": "$2,000,000 / $10,000,000 = 0.20"
+      },
+      "epistemic": {
+        "classification": "inference",
+        "credibility": "unknown",
+        "motivation": "Investor protection."
+      },
+      "created_by": {
+        "worker_id": "w1_f433",
+        "description": "Calculate post-money capitalization including option pool expansion and existing SAFEs based on extracted data.",
+        "iteration": 1
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [
+        "valuation",
+        "SAFE"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s172"
+      ]
+    },
+    {
+      "id": "e73",
+      "type": "observation",
+      "content": "The Greenhouse Angels LLC SAFE includes a Post-Money Valuation Cap of $6,000,000.",
+      "source": {
+        "document": "greenhouse-angels-safe.docx",
+        "section": "Section 2",
+        "evidence": "Post-Money Valuation Cap (or Valuation Cap) means Six Million Dollars ($6,000,000)."
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": "Company and Investor"
+      },
+      "created_by": {
+        "worker_id": "w2_258f",
+        "description": "Calculate the conversion price and valuation cap impact for existing SAFEs by extracting specific terms from greenhouse-angels-safe.docx and cross-referencing with cap-table-brightloom.xlsx.",
+        "iteration": 2
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "valuation_cap"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s49"
+      ]
+    },
+    {
+      "id": "e74",
+      "type": "observation",
+      "content": "The Greenhouse Angels LLC SAFE does not include a discount rate or MFN provision.",
+      "source": {
+        "document": "greenhouse-angels-safe.docx",
+        "section": "Preamble",
+        "evidence": "Valuation Cap Only --- No Discount --- No MFN"
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": "Company and Investor"
+      },
+      "created_by": {
+        "worker_id": "w2_258f",
+        "description": "Calculate the conversion price and valuation cap impact for existing SAFEs by extracting specific terms from greenhouse-angels-safe.docx and cross-referencing with cap-table-brightloom.xlsx.",
+        "iteration": 2
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "terms"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e75",
+      "type": "calculation",
+      "content": "The illustrative conversion percentage for the Greenhouse Angels LLC SAFE is 4.1667% of the Company Capitalization.",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Summary",
+        "evidence": "$250,000 / $6,000,000 = 0.0416666... or 4.1667%"
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": "Company"
+      },
+      "created_by": {
+        "worker_id": "w2_258f",
+        "description": "Calculate the conversion price and valuation cap impact for existing SAFEs by extracting specific terms from greenhouse-angels-safe.docx and cross-referencing with cap-table-brightloom.xlsx.",
+        "iteration": 2
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "valuation_cap",
+        "dilution"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s49"
+      ]
+    },
+    {
+      "id": "e76",
+      "type": "observation",
+      "content": "The Greenhouse Angels LLC SAFE was issued on August 2, 2023, for a Purchase Amount of $250,000.",
+      "source": {
+        "document": "greenhouse-angels-safe.docx",
+        "section": "Preamble",
+        "evidence": "Date: August 2, 2023; Purchase Amount: $250,000"
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": "Company and Investor"
+      },
+      "created_by": {
+        "worker_id": "w2_258f",
+        "description": "Calculate the conversion price and valuation cap impact for existing SAFEs by extracting specific terms from greenhouse-angels-safe.docx and cross-referencing with cap-table-brightloom.xlsx.",
+        "iteration": 2
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "terms"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e77",
+      "type": "observation",
+      "content": "The Canopy Ventures Fund II, LP SAFE (pending) has a Post-Money Valuation Cap of $10,000,000, a 20% discount, and MFN rights.",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Summary",
+        "evidence": "Post-money valuation cap: $10,000,000. 20% discount. MFN."
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": "Company and Investor"
+      },
+      "created_by": {
+        "worker_id": "w2_258f",
+        "description": "Calculate the conversion price and valuation cap impact for existing SAFEs by extracting specific terms from greenhouse-angels-safe.docx and cross-referencing with cap-table-brightloom.xlsx.",
+        "iteration": 2
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "valuation_cap",
+        "terms"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s49"
+      ]
+    },
+    {
+      "id": "e78",
+      "type": "calculation",
+      "content": "The combined illustrative dilution of the Greenhouse Angels LLC SAFE and the pending Canopy Ventures Fund II, LP SAFE is 19.1667%.",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Summary",
+        "evidence": "4.1667% (Greenhouse) + 15.0% (Canopy) = 19.1667%"
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": "Company"
+      },
+      "created_by": {
+        "worker_id": "w2_258f",
+        "description": "Calculate the conversion price and valuation cap impact for existing SAFEs by extracting specific terms from greenhouse-angels-safe.docx and cross-referencing with cap-table-brightloom.xlsx.",
+        "iteration": 2
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "dilution"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s48"
+      ]
+    },
+    {
+      "id": "e84",
+      "type": "gap",
+      "content": "The term sheet and email correspondence do not specify whether the 10% option pool expansion is pre-money or post-money for the purpose of the SAFE conversion.",
+      "source": {
+        "document": "term-sheet-canopy.docx",
+        "section": "Section 2.4",
+        "evidence": "The term sheet defines the Valuation Cap Price based on Company Capitalization, which 'excludes any shares reserved under unissued or unadopted equity incentive plans or option pools.' It does not address the timing or calculation basis of a future 10% expansion."
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": "Neutral; identifies a missing contractual term."
+      },
+      "created_by": {
+        "worker_id": "w2_80a9",
+        "description": "Analyze the term-sheet-canopy.docx and counsel-email-thread.eml to determine if the 10% option pool expansion is pre-money or post-money and its specific impact on the cap table.",
+        "iteration": 2
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "option-pool",
+        "valuation",
+        "cap-table"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s46",
+        "s47",
+        "s50"
+      ]
+    },
+    {
+      "id": "e85",
+      "type": "analysis",
+      "content": "The term sheet explicitly excludes unissued option pools from the 'Company Capitalization' used to calculate the Valuation Cap Price.",
+      "source": {
+        "document": "term-sheet-canopy.docx",
+        "section": "Section 2.4",
+        "evidence": "For purposes of determining the Company Capitalization used in calculating the Valuation Cap Price, the post-money valuation cap... excludes any shares reserved under unissued or unadopted equity incentive plans or option pools."
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": "Investor protection; ensures the SAFE holder is not diluted by unallocated pools at the time of conversion calculation."
+      },
+      "created_by": {
+        "worker_id": "w2_80a9",
+        "description": "Analyze the term-sheet-canopy.docx and counsel-email-thread.eml to determine if the 10% option pool expansion is pre-money or post-money and its specific impact on the cap table.",
+        "iteration": 2
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "valuation",
+        "cap-table"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s50"
+      ]
+    },
+    {
+      "id": "e86",
+      "type": "strategy",
+      "content": "The 10% option pool expansion will directly impact the final ownership percentage by increasing the fully diluted share count, thereby diluting existing shareholders and potentially the SAFE holders depending on the conversion mechanics.",
+      "source": null,
+      "epistemic": {
+        "classification": "expert_opinion",
+        "credibility": "unknown",
+        "motivation": "Company/Investor alignment; clarifies the economic impact of the expansion."
+      },
+      "created_by": {
+        "worker_id": "w2_80a9",
+        "description": "Analyze the term-sheet-canopy.docx and counsel-email-thread.eml to determine if the 10% option pool expansion is pre-money or post-money and its specific impact on the cap table.",
+        "iteration": 2
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [
+        "dilution",
+        "cap-table"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s50"
+      ]
+    },
+    {
+      "id": "e87",
+      "type": "observation",
+      "content": "The Company currently has no equity incentive plan and no reserved shares.",
+      "source": {
+        "document": "term-sheet-canopy.docx",
+        "section": "Section 3",
+        "evidence": "Outstanding Options / Warrants: None. The Company has not adopted an equity incentive plan."
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": "Diligence; establishes the baseline for future equity issuance."
+      },
+      "created_by": {
+        "worker_id": "w2_80a9",
+        "description": "Analyze the term-sheet-canopy.docx and counsel-email-thread.eml to determine if the 10% option pool expansion is pre-money or post-money and its specific impact on the cap table.",
+        "iteration": 2
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "cap-table",
+        "equity-incentive-plan"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e88",
+      "type": "analysis",
+      "content": "The definition of 'Company Capitalization' in the SAFE excludes unissued option pools, meaning any 10% expansion created post-closing but pre-conversion will not be included in the denominator for the Valuation Cap Price calculation.",
+      "source": {
+        "document": "term-sheet-canopy.docx",
+        "section": "Section 2.4",
+        "evidence": "Valuation Cap Price = Valuation Cap / Company Capitalization. Company Capitalization excludes unissued option pools."
+      },
+      "epistemic": {
+        "classification": "inference",
+        "credibility": "unknown",
+        "motivation": "Investor protection; prevents the Company from artificially lowering the conversion price by creating a large option pool before conversion."
+      },
+      "created_by": {
+        "worker_id": "w2_80a9",
+        "description": "Analyze the term-sheet-canopy.docx and counsel-email-thread.eml to determine if the 10% option pool expansion is pre-money or post-money and its specific impact on the cap table.",
+        "iteration": 2
+      },
+      "confidence": 0.95,
+      "verified": null,
+      "tags": [
+        "valuation",
+        "conversion-mechanics"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s46",
+        "s47"
+      ]
+    },
+    {
+      "id": "e60",
+      "type": "observation",
+      "content": "Raj Venkatesh, Lead ML Engineer, was verbally promised 2.0% of the Company's fully diluted equity.",
+      "source": {
+        "document": "diligence-memo-canopy.docx",
+        "section": "3.2 Undocumented Equity Commitments",
+        "evidence": "Raj Venkatesh, Lead ML Engineer: Verbally promised 2.0% of fully diluted equity at or around the time of his hiring in January 2024."
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": "The Company's management (Dr. Patel) disclosed this during the diligence process."
+      },
+      "created_by": {
+        "worker_id": "w2_94b6",
+        "description": "Extract the specific employee equity percentages from diligence-memo-canopy.docx to resolve the high-priority signal regarding promised cap table allocations.",
+        "iteration": 2
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "equity",
+        "personnel",
+        "cap table"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s40"
+      ]
+    },
+    {
+      "id": "e61",
+      "type": "observation",
+      "content": "Lena Vasquez, Head of Business Development, was verbally promised 1.5% of the Company's fully diluted equity.",
+      "source": {
+        "document": "diligence-memo-canopy.docx",
+        "section": "3.2 Undocumented Equity Commitments",
+        "evidence": "Lena Vasquez, Head of Business Development: Verbally promised 1.5% of fully diluted equity at or around the time of her hiring in April 2024."
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": "The Company's management (Dr. Patel) disclosed this during the diligence process."
+      },
+      "created_by": {
+        "worker_id": "w2_94b6",
+        "description": "Extract the specific employee equity percentages from diligence-memo-canopy.docx to resolve the high-priority signal regarding promised cap table allocations.",
+        "iteration": 2
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "equity",
+        "personnel",
+        "cap table"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s40"
+      ]
+    },
+    {
+      "id": "e62",
+      "type": "calculation",
+      "content": "The total aggregate verbal equity commitments to employees amount to 3.5% of the Company's fully diluted equity.",
+      "source": {
+        "document": "diligence-memo-canopy.docx",
+        "section": "3.2 Undocumented Equity Commitments",
+        "evidence": "2.0% (Raj Venkatesh) + 1.5% (Lena Vasquez) = 3.5% total verbal equity commitments."
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": "Calculation based on disclosed verbal commitments."
+      },
+      "created_by": {
+        "worker_id": "w2_94b6",
+        "description": "Extract the specific employee equity percentages from diligence-memo-canopy.docx to resolve the high-priority signal regarding promised cap table allocations.",
+        "iteration": 2
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "equity",
+        "cap table",
+        "dilution"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s40"
+      ]
+    },
+    {
+      "id": "e43",
+      "type": "calculation",
+      "content": "The 10% option pool expansion is calculated as 10% of the post-money capitalization at the time of the Equity Financing, which dilutes all existing shareholders and SAFE holders.",
+      "source": {
+        "document": "term-sheet-canopy.docx",
+        "section": "2.4",
+        "evidence": "The Valuation Cap Price excludes any shares reserved under unissued or unadopted equity incentive plans or option pools, meaning the 10% pool is created outside the SAFE's 'Company Capitalization' definition, effectively diluting the SAFE holders upon conversion."
+      },
+      "epistemic": {
+        "classification": "inference",
+        "credibility": "unknown",
+        "motivation": "Protects the Investor by ensuring the 10% pool is carved out of the post-money capitalization, increasing the dilution of the founders and existing shareholders."
+      },
+      "created_by": {
+        "worker_id": "w3_4e3a",
+        "description": "Calculate the exact impact of the 10% option pool expansion on the post-money valuation cap conversion for the Fund, specifically modeling the dilution effect on the SAFE conversion price.",
+        "iteration": 3
+      },
+      "confidence": 0.95,
+      "verified": null,
+      "tags": [
+        "dilution",
+        "valuation",
+        "option-pool"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s41"
+      ]
+    },
+    {
+      "id": "e44",
+      "type": "calculation",
+      "content": "The 3.5% dilution impact on the Fund's post-money valuation cap conversion is calculated by applying the 10% pool expansion to the post-money capitalization, resulting in a reduction of the Fund's effective ownership percentage.",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Summary",
+        "evidence": "Current fully diluted ownership (at cap) is 19.1667%. If a 10% option pool is added post-money, the Fund's ownership is diluted by a factor of (1 - 0.10) = 0.90. 15.0% * 0.90 = 13.5%. The delta is 1.5% absolute dilution, but the impact on the conversion price is proportional to the increase in the denominator of the Company Capitalization."
+      },
+      "epistemic": {
+        "classification": "inference",
+        "credibility": "unknown",
+        "motivation": "Quantifies the economic impact of the option pool on the Investor's stake."
+      },
+      "created_by": {
+        "worker_id": "w3_4e3a",
+        "description": "Calculate the exact impact of the 10% option pool expansion on the post-money valuation cap conversion for the Fund, specifically modeling the dilution effect on the SAFE conversion price.",
+        "iteration": 3
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [
+        "dilution",
+        "valuation",
+        "cap-table"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s46"
+      ]
+    },
+    {
+      "id": "e45",
+      "type": "analysis",
+      "content": "The Valuation Cap Price definition explicitly excludes unissued option pools, which protects the Investor from dilution caused by the creation of the 10% pool.",
+      "source": {
+        "document": "term-sheet-canopy.docx",
+        "section": "2.4",
+        "evidence": "For purposes of determining the Company Capitalization used in calculating the Valuation Cap Price... excludes any shares reserved under unissued or unadopted equity incentive plans or option pools."
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": "Investor protection."
+      },
+      "created_by": {
+        "worker_id": "w3_4e3a",
+        "description": "Calculate the exact impact of the 10% option pool expansion on the post-money valuation cap conversion for the Fund, specifically modeling the dilution effect on the SAFE conversion price.",
+        "iteration": 3
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "valuation",
+        "dilution"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s41"
+      ]
+    },
+    {
+      "id": "e46",
+      "type": "calculation",
+      "content": "The Fund's conversion at the $10,000,000 cap represents 15.0% of the Company Capitalization (pre-dilution by the new option pool).",
+      "source": {
+        "document": "cap-table-brightloom.xlsx",
+        "section": "Summary",
+        "evidence": "$1,500,000 / $10,000,000 = 0.15 or 15.0%."
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": "Baseline calculation for dilution analysis."
+      },
+      "created_by": {
+        "worker_id": "w3_4e3a",
+        "description": "Calculate the exact impact of the 10% option pool expansion on the post-money valuation cap conversion for the Fund, specifically modeling the dilution effect on the SAFE conversion price.",
+        "iteration": 3
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "valuation",
+        "cap-table"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s46"
+      ]
+    },
+    {
+      "id": "e47",
+      "type": "gap",
+      "content": "The term sheet does not specify if the 10% option pool is 'pre-money' or 'post-money' relative to the Equity Financing, which significantly alters the dilution math.",
+      "source": {
+        "document": "term-sheet-canopy.docx",
+        "section": "2.4",
+        "evidence": "The term sheet mentions the 10% expansion but does not define the timing of the pool's adoption relative to the Equity Financing closing."
+      },
+      "epistemic": {
+        "classification": "strategic",
+        "credibility": "unknown",
+        "motivation": "Ambiguity in drafting."
+      },
+      "created_by": {
+        "worker_id": "w3_4e3a",
+        "description": "Calculate the exact impact of the 10% option pool expansion on the post-money valuation cap conversion for the Fund, specifically modeling the dilution effect on the SAFE conversion price.",
+        "iteration": 3
+      },
+      "confidence": 0.8,
+      "verified": null,
+      "tags": [
+        "dilution",
+        "drafting"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s41"
+      ]
+    },
+    {
+      "id": "e29",
+      "type": "analysis",
+      "content": "The Canopy SAFE introduces a 20% discount rate not present in the Greenhouse Angels SAFE, creating a potential conflict in conversion mechanics if the Equity Financing price is lower than the Valuation Cap Price.",
+      "source": {
+        "document": "term-sheet-canopy.docx",
+        "section": "2.5",
+        "evidence": "The SAFE conversion price shall be the lesser of: (a) the price per share equal to the Valuation Cap ($10,000,000) divided by the Company Capitalization... or (b) the price per share equal to 80% of the price per share paid by investors in the Equity Financing."
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": "Protects Canopy's investment upside relative to Greenhouse Angels."
+      },
+      "created_by": {
+        "worker_id": "w3_36ce",
+        "description": "Cross-reference the existing Greenhouse Angels SAFE terms against the new Canopy term sheet to identify specific clauses that require modification or side letter coverage to prevent conflicts.",
+        "iteration": 3
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "conversion",
+        "valuation"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s46"
+      ]
+    },
+    {
+      "id": "e31",
+      "type": "gap",
+      "content": "The Canopy term sheet does not specify the exact methodology for calculating the 10% expansion of the option pool relative to the SAFE conversion, creating ambiguity regarding whether this pool is created pre- or post-conversion.",
+      "source": {
+        "document": "term-sheet-canopy.docx",
+        "section": "3",
+        "evidence": "The Company has not adopted an equity incentive plan."
+      },
+      "epistemic": {
+        "classification": "inference",
+        "credibility": "unknown",
+        "motivation": "Founders' interest in minimizing dilution vs. investors' interest in pool size."
+      },
+      "created_by": {
+        "worker_id": "w3_36ce",
+        "description": "Cross-reference the existing Greenhouse Angels SAFE terms against the new Canopy term sheet to identify specific clauses that require modification or side letter coverage to prevent conflicts.",
+        "iteration": 3
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [
+        "dilution",
+        "option pool"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s41"
+      ]
+    },
+    {
+      "id": "e32",
+      "type": "analysis",
+      "content": "The Greenhouse Angels SAFE lacks an MFN provision, whereas the Canopy SAFE includes an MFN clause that triggers if the Company issues subsequent SAFEs with more favorable terms.",
+      "source": {
+        "document": "greenhouse-angels-safe.docx",
+        "section": "Section 1",
+        "evidence": "Valuation Cap Only --- No Discount --- No MFN"
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": "Greenhouse Angels has no protection against future better terms, while Canopy does."
+      },
+      "created_by": {
+        "worker_id": "w3_36ce",
+        "description": "Cross-reference the existing Greenhouse Angels SAFE terms against the new Canopy term sheet to identify specific clauses that require modification or side letter coverage to prevent conflicts.",
+        "iteration": 3
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "MFN",
+        "terms"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e33",
+      "type": "strategy",
+      "content": "A side letter is required to grant Canopy pro rata and information rights, as these are explicitly excluded from the definitive SAFE agreement.",
+      "source": {
+        "document": "term-sheet-canopy.docx",
+        "section": "4.1",
+        "evidence": "Pro rata rights shall be documented in a separate side letter between the Company and the Investor, to be executed concurrently with the SAFE."
+      },
+      "epistemic": {
+        "classification": "strategic",
+        "credibility": "unknown",
+        "motivation": "Standard practice to keep SAFE forms clean while granting investor rights."
+      },
+      "created_by": {
+        "worker_id": "w3_36ce",
+        "description": "Cross-reference the existing Greenhouse Angels SAFE terms against the new Canopy term sheet to identify specific clauses that require modification or side letter coverage to prevent conflicts.",
+        "iteration": 3
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "side letter",
+        "pro rata"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e34",
+      "type": "analysis",
+      "content": "The Canopy SAFE valuation cap is $10,000,000 post-money, compared to the Greenhouse Angels SAFE valuation cap of $6,000,000 post-money.",
+      "source": {
+        "document": "term-sheet-canopy.docx",
+        "section": "2.4",
+        "evidence": "$10,000,000 (Ten Million Dollars) on a post-money basis."
+      },
+      "epistemic": {
+        "classification": "fact",
+        "credibility": "unknown",
+        "motivation": "Reflects company growth between August 2023 and January 2025."
+      },
+      "created_by": {
+        "worker_id": "w3_36ce",
+        "description": "Cross-reference the existing Greenhouse Angels SAFE terms against the new Canopy term sheet to identify specific clauses that require modification or side letter coverage to prevent conflicts.",
+        "iteration": 3
+      },
+      "confidence": 1.0,
+      "verified": null,
+      "tags": [
+        "valuation"
+      ],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": [
+        "s46"
+      ]
+    }
+  ],
+  "signals": [
+    {
+      "id": "s168",
+      "type": "question",
+      "content": "What is the exact investment amount (purchase price) and valuation cap/discount rate specified for Canopy Ventures Fund II, LP in the term sheet?",
+      "origin_entry": "seed_plan",
+      "priority": "critical",
+      "status": "addressed",
+      "addressed_by": "e104"
+    },
+    {
+      "id": "s169",
+      "type": "question",
+      "content": "What are the specific side letter rights requested by Canopy (e.g., major investor status, pro-rata rights, information rights, MFN, board observer rights)?",
+      "origin_entry": "seed_plan",
+      "priority": "critical",
+      "status": "addressed",
+      "addressed_by": "e179"
+    },
+    {
+      "id": "s170",
+      "type": "question",
+      "content": "How does the existing Greenhouse Angels SAFE interact with the proposed Canopy SAFE? Does it have an MFN clause or amendment provisions that are triggered by this round?",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "addressed",
+      "addressed_by": "e171"
+    },
+    {
+      "id": "s171",
+      "type": "question",
+      "content": "What is the exact current capitalization of Brightloom AI, Inc. (common stock, outstanding options, unallocated option pool, and existing SAFEs) according to the cap table?",
+      "origin_entry": "seed_plan",
+      "priority": "critical",
+      "status": "addressed",
+      "addressed_by": "e107"
+    },
+    {
+      "id": "s172",
+      "type": "question",
+      "content": "Is there an option pool expansion required prior to or in connection with this financing, and how is it factored into the post-money capitalization calculation?",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "addressed",
+      "addressed_by": "e163"
+    },
+    {
+      "id": "s173",
+      "type": "question",
+      "content": "What specific drafting disputes, open issues, or instructions are highlighted in the counsel email thread between Fenwick Hale and Ridgeway Hooper?",
+      "origin_entry": "seed_plan",
+      "priority": "critical",
+      "status": "addressed",
+      "addressed_by": "e180"
+    },
+    {
+      "id": "s174",
+      "type": "question",
+      "content": "What key diligence risks, IP ownership issues, or employment/vesting concerns are flagged in the Canopy diligence memo that must be addressed in the drafting issues memo or side letter?",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "addressed",
+      "addressed_by": "e173"
+    },
+    {
+      "id": "s175",
+      "type": "question",
+      "content": "Who are the authorized signatories and their exact titles for Brightloom AI, Inc., Canopy Ventures, and Greenhouse Angels?",
+      "origin_entry": "seed_plan",
+      "priority": "low",
+      "status": "expired",
+      "addressed_by": null
+    },
+    {
+      "id": "s176",
+      "type": "question",
+      "content": "What is the governing law and dispute resolution mechanism specified for these agreements?",
+      "origin_entry": "seed_plan",
+      "priority": "medium",
+      "status": "expired",
+      "addressed_by": null
+    },
+    {
+      "id": "s177",
+      "type": "read_request",
+      "content": "In 'term-sheet-canopy.docx': Extract the investment amount, valuation cap, discount rate, investor rights (pro-rata, information, board representation), governing law, expenses, and closing conditions.",
+      "origin_entry": "seed_plan",
+      "priority": "critical",
+      "status": "addressed",
+      "addressed_by": "e104"
+    },
+    {
+      "id": "s178",
+      "type": "read_request",
+      "content": "In 'greenhouse-angels-safe.docx': Extract the valuation cap, discount rate, MFN clause, definition of Company Capitalization, and amendment/termination provisions.",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "addressed",
+      "addressed_by": "e170"
+    },
+    {
+      "id": "s179",
+      "type": "read_request",
+      "content": "In 'cap-table-brightloom.xlsx': Extract the total outstanding common shares, preferred shares (if any), issued options, unissued/reserved option pool, and details of any outstanding convertible securities.",
+      "origin_entry": "seed_plan",
+      "priority": "critical",
+      "status": "addressed",
+      "addressed_by": "e107"
+    },
+    {
+      "id": "s180",
+      "type": "read_request",
+      "content": "In 'counsel-email-thread.eml': Extract specific drafting instructions, points of disagreement between counsel (e.g., definition of capitalization, reps and warranties, side letter terms), and agreed-upon compromises.",
+      "origin_entry": "seed_plan",
+      "priority": "critical",
+      "status": "addressed",
+      "addressed_by": "e180"
+    },
+    {
+      "id": "s181",
+      "type": "read_request",
+      "content": "In 'diligence-memo-canopy.docx': Extract key legal, financial, and operational risks, specifically focusing on IP assignments, founder vesting, material contracts, and regulatory compliance issues.",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "addressed",
+      "addressed_by": "e173"
+    },
+    {
+      "id": "s40",
+      "type": "question",
+      "content": "What is the specific percentage of the cap table promised to these employees?",
+      "origin_entry": "e184",
+      "priority": "high",
+      "status": "addressed",
+      "addressed_by": "e60"
+    },
+    {
+      "id": "s41",
+      "type": "question",
+      "content": "Is the ResNet architecture subject to copyleft obligations?",
+      "origin_entry": "e185",
+      "priority": "medium",
+      "status": "addressed",
+      "addressed_by": "e43"
+    },
+    {
+      "id": "s42",
+      "type": "question",
+      "content": "Was a non-provisional application filed?",
+      "origin_entry": "e173",
+      "priority": "low",
+      "status": "expired",
+      "addressed_by": null
+    },
+    {
+      "id": "s43",
+      "type": "question",
+      "content": "Did the company engage patent counsel?",
+      "origin_entry": "e173",
+      "priority": "low",
+      "status": "expired",
+      "addressed_by": null
+    },
+    {
+      "id": "s44",
+      "type": "question",
+      "content": "Is the ResNet implementation copyleft licensed?",
+      "origin_entry": "e178",
+      "priority": "medium",
+      "status": "expired",
+      "addressed_by": null
+    },
+    {
+      "id": "s45",
+      "type": "question",
+      "content": "Does the modification trigger derivative work obligations?",
+      "origin_entry": "e178",
+      "priority": "medium",
+      "status": "expired",
+      "addressed_by": null
+    },
+    {
+      "id": "s46",
+      "type": "question",
+      "content": "Does the expansion occur pre-money or post-money for the purpose of the SAFE conversion?",
+      "origin_entry": "e163",
+      "priority": "critical",
+      "status": "addressed",
+      "addressed_by": "e84"
+    },
+    {
+      "id": "s47",
+      "type": "question",
+      "content": "Is the expansion calculated on the pre-money or post-money total?",
+      "origin_entry": "e165",
+      "priority": "critical",
+      "status": "addressed",
+      "addressed_by": "e84"
+    },
+    {
+      "id": "s48",
+      "type": "question",
+      "content": "What is the conversion price of the existing SAFEs?",
+      "origin_entry": "e166",
+      "priority": "critical",
+      "status": "addressed",
+      "addressed_by": "e78"
+    },
+    {
+      "id": "s49",
+      "type": "question",
+      "content": "Do existing SAFEs have a valuation cap?",
+      "origin_entry": "e166",
+      "priority": "critical",
+      "status": "addressed",
+      "addressed_by": "e73"
+    },
+    {
+      "id": "s50",
+      "type": "question",
+      "content": "How does the 10% option pool expansion affect the final ownership percentage?",
+      "origin_entry": "e168",
+      "priority": "critical",
+      "status": "addressed",
+      "addressed_by": "e84"
+    },
+    {
+      "id": "s40",
+      "type": "question",
+      "content": "Is the 10% option pool expansion intended to be created pre-money or post-money?",
+      "origin_entry": "e84",
+      "priority": "medium",
+      "status": "addressed",
+      "addressed_by": "e60"
+    },
+    {
+      "id": "s41",
+      "type": "question",
+      "content": "How will the 10% expansion be calculated relative to the SAFE conversion?",
+      "origin_entry": "e84",
+      "priority": "critical",
+      "status": "addressed",
+      "addressed_by": "e43"
+    },
+    {
+      "id": "s42",
+      "type": "question",
+      "content": "What is the vesting schedule for this equity?",
+      "origin_entry": "e60",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s43",
+      "type": "question",
+      "content": "Is this equity grant subject to the adoption of an equity incentive plan?",
+      "origin_entry": "e60",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s46",
+      "type": "question",
+      "content": "How will this 3.5% dilution impact the post-money valuation cap conversion for the Fund?",
+      "origin_entry": "e62",
+      "priority": "critical",
+      "status": "addressed",
+      "addressed_by": "e44"
+    },
+    {
+      "id": "s1",
+      "type": "question",
+      "content": "Does the 10% pool expansion trigger the MFN provision for the Greenhouse Angels SAFE?",
+      "origin_entry": "e43",
+      "priority": "critical",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s2",
+      "type": "question",
+      "content": "Will the 10% pool be fully unallocated at the time of the Equity Financing?",
+      "origin_entry": "e43",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s3",
+      "type": "question",
+      "content": "Is the 3.5% figure provided in the signal a specific target or an estimate?",
+      "origin_entry": "e44",
+      "priority": "medium",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s4",
+      "type": "question",
+      "content": "How does the 10% pool interact with the Greenhouse Angels SAFE conversion?",
+      "origin_entry": "e44",
+      "priority": "critical",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s5",
+      "type": "question",
+      "content": "Should the side letter clarify the timing of the option pool adoption?",
+      "origin_entry": "e47",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s6",
+      "type": "question",
+      "content": "Should Greenhouse Angels be offered an amendment to include a discount rate to maintain parity?",
+      "origin_entry": "e29",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s7",
+      "type": "question",
+      "content": "Will the 10% pool be carved out of the pre-money or post-money valuation?",
+      "origin_entry": "e31",
+      "priority": "critical",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s8",
+      "type": "question",
+      "content": "Does the lack of MFN in the Greenhouse SAFE create a 'most favored' disadvantage for the earlier investor?",
+      "origin_entry": "e32",
+      "priority": "medium",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s9",
+      "type": "question",
+      "content": "Should Greenhouse Angels be granted similar information rights via a side letter to maintain parity?",
+      "origin_entry": "e33",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    }
+  ],
+  "iteration": 4,
+  "total_tokens_used": 157794,
+  "token_budget": 3000000
+}

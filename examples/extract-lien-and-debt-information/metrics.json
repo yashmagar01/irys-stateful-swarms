@@ -1,0 +1,41 @@
+{
+  "documents_read": 12,
+  "total_vdr_files": 12,
+  "documents_skipped": 0,
+  "documents_read_list": [
+    "allegheny-ucc1-and-amendment.docx",
+    "buckeye-ucc1-false-positive.docx",
+    "crestline-ucc1-and-continuation.docx",
+    "ironworks-ucc1.docx",
+    "keystone-premium-finance-ucc1.docx",
+    "midwest-ucc1-great-lakes.docx",
+    "ohio-sos-search-certificates.docx",
+    "ohio-tax-lien-notice.docx",
+    "ridgewater-engagement-letter-excerpt.docx",
+    "summit-county-lien-search.docx",
+    "tristate-ucc1-lapsed.docx",
+    "vantage-ucc1-and-judgment-lien.docx"
+  ],
+  "documents_skipped_list": [],
+  "input_tokens": 485304,
+  "output_tokens": 165315,
+  "total_tokens": 951686,
+  "cost_total_usd": 1.1111,
+  "cost_by_model": {
+    "gemini-3.1-flash-lite": {
+      "input_tokens": 255457,
+      "output_tokens": 104714,
+      "total_tokens": 360171,
+      "calls": 104,
+      "cost_usd": 0.2209
+    },
+    "gemini-3.5-flash": {
+      "input_tokens": 229847,
+      "output_tokens": 60601,
+      "total_tokens": 290448,
+      "calls": 103,
+      "cost_usd": 0.8902
+    }
+  },
+  "wall_clock_seconds": 696.2959904670715
+}

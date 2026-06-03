@@ -1,0 +1,317 @@
+{
+  "parse_error": false,
+  "error": "",
+  "errors": [],
+  "seed_coverage": [
+    {
+      "id": "q1",
+      "status": "answered",
+      "answer_summary": "The exact legal names of the debtor entities involved in the proposed credit facility are Pinnacle Industrial Solutions, Inc. (Borrower/Parent, Ohio Charter No. 2187650), Pinnacle Coatings & Surface Technologies LLC (Subsidiary Guarantor), and Great Lakes Packaging Co. (Subsidiary Guarantor). These map directly to the entities in the lien searches, while 'Pinnacle Industrial Services, Inc.' (Org ID 1943287 / 3491087) is identified and confirmed as a distinct entity and a false positive.",
+      "evidence_summary": "The analytical state identifies the borrower group entities and their roles, and reconciles them against the search certificates, distinguishing them from the false positive entity Pinnacle Industrial Services, Inc.",
+      "supporting_entries": [
+        "e3",
+        "e8",
+        "e498",
+        "e538",
+        "e540",
+        "e1110"
+      ],
+      "missing_reason": "",
+      "missing_work_type": "none",
+      "materiality": "critical"
+    },
+    {
+      "id": "q2",
+      "status": "partial",
+      "answer_summary": "The analytical state identifies several UCC-1 filings and their statuses (e.g., Tristate OH-2019-0178443 is lapsed; Crestline OH-2020-0284731 is active/continued; Ironworks OH-2021-0109455, Allegheny OH-2022-0041287, Keystone OH-2024-0145677, Vantage OH-2023-0201447, and Midwest OH-2023-0082119 are active). However, it lacks the exact filing dates and lapse dates for several of these filings.",
+      "evidence_summary": "Entries e541, e546, e548, e1008-e1014, e2729, e47, e49, and e58 identify the filing numbers, statuses, and some of the filing/lapse dates (such as Tristate's lapse on May 15, 2024, and Keystone's lapse on June 22, 2029).",
+      "supporting_entries": [
+        "e47",
+        "e49",
+        "e58",
+        "e541",
+        "e546",
+        "e548",
+        "e1008",
+        "e1009",
+        "e1010",
+        "e1011",
+        "e1012",
+        "e1013",
+        "e1014",
+        "e2729"
+      ],
+      "missing_reason": "The exact filing dates and lapse dates for Allegheny Equipment Finance LLC (OH-2022-0041287), Midwest Industrial Credit Corp. (OH-2023-0082119), and Vantage Chemical Supply Co. (OH-2023-0201447) are missing from the analytical state.",
+      "missing_work_type": "extract_more",
+      "materiality": "high"
+    },
+    {
+      "id": "q3",
+      "status": "answered",
+      "answer_summary": "Yes, the UCC-1 filing (OH-2021-0341298) by Buckeye Commercial Lending Corp. against 'Pinnacle Industrial Services, Inc.' is a confirmed false positive and can be formally excluded from the final report. Analysis of the filing details confirms that Pinnacle Industrial Services, Inc. is a completely separate entity from the borrower group, possessing a distinct Organization ID (1943287 / 3491087 vs. 2187650), a different EIN (34-6791023), and a different address (490 Whittier Avenue, Youngstown, OH 44502 vs. 1580 Gorge Boulevard, Akron, OH 44301).",
+      "evidence_summary": "The analytical state (specifically e3, e57, e538, e540, and e1110) provides a detailed reconciliation of the Buckeye UCC-1 filing, confirming that the debtor 'Pinnacle Industrial Services, Inc.' is a distinct legal entity with no corporate relationship to the borrower group, thereby establishing its status as a false positive.",
+      "supporting_entries": [
+        "e3",
+        "e57",
+        "e538",
+        "e540",
+        "e1110"
+      ],
+      "missing_reason": "",
+      "missing_work_type": "none",
+      "materiality": "medium"
+    },
+    {
+      "id": "q4",
+      "status": "answered",
+      "answer_summary": "The active UCC-1 filings cover either blanket 'all assets' or specific collateral: Crestline National Bank (OH-2020-0284731) and Ironworks Mezzanine Fund II LP (OH-2021-0109455) hold blanket liens on all assets/personal property of Pinnacle Industrial Solutions, Inc. Vantage Chemical Supply Co. (OH-2023-0201447) holds an all-assets lien on Pinnacle Coatings & Surface Technologies LLC. Conversely, Allegheny Equipment Finance LLC (OH-2022-0041287) and Midwest Industrial Credit Corp. (OH-2023-0082119) hold narrow PMSIs in specific equipment, and Keystone Premium Finance Co. (OH-2024-0145677) covers only unearned and return insurance premiums.",
+      "evidence_summary": "The analytical state details the collateral scope for each active UCC-1 filing, distinguishing between blanket liens (Crestline, Ironworks, Vantage) and specific collateral/PMSIs (Allegheny, Midwest, Keystone).",
+      "supporting_entries": [
+        "e55",
+        "e193",
+        "e546",
+        "e549",
+        "e552",
+        "e786",
+        "e1061",
+        "e1953",
+        "e1954",
+        "e43"
+      ],
+      "missing_reason": "",
+      "missing_work_type": "none",
+      "materiality": "high"
+    },
+    {
+      "id": "q5",
+      "status": "answered",
+      "answer_summary": "Yes, there are two active non-UCC liens filed against the debtor entities in the Summit County Recorder's office: (1) an Ohio State Tax Lien (TL-2024-00198) filed against Pinnacle Industrial Solutions, Inc. on January 12, 2024, with an outstanding amount of $214,837.50; and (2) a Vantage Chemical Supply Co. judgment lien (JL-2023-0847) filed against Pinnacle Coatings & Surface Technologies LLC on August 21, 2023, with an outstanding amount of $388,665.00 (comprising a $387,420.00 judgment and $1,245.00 in costs) plus accruing statutory interest.",
+      "evidence_summary": "The analytical state identifies the Ohio State Tax Lien (TL-2024-00198) filed on January 12, 2024, for $214,837.50 against Pinnacle Industrial Solutions, Inc., and the Vantage Chemical judgment lien (JL-2023-0847) filed on August 21, 2023, against Pinnacle Coatings & Surface Technologies LLC for $388,665.00. Both are confirmed as county-level encumbrances recorded with the Summit County Recorder.",
+      "supporting_entries": [
+        "e60",
+        "e115",
+        "e371",
+        "e542",
+        "e544",
+        "e2047",
+        "e2728",
+        "e2730",
+        "e2732",
+        "e2733"
+      ],
+      "missing_reason": "",
+      "missing_work_type": "none",
+      "materiality": "critical"
+    },
+    {
+      "id": "q6",
+      "status": "answered",
+      "answer_summary": "Pinnacle Industrial Solutions, Inc. is the Borrower and parent entity, while Pinnacle Coatings & Surface Technologies LLC and Great Lakes Packaging Co. are both wholly owned subsidiaries of the Borrower acting as Subsidiary Guarantors.",
+      "evidence_summary": "The Ridgewater engagement letter excerpt (Section 1) explicitly defines Pinnacle Industrial Solutions, Inc. as the Borrower/parent entity, and Pinnacle Coatings & Surface Technologies LLC and Great Lakes Packaging Co. as wholly owned subsidiaries acting as Subsidiary Guarantors.",
+      "supporting_entries": [
+        "e498",
+        "e538",
+        "e2748"
+      ],
+      "missing_reason": "",
+      "missing_work_type": "none",
+      "materiality": "high"
+    },
+    {
+      "id": "q7",
+      "status": "answered",
+      "answer_summary": "No subordination, intercreditor, or release agreements were identified in the official UCC search certificates for Ironworks Mezzanine Fund II LP or Allegheny Equipment Finance LLC. However, the Ridgewater engagement letter references an existing March 22, 2021 intercreditor agreement between Crestline National Bank and Ironworks (which does not benefit Ridgewater) and mandates the execution of a new Ridgewater-Ironworks Intercreditor Agreement as a condition precedent to closing.",
+      "evidence_summary": "Official search certificates show no agreements for Ironworks or Allegheny. The engagement letter reveals an existing 2021 Crestline-Ironworks intercreditor agreement and requires a new Ridgewater-Ironworks intercreditor agreement to subordinate Ironworks' blanket lien.",
+      "supporting_entries": [
+        "e401",
+        "e45",
+        "e532",
+        "e2388",
+        "e547",
+        "e51"
+      ],
+      "missing_reason": "",
+      "missing_work_type": "none",
+      "materiality": "high"
+    },
+    {
+      "id": "q8",
+      "status": "answered",
+      "answer_summary": "The UCC-1 financing statement (OH-2019-0178443) filed by Tristate Capital Equipment Corp. against Pinnacle Industrial Solutions has officially lapsed by operation of law as of May 15, 2024, pursuant to Ohio Revised Code \u00a7 1309.515 (UCC \u00a7 9-515). There is a confirmed absence of any continuation filings, eliminating any risk of continuation.",
+      "evidence_summary": "Entries e1039, e1043, e1008, e541, and e47 confirm that the filing was made on May 15, 2019, reached its five-year lapse date on May 15, 2024, and officially lapsed with no continuation statements filed.",
+      "supporting_entries": [
+        "e47",
+        "e541",
+        "e1008",
+        "e1039",
+        "e1043"
+      ],
+      "missing_reason": "",
+      "missing_work_type": "none",
+      "materiality": "medium"
+    },
+    {
+      "id": "q9",
+      "status": "partial",
+      "answer_summary": "The Vantage Chemical Supply Co. judgment lien (JL-2023-0847) against Pinnacle Coatings & Surface Technologies LLC is for $387,420.00 plus $1,245.00 in costs (totaling $388,665.00) plus statutory interest, entered on August 14, 2023, and filed on August 21, 2023 in Summit County. However, the specific court that issued the judgment is not identified.",
+      "evidence_summary": "The judgment amount, filing date, and entry date are detailed in the analytical state, but the specific court of judgment is not explicitly named.",
+      "supporting_entries": [
+        "e59",
+        "e2728",
+        "e2732",
+        "e371"
+      ],
+      "missing_reason": "The specific court that issued the judgment is missing from the analytical state.",
+      "missing_work_type": "extract_more",
+      "materiality": "medium"
+    },
+    {
+      "id": "q10",
+      "status": "partial",
+      "answer_summary": "The active secured parties of record are Crestline National Bank, Ironworks Mezzanine Fund II LP, Allegheny Equipment Finance LLC, Keystone Premium Finance Co., Vantage Chemical Supply Co., and Midwest Industrial Credit Corp. However, contact details or legal representatives are only provided for Vantage Chemical (Gregory M. Danner, Esq. of Danner & Kolchak LLP) and the Ohio Department of Taxation (Patricia M. Donnelly).",
+      "evidence_summary": "The active secured parties are identified across several entries (e1009-e1014). Specific legal representatives or contact persons are only detailed for Vantage Chemical (e543) and the Ohio Department of Taxation (e58, e545). Contact details for the remaining commercial secured parties are not present in the analytical state.",
+      "supporting_entries": [
+        "e58",
+        "e543",
+        "e545",
+        "e1009",
+        "e1010",
+        "e1011",
+        "e1012",
+        "e1013",
+        "e1014"
+      ],
+      "missing_reason": "Contact details or legal representatives for Crestline National Bank, Ironworks Mezzanine Fund II LP, Allegheny Equipment Finance LLC, Keystone Premium Finance Co., and Midwest Industrial Credit Corp. are missing.",
+      "missing_work_type": "extract_more",
+      "materiality": "medium"
+    }
+  ],
+  "criteria_coverage": [
+    {
+      "id": "c1",
+      "status": "partial",
+      "answer_summary": "The analytical state contains individual details of the filings (such as file numbers, debtors, secured parties, statuses, and collateral scopes) scattered across multiple entries, but does not contain a compiled, comprehensive master lien matrix.",
+      "evidence_summary": "Entries e1008-e1014, e540-e552, and e38-e44 identify various filings, debtors, secured parties, statuses, and collateral scopes, but they are not consolidated into a single master matrix.",
+      "supporting_entries": [
+        "e7",
+        "e1008",
+        "e1009",
+        "e1010",
+        "e1011",
+        "e1012",
+        "e1013",
+        "e1014",
+        "e540",
+        "e541",
+        "e542",
+        "e544",
+        "e546",
+        "e548",
+        "e549",
+        "e552"
+      ],
+      "missing_reason": "A single, consolidated master lien matrix compiling all the required fields (filing, debtor, secured party, filing date, file number, status, and collateral scope) in one place is missing.",
+      "missing_work_type": "compare",
+      "materiality": "high"
+    },
+    {
+      "id": "c2",
+      "status": "satisfied",
+      "answer_summary": "The analytical state clearly identifies and separates the filings by each of the three debtor entities: Pinnacle Industrial Solutions, Inc. (parent borrower), Pinnacle Coatings & Surface Technologies LLC (subsidiary guarantor), and Great Lakes Packaging Co. (subsidiary guarantor).",
+      "evidence_summary": "Reconciliation of search certificates confirms the distinct legal names, organizational structures, and specific filings associated with each entity, such as Crestline and Ironworks for Solutions, Vantage for Coatings, and Midwest for Great Lakes.",
+      "supporting_entries": [
+        "e538",
+        "e374",
+        "e1064",
+        "e2731",
+        "e2952"
+      ],
+      "missing_reason": "",
+      "missing_work_type": "none",
+      "materiality": "high"
+    },
+    {
+      "id": "c3",
+      "status": "satisfied",
+      "answer_summary": "The analytical state confirms that the Buckeye UCC-1 filing (OH-2021-0341298) against 'Pinnacle Industrial Services, Inc.' is a false positive because the debtor is a distinct legal entity with a different Organization ID, EIN, and address from the borrower group.",
+      "evidence_summary": "Entries e57, e538, and e540 analyze and confirm the false positive status of the Buckeye UCC-1 filing by comparing the debtor's organizational details (Org ID 3491087, EIN 34-6791023, and Youngstown address) against the borrower group's entities.",
+      "supporting_entries": [
+        "e57",
+        "e538",
+        "e540"
+      ],
+      "missing_reason": "",
+      "missing_work_type": "none",
+      "materiality": "medium"
+    },
+    {
+      "id": "c4",
+      "status": "satisfied",
+      "answer_summary": "The analytical state contains a detailed breakdown of both non-UCC encumbrances. The Ohio State Tax Lien (TL-2024-00198) was filed on January 12, 2024, against Pinnacle Industrial Solutions, Inc. for $214,837.50. The Vantage Chemical Supply Co. judgment lien (JL-2023-0847) was filed on August 21, 2023, against Pinnacle Coatings & Surface Technologies LLC for $388,665.00 ($387,420.00 principal plus $1,245.00 costs), with a secondary UCC-1 (OH-2023-0201447) filed on September 5, 2023.",
+      "evidence_summary": "The blackboard details the filing numbers, dates, debtors, and exact outstanding amounts for both the Ohio tax lien and the Vantage Chemical judgment lien.",
+      "supporting_entries": [
+        "e539",
+        "e542",
+        "e544",
+        "e2728",
+        "e2729",
+        "e2730",
+        "e2732",
+        "e2733",
+        "e61"
+      ],
+      "missing_reason": "",
+      "missing_work_type": "none",
+      "materiality": "critical"
+    },
+    {
+      "id": "c5",
+      "status": "satisfied",
+      "answer_summary": "The analytical state contains a collateral overlap analysis identifying that Crestline National Bank and Ironworks Mezzanine Fund II LP hold broad 'all assets' and 'all personal property' blanket liens, whereas Allegheny Equipment Finance LLC and Midwest Industrial Credit Corp. hold narrow purchase-money security interests (PMSIs) in specific equipment.",
+      "evidence_summary": "Entry e549 explicitly performs this collateral overlap analysis, distinguishing between the blanket 'all assets' liens (Crestline, Ironworks) and specific equipment liens (Allegheny, Midwest).",
+      "supporting_entries": [
+        "e549",
+        "e786",
+        "e1061",
+        "e546"
+      ],
+      "missing_reason": "",
+      "missing_work_type": "none",
+      "materiality": "high"
+    },
+    {
+      "id": "c6",
+      "status": "satisfied",
+      "answer_summary": "The analytical state contains detailed, actionable closing recommendations, including obtaining payoff letters for the Crestline National Bank term loan and the Ohio State Tax Lien, executing a new Ridgewater-Ironworks Intercreditor Agreement to subordinate the Ironworks mezzanine lien, and obtaining a payoff letter and filing a UCC-3 termination for the Vantage Chemical judgment/UCC-1 filings.",
+      "evidence_summary": "Entries e48, e49, e50, e51, e58, e543, e545, e547, and e548 outline specific closing steps, including payoff letters, subordination agreements, and UCC-3 terminations.",
+      "supporting_entries": [
+        "e48",
+        "e49",
+        "e50",
+        "e51",
+        "e58",
+        "e543",
+        "e545",
+        "e547",
+        "e548"
+      ],
+      "missing_reason": "",
+      "missing_work_type": "none",
+      "materiality": "critical"
+    },
+    {
+      "id": "c7",
+      "status": "satisfied",
+      "answer_summary": "Reconciliation between the Ohio SOS search certificates and the Summit County Recorder search has been completed, confirming that all state-level UCC filings are accounted for, no conflicting county-level UCC filings exist, and the only county-level encumbrances are the Ohio Tax Lien and the Vantage Chemical judgment lien.",
+      "evidence_summary": "The analytical state confirms that reconciliation between the Ohio SOS search certificates and the Summit County Recorder search was performed, verifying that all state-level UCC filings are accounted for and no gaps exist, with the only county-level encumbrances being the specified tax and judgment liens.",
+      "supporting_entries": [
+        "e13",
+        "e60",
+        "e538"
+      ],
+      "missing_reason": "",
+      "missing_work_type": "none",
+      "materiality": "high"
+    }
+  ]
+}

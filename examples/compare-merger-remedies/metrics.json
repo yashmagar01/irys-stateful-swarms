@@ -1,0 +1,36 @@
+{
+  "documents_read": 7,
+  "total_vdr_files": 7,
+  "documents_skipped": 0,
+  "documents_read_list": [
+    "market-data-analysis-m11247.xlsx",
+    "partner-strategy-email.eml",
+    "precedent-m10234-verdana-agrastar.docx",
+    "precedent-m10891-novabio-cropgenix.docx",
+    "precedent-m9876-terrano-fieldmark.docx",
+    "proposed-remedies-m11247.docx",
+    "so-executive-summary-m11247.docx"
+  ],
+  "documents_skipped_list": [],
+  "input_tokens": 863089,
+  "output_tokens": 129764,
+  "total_tokens": 1402023,
+  "cost_total_usd": 1.0058,
+  "cost_by_model": {
+    "gemini-3.1-flash-lite": {
+      "input_tokens": 641846,
+      "output_tokens": 87260,
+      "total_tokens": 729106,
+      "calls": 74,
+      "cost_usd": 0.2914
+    },
+    "gemini-3.5-flash": {
+      "input_tokens": 221243,
+      "output_tokens": 42504,
+      "total_tokens": 263747,
+      "calls": 68,
+      "cost_usd": 0.7144
+    }
+  },
+  "wall_clock_seconds": 710.7117910385132
+}

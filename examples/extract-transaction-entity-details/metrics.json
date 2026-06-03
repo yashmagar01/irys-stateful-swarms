@@ -1,0 +1,36 @@
+{
+  "documents_read": 7,
+  "total_vdr_files": 7,
+  "documents_skipped": 0,
+  "documents_read_list": [
+    "commercial-invoice-draft.docx",
+    "hnb-screening-policy-excerpt.docx",
+    "kyc-crestmoor-trading.docx",
+    "kyc-zenith-petrochemical.docx",
+    "lc-application-transaction-request.docx",
+    "sentinel-screening-results.docx",
+    "transaction-referral-email-chain.eml"
+  ],
+  "documents_skipped_list": [],
+  "input_tokens": 781826,
+  "output_tokens": 139793,
+  "total_tokens": 1229456,
+  "cost_total_usd": 1.0232,
+  "cost_by_model": {
+    "gemini-3.1-flash-lite": {
+      "input_tokens": 579371,
+      "output_tokens": 91133,
+      "total_tokens": 670504,
+      "calls": 88,
+      "cost_usd": 0.2815
+    },
+    "gemini-3.5-flash": {
+      "input_tokens": 202455,
+      "output_tokens": 48660,
+      "total_tokens": 251115,
+      "calls": 101,
+      "cost_usd": 0.7416
+    }
+  },
+  "wall_clock_seconds": 748.1274318695068
+}

@@ -1,0 +1,254 @@
+{
+  "parse_error": false,
+  "error": "",
+  "errors": [],
+  "seed_coverage": [
+    {
+      "id": "q1",
+      "status": "answered",
+      "answer_summary": "The exact investment amount for Canopy Ventures Fund II, LP is $1,500,000, with a post-money valuation cap of $10,000,000 and a 20% discount rate.",
+      "evidence_summary": "The analytical state explicitly details the investment amount of $1,500,000 (e91, e97, e2311, e2314), the post-money valuation cap of $10,000,000 (e91, e281, e34), and the 20% discount rate (e29, e281, e2313).",
+      "supporting_entries": [
+        "e29",
+        "e34",
+        "e91",
+        "e281",
+        "e2311",
+        "e2314"
+      ],
+      "missing_reason": "",
+      "missing_work_type": "none",
+      "materiality": "high"
+    },
+    {
+      "id": "q2",
+      "status": "answered",
+      "answer_summary": "Canopy requested several specific side letter rights: pro-rata rights, information rights, and an ancillary MFN clause (covering non-economic terms like pro-rata and information rights). They also requested board observer rights, but this request was declined by the Company and excluded from the final documentation.",
+      "evidence_summary": "The analytical state confirms that pro-rata and information rights are to be granted via the side letter (e33), that the side letter will contain an MFN for ancillary rights (e98), and that board observer rights were requested by Canopy but declined by the Company (e2318).",
+      "supporting_entries": [
+        "e33",
+        "e98",
+        "e2318",
+        "e660"
+      ],
+      "missing_reason": "",
+      "missing_work_type": "none",
+      "materiality": "high"
+    },
+    {
+      "id": "q3",
+      "status": "answered",
+      "answer_summary": "The existing Greenhouse Angels SAFE does not contain an MFN clause or any automatic amendment triggers (explicitly stating 'No MFN' in its header). Consequently, the issuance of the Canopy SAFE (which includes a 20% discount and MFN rights) does not legally trigger any amendment provisions or obligations for the Greenhouse SAFE. However, there is a structural conflict in how 'Company Capitalization' is defined between the two SAFEs (the Greenhouse SAFE includes only vested/exercisable options, whereas the Canopy SAFE includes all outstanding options).",
+      "evidence_summary": "The Greenhouse Angels SAFE lacks an MFN clause and automatic amendment triggers, meaning the Canopy round does not legally obligate amendments, though a structural conflict exists regarding the definition of Company Capitalization.",
+      "supporting_entries": [
+        "e94",
+        "e225",
+        "e226",
+        "e2309",
+        "e2313"
+      ],
+      "missing_reason": "",
+      "missing_work_type": "none",
+      "materiality": "high"
+    },
+    {
+      "id": "q4",
+      "status": "partial",
+      "answer_summary": "Brightloom's current capitalization consists of 9,000,000 shares of common stock (held by founders), 0 outstanding options, and no unallocated option pool (as no equity incentive plan has been adopted yet). It has one existing SAFE (Greenhouse Angels LLC for $250,000). However, the CEO's cap table contains a mathematical error, calculating the Greenhouse SAFE as 375,000 shares (4.1667% of common) instead of applying the post-money SAFE framework.",
+      "evidence_summary": "The blackboard identifies 9,000,000 outstanding common shares, notes that no options or option pools currently exist, and identifies the Greenhouse SAFE ($250,000) while flagging a major mathematical error in how the CEO's cap table calculates the Greenhouse SAFE conversion shares.",
+      "supporting_entries": [
+        "e134",
+        "e112",
+        "e107",
+        "e85",
+        "e86",
+        "e2300"
+      ],
+      "missing_reason": "A single, mathematically reconciled statement of the exact current capitalization of the company prior to the Canopy investment, resolving the CEO's calculation error for the Greenhouse SAFE shares under the post-money framework.",
+      "missing_work_type": "calculate",
+      "materiality": "high"
+    },
+    {
+      "id": "q5",
+      "status": "answered",
+      "answer_summary": "Yes, a 10% option pool expansion is required in connection with the financing. Under the post-money SAFE framework, unissued option pools are excluded from the 'Company Capitalization' definition used to calculate the SAFE conversion price. Consequently, the 10% pool expansion does not dilute the SAFE holders (Canopy and Greenhouse); instead, the entire dilution burden falls on the founders, reducing their ownership from 80.83% to 70.83% on a fully diluted basis.",
+      "evidence_summary": "The term sheet requires a 10% option pool expansion based on post-money capitalization. Because the SAFE's 'Company Capitalization' definition excludes unissued option pools, SAFE holders are protected from this dilution, shifting the entire dilution impact to the founders.",
+      "supporting_entries": [
+        "e163",
+        "e93",
+        "e278",
+        "e282",
+        "e2315"
+      ],
+      "missing_reason": "",
+      "missing_work_type": "none",
+      "materiality": "high"
+    },
+    {
+      "id": "q6",
+      "status": "partial",
+      "answer_summary": "The analytical state details several key drafting disputes, open issues, and instructions from the counsel email thread, including: (1) a conflict over the definition of 'Company Capitalization' (whether to include unvested options to satisfy the term sheet vs. the Greenhouse SAFE's vested-only definition); (2) the agreement on a bifurcated MFN structure (economic MFN in the SAFE body, ancillary MFN in the side letter); (3) the requirement to disclose the 3.5% verbal equity commitments in a disclosure schedule; and (4) specific representations regarding open-source software and data privacy compliance. However, the specific names of the law firms 'Fenwick Hale' and 'Ridgeway Hooper' are not mentioned in the analytical state.",
+      "evidence_summary": "The analytical state contains multiple entries detailing the substantive issues from the counsel emails (e.g., e98, e234, e2308, e2309, e2310, e40-e43, e87-e88), but lacks the specific names of the law firms/counsels involved.",
+      "supporting_entries": [
+        "e40",
+        "e41",
+        "e42",
+        "e43",
+        "e87",
+        "e88",
+        "e98",
+        "e234",
+        "e2308",
+        "e2309",
+        "e2310"
+      ],
+      "missing_reason": "The analytical state does not explicitly identify the law firms 'Fenwick Hale' and 'Ridgeway Hooper' or map the specific disputes/instructions directly to these named parties.",
+      "missing_work_type": "extract_more",
+      "materiality": "high"
+    },
+    {
+      "id": "q7",
+      "status": "answered",
+      "answer_summary": "The analytical state identifies several key diligence risks from the Canopy diligence memo: (1) the expiration of provisional patent USPTO No. 18/412,337 on Nov 8, 2024; (2) open-source copyleft risks with the modified ResNet architecture; (3) undocumented verbal equity commitments of 3.5% to Raj Venkatesh (2.0%) and Lena Vasquez (1.5%); (4) lack of a privacy policy and DPAs with pilot customers AgriWest and Sunnyside Farms; and (5) founder vesting concerns where 47.92% of founder equity is already vested at closing.",
+      "evidence_summary": "The analytical state explicitly details the expired provisional patent, copyleft risks, undocumented verbal equity commitments, lack of privacy policy/DPAs, and founder vesting issues, along with specific strategies to address them in the side letter or drafting issues memo.",
+      "supporting_entries": [
+        "e89",
+        "e91",
+        "e95",
+        "e96",
+        "e2301",
+        "e2302",
+        "e2303",
+        "e2304",
+        "e2305",
+        "e2307"
+      ],
+      "missing_reason": "",
+      "missing_work_type": "none",
+      "materiality": "critical"
+    },
+    {
+      "id": "q8",
+      "status": "unanswered",
+      "answer_summary": "",
+      "evidence_summary": "The analytical state mentions some individuals (Priya Suresh, Celine Vargas, Marcus Tan) in emails or roles, but does not specify the authorized signatories and their exact titles for Brightloom AI, Inc., Canopy Ventures, and Greenhouse Angels.",
+      "supporting_entries": [],
+      "missing_reason": "The exact names and titles of the authorized signatories for Brightloom AI, Inc., Canopy Ventures, and Greenhouse Angels are completely missing from the analytical state.",
+      "missing_work_type": "extract_more",
+      "materiality": "high"
+    },
+    {
+      "id": "q9",
+      "status": "partial",
+      "answer_summary": "The Greenhouse SAFE, the Canopy term sheet, and the proposed side letter all specify Delaware law as the governing law.",
+      "evidence_summary": "The analytical state identifies Delaware law as the governing law for the agreements, but notes that litigation would practically occur in California due to the parties' locations.",
+      "supporting_entries": [
+        "e2319"
+      ],
+      "missing_reason": "The specific dispute resolution mechanism (such as arbitration rules, venue, or waiver of jury trial) is not detailed in the analytical state.",
+      "missing_work_type": "extract_more",
+      "materiality": "medium"
+    }
+  ],
+  "criteria_coverage": [
+    {
+      "id": "c1",
+      "status": "unsatisfied",
+      "answer_summary": "",
+      "evidence_summary": "The blackboard contains strategic planning, calculations, and analytical parameters for the SAFE agreement (such as the $10,000,000 valuation cap, 20% discount, and $1,500,000 investment amount), but does not contain the actual drafted document 'safe-agreement-brightloom-canopy.docx' itself.",
+      "supporting_entries": [
+        "e659",
+        "e91",
+        "e281",
+        "e2311"
+      ],
+      "missing_reason": "The actual drafted document 'safe-agreement-brightloom-canopy.docx' is missing from the blackboard analytical state.",
+      "missing_work_type": "unanswerable",
+      "materiality": "critical"
+    },
+    {
+      "id": "c2",
+      "status": "unsatisfied",
+      "answer_summary": "",
+      "evidence_summary": "The blackboard outlines the requirements and strategies for the side letter (e.g., e33, e98, e2308), but does not contain the completed draft of 'side-letter-canopy.docx' or confirmation of its alignment with the SAFE.",
+      "supporting_entries": [
+        "e660",
+        "e33",
+        "e98",
+        "e2308"
+      ],
+      "missing_reason": "The actual drafted document 'side-letter-canopy.docx' or a detailed analysis confirming its exact contents and alignment with the SAFE definitions is not present in the analytical state.",
+      "missing_work_type": "extract_more",
+      "materiality": "high"
+    },
+    {
+      "id": "c3",
+      "status": "satisfied",
+      "answer_summary": "The analytical state identifies and analyzes multiple major legal and financial risks, including patent expiration, undocumented verbal equity commitments, open-source copyleft issues, and data privacy compliance gaps, each paired with specific recommended resolutions.",
+      "evidence_summary": "Entries e89, e90, e91, e92, e95, e96, e2303, e2304, e2305, e2306, and e2307 detail these risks (such as the expired provisional patent and the 3.5% verbal commitments) and provide clear drafting and closing recommendations to mitigate them.",
+      "supporting_entries": [
+        "e89",
+        "e90",
+        "e91",
+        "e92",
+        "e95",
+        "e96",
+        "e2303",
+        "e2304",
+        "e2305",
+        "e2306",
+        "e2307"
+      ],
+      "missing_reason": "",
+      "missing_work_type": "none",
+      "materiality": "critical"
+    },
+    {
+      "id": "c4",
+      "status": "satisfied",
+      "answer_summary": "The analytical state mathematically reconciles the capitalization math from 'cap-table-brightloom.xlsx' with the SAFE's 'Company Capitalization' definition. It identifies a fundamental error in the CEO's cap table, which incorrectly calculated SAFE shares based on outstanding common stock (e.g., 375,000 shares for Greenhouse) rather than true post-money capitalization. A precise reconciliation shows that under a true post-money SAFE framework, Canopy's $1,500,000 investment at a $10,000,000 cap represents exactly 15.00% of the post-money capitalization, and Greenhouse's $250,000 investment at a $6,000,000 cap represents exactly 4.1667%.",
+      "evidence_summary": "Entries [e86] and [e2300] detail the mathematical errors in the CEO's cap table and provide the exact mathematical reconciliation of the post-money SAFE conversion percentages and share counts.",
+      "supporting_entries": [
+        "e86",
+        "e2300",
+        "e2309",
+        "e2310"
+      ],
+      "missing_reason": "",
+      "missing_work_type": "none",
+      "materiality": "high"
+    },
+    {
+      "id": "c5",
+      "status": "unsatisfied",
+      "answer_summary": "",
+      "evidence_summary": "The analytical state identifies the consistency of party names, addresses, governing law, and signature blocks as a completeness criterion and notes that Delaware law is specified, but it lacks the actual drafted documents or a verification confirming that these elements have been consistently reconciled and executed across all three outputs.",
+      "supporting_entries": [
+        "e663",
+        "e2319"
+      ],
+      "missing_reason": "The actual drafted text or a detailed verification of the consistent party names, addresses, governing law provisions, and signature blocks across the three required documents (safe-agreement-brightloom-canopy.docx, side-letter-canopy.docx, and drafting-issues-memo.docx) is missing from the analytical state.",
+      "missing_work_type": "compare",
+      "materiality": "high"
+    },
+    {
+      "id": "c6",
+      "status": "satisfied",
+      "answer_summary": "The analytical state successfully addresses all conditions precedent and covenants from the diligence memo by mapping them to specific closing conditions or covenants in the SAFE/side letter or outstanding items in the drafting issues memo. Specifically, the patent expiration is addressed as a condition precedent (e90), verbal equity commitments are addressed as a side letter covenant (e92, e2307), open-source copyleft risks are addressed via representations and covenants (e95, e2304), data privacy/DPAs are addressed as covenants (e96, e2306), and founder vesting is addressed as a closing condition (e2302).",
+      "evidence_summary": "The blackboard contains detailed strategies and recommendations for addressing each diligence memo issue: patent expiration (e90), verbal equity commitments (e92, e2307), open-source copyleft (e95, e2304), data privacy (e96, e2306), and founder vesting (e2302) as closing conditions or covenants.",
+      "supporting_entries": [
+        "e90",
+        "e92",
+        "e95",
+        "e96",
+        "e2302",
+        "e2304",
+        "e2306",
+        "e2307"
+      ],
+      "missing_reason": "",
+      "missing_work_type": "none",
+      "materiality": "high"
+    }
+  ]
+}

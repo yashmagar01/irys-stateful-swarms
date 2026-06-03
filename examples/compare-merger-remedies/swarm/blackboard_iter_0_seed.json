@@ -1,0 +1,508 @@
+{
+  "task_instruction": "Compare the proposed remedies package against the three precedent commitment decisions, using the SO summary and market data, and produce a deviation and risk assessment memo.\n\nOutput: `remedies-deviation-assessment-memo.docx`",
+  "documents": [
+    {
+      "id": "doc_bd8ee7cd",
+      "name": "market-data-analysis-m11247.xlsx",
+      "size_bytes": 17411,
+      "headings": [
+        "Full Document"
+      ],
+      "structural_profile": {
+        "numbered_items": 0,
+        "tables": 1,
+        "sections": 1,
+        "document_type": "report",
+        "key_entities": [
+          "Pinnacle",
+          "BioShield",
+          "AgriVantage",
+          "Terrano AgroSciences SE",
+          "Verdana CropChem AG",
+          "NovaBio Crop Solutions ApS"
+        ],
+        "estimated_complexity": "medium"
+      },
+      "read_status": "unread",
+      "sections_read": [],
+      "sections_unread": [
+        "Full Document"
+      ]
+    },
+    {
+      "id": "doc_886de74d",
+      "name": "partner-strategy-email.eml",
+      "size_bytes": 17503,
+      "headings": [
+        "Full Document"
+      ],
+      "structural_profile": {
+        "numbered_items": 2,
+        "tables": 0,
+        "sections": 1,
+        "document_type": "memo",
+        "key_entities": [
+          "Elise van der Straeten",
+          "Julian Kraft",
+          "Ashford & Bellingham LLP",
+          "DG COMP",
+          "Hargrove",
+          "Pinnacle",
+          "Stonebridge Advisory Partners",
+          "AgriVantage Holdings GmbH"
+        ],
+        "estimated_complexity": "medium"
+      },
+      "read_status": "unread",
+      "sections_read": [],
+      "sections_unread": [
+        "Full Document"
+      ]
+    },
+    {
+      "id": "doc_ba50703c",
+      "name": "precedent-m10234-verdana-agrastar.docx",
+      "size_bytes": 51723,
+      "headings": [
+        "Full Document"
+      ],
+      "structural_profile": {
+        "numbered_items": 1,
+        "tables": 0,
+        "sections": 1,
+        "document_type": "memo",
+        "key_entities": [
+          "Ashford & Bellingham LLP",
+          "Elise van der Straeten",
+          "Julian Kraft",
+          "Verdana CropChem AG",
+          "AgraStar Biologicals NV",
+          "Hargrove Capital Partners LLC",
+          "Pinnacle Crop Sciences Inc.",
+          "European Commission"
+        ],
+        "estimated_complexity": "complex"
+      },
+      "read_status": "unread",
+      "sections_read": [],
+      "sections_unread": [
+        "Full Document"
+      ]
+    },
+    {
+      "id": "doc_10f2af90",
+      "name": "precedent-m10891-novabio-cropgenix.docx",
+      "size_bytes": 52258,
+      "headings": [
+        "Full Document"
+      ],
+      "structural_profile": {
+        "numbered_items": 1,
+        "tables": 0,
+        "sections": 1,
+        "document_type": "memo",
+        "key_entities": [
+          "Ashford & Bellingham LLP",
+          "Hargrove Capital Partners LLC",
+          "Pinnacle Crop Sciences Inc.",
+          "NovaBio Crop Solutions ApS",
+          "CropGenix Technologies Ltd",
+          "European Commission",
+          "Julian Kraft",
+          "Elise van der Straeten"
+        ],
+        "estimated_complexity": "medium"
+      },
+      "read_status": "unread",
+      "sections_read": [],
+      "sections_unread": [
+        "Full Document"
+      ]
+    },
+    {
+      "id": "doc_c4387287",
+      "name": "precedent-m9876-terrano-fieldmark.docx",
+      "size_bytes": 54075,
+      "headings": [
+        "Full Document"
+      ],
+      "structural_profile": {
+        "numbered_items": 1,
+        "tables": 2,
+        "sections": 1,
+        "document_type": "memo",
+        "key_entities": [
+          "Ashford & Bellingham LLP",
+          "Terrano AgroSciences SE",
+          "Fieldmark Crop Solutions Plc",
+          "Hargrove Capital Partners LLC",
+          "Pinnacle Crop Sciences Inc.",
+          "European Commission",
+          "Julian Kraft",
+          "Elise van der Straeten"
+        ],
+        "estimated_complexity": "medium"
+      },
+      "read_status": "unread",
+      "sections_read": [],
+      "sections_unread": [
+        "Full Document"
+      ]
+    },
+    {
+      "id": "doc_a37c665f",
+      "name": "proposed-remedies-m11247.docx",
+      "size_bytes": 58964,
+      "headings": [
+        "Full Document"
+      ],
+      "structural_profile": {
+        "numbered_items": 2,
+        "tables": 0,
+        "sections": 2,
+        "document_type": "filing",
+        "key_entities": [
+          "Hargrove Fund IV LP",
+          "Hargrove Capital Partners LLC",
+          "Pinnacle Crop Sciences Inc.",
+          "European Commission",
+          "Ashford & Bellingham LLP"
+        ],
+        "estimated_complexity": "complex"
+      },
+      "read_status": "unread",
+      "sections_read": [],
+      "sections_unread": [
+        "Full Document"
+      ]
+    },
+    {
+      "id": "doc_37afb09c",
+      "name": "so-executive-summary-m11247.docx",
+      "size_bytes": 47911,
+      "headings": [
+        "Full Document"
+      ],
+      "structural_profile": {
+        "numbered_items": 2,
+        "tables": 0,
+        "sections": 1,
+        "document_type": "filing",
+        "key_entities": [
+          "European Commission",
+          "Hargrove Fund IV LP",
+          "Hargrove Capital Partners LLC",
+          "Pinnacle Crop Sciences Inc."
+        ],
+        "estimated_complexity": "medium"
+      },
+      "read_status": "unread",
+      "sections_read": [],
+      "sections_unread": [
+        "Full Document"
+      ]
+    }
+  ],
+  "entries": [
+    {
+      "id": "e664",
+      "type": "strategy",
+      "content": "This task requires a multi-dimensional analysis combining extraction, comparison, issue-flagging, and drafting. We will first extract the core parameters of the proposed remedies and the three precedents, then perform a systematic gap analysis to identify deviations in scope, terms, and purchaser criteria. Finally, we will cross-reference these deviations with the market data and the SO's theories of harm to assess regulatory rejection risks and draft a comprehensive risk assessment memo.",
+      "source": null,
+      "epistemic": null,
+      "created_by": {
+        "worker_id": "seed_planner",
+        "description": "analytical_framework",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e665",
+      "type": "strategy",
+      "content": "COMPLETENESS CRITERION: The final memo must be output as a professional, structured document named 'remedies-deviation-assessment-memo.docx'.",
+      "source": null,
+      "epistemic": null,
+      "created_by": {
+        "worker_id": "seed_planner",
+        "description": "completeness_criteria",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e666",
+      "type": "strategy",
+      "content": "COMPLETENESS CRITERION: Must include a comprehensive comparison matrix mapping the proposed remedies against all three precedents across key dimensions (scope, IP, TSAs, purchaser criteria, carve-outs).",
+      "source": null,
+      "epistemic": null,
+      "created_by": {
+        "worker_id": "seed_planner",
+        "description": "completeness_criteria",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e667",
+      "type": "strategy",
+      "content": "COMPLETENESS CRITERION: Must explicitly identify and detail every deviation where the proposed remedies are narrower or less restrictive than the precedents.",
+      "source": null,
+      "epistemic": null,
+      "created_by": {
+        "worker_id": "seed_planner",
+        "description": "completeness_criteria",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e668",
+      "type": "strategy",
+      "content": "COMPLETENESS CRITERION: Must link each identified deviation to a specific risk rating (High, Medium, Low) regarding the likelihood of rejection by DG COMP.",
+      "source": null,
+      "epistemic": null,
+      "created_by": {
+        "worker_id": "seed_planner",
+        "description": "completeness_criteria",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e669",
+      "type": "strategy",
+      "content": "COMPLETENESS CRITERION: Must incorporate market share and HHI data from the Excel file to justify or challenge the proposed remedy scope relative to the precedents.",
+      "source": null,
+      "epistemic": null,
+      "created_by": {
+        "worker_id": "seed_planner",
+        "description": "completeness_criteria",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e670",
+      "type": "strategy",
+      "content": "COMPLETENESS CRITERION: Must address the specific strategic concerns and negotiation boundaries raised in the partner strategy email.",
+      "source": null,
+      "epistemic": null,
+      "created_by": {
+        "worker_id": "seed_planner",
+        "description": "completeness_criteria",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e671",
+      "type": "strategy",
+      "content": "COMPLETENESS CRITERION: Must provide concrete, actionable mitigation strategies or 'fall-back' remedy modifications for every high-risk deviation identified.",
+      "source": null,
+      "epistemic": null,
+      "created_by": {
+        "worker_id": "seed_planner",
+        "description": "completeness_criteria",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    }
+  ],
+  "signals": [
+    {
+      "id": "s220",
+      "type": "question",
+      "content": "What are the specific competition concerns and theories of harm identified by the European Commission in the Statement of Objections (so-executive-summary-m11247.docx)?",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s221",
+      "type": "question",
+      "content": "What is the exact scope of the proposed remedies package (proposed-remedies-m11247.docx), including specific assets, intellectual property, personnel, and customer contracts proposed for divestment?",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s222",
+      "type": "question",
+      "content": "What were the key terms, asset scopes, and commitments accepted by the European Commission in the three precedent cases (precedent-m10234, precedent-m10891, and precedent-m9876)?",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s223",
+      "type": "question",
+      "content": "How do the market shares, concentration levels (HHI), and competitor landscapes in the current transaction (market-data-analysis-m11247.xlsx) compare to those in the three precedent transactions?",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s224",
+      "type": "question",
+      "content": "What are the specific deviations (e.g., narrower asset scope, shorter transitional services, broader carve-outs) between the proposed remedies package and the commitments accepted in the precedents?",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s225",
+      "type": "question",
+      "content": "What strategic concerns, negotiation boundaries, or informal feedback from DG COMP are highlighted in the partner strategy email (partner-strategy-email.eml)?",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s226",
+      "type": "question",
+      "content": "Are there any 'crown jewel' provisions or alternative divestiture assets required in the precedents that are notably absent from the current proposed remedies?",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s227",
+      "type": "question",
+      "content": "What are the proposed terms and durations for Transitional Services Agreements (TSAs) and reverse TSAs, and how do they compare to the precedent decisions?",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s228",
+      "type": "question",
+      "content": "What specific purchaser criteria are proposed, and do they deviate from the standard EC purchaser requirements or the criteria applied in the precedents?",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s229",
+      "type": "question",
+      "content": "What is the estimated risk level (High/Medium/Low) of DG COMP rejecting the proposed remedies package due to the identified deviations, and what are the potential fall-back positions?",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s230",
+      "type": "read_request",
+      "content": "In 'market-data-analysis-m11247.xlsx': Extract all market share data, volume/value metrics, competitor rankings, and HHI calculations for the relevant crop protection/agricultural markets, specifically focusing on Pinnacle, BioShield, AgriVantage, Terrano, Verdana, and NovaBio.",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s231",
+      "type": "read_request",
+      "content": "In 'partner-strategy-email.eml': Extract specific strategic directives, risk tolerances, negotiation limits, informal DG COMP feedback, and internal concerns raised by Elise van der Straeten, Julian Kraft, or Stonebridge Advisory Partners.",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s232",
+      "type": "read_request",
+      "content": "In 'precedent-m10234-verdana-agrastar.docx': Extract the full scope of the divestment business, IP licensing terms, transitional services durations, purchaser criteria, carve-outs, and any 'crown jewel' clauses accepted by the EC.",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s235",
+      "type": "read_request",
+      "content": "In 'proposed-remedies-m11247.docx': Extract the complete list of proposed divestment assets, IP carve-outs, transitional arrangements, reverse TSAs, key personnel transfer terms, and proposed purchaser criteria.",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s236",
+      "type": "read_request",
+      "content": "In 'so-executive-summary-m11247.docx': Extract the defined product and geographic markets, the specific horizontal/vertical/conglomerate theories of harm, and the precise competition concerns raised by the European Commission.",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    }
+  ],
+  "iteration": 0,
+  "total_tokens_used": 8650,
+  "token_budget": 3000000
+}

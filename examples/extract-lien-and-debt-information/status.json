@@ -1,0 +1,9 @@
+{
+  "task_id": "banking-finance/extract-lien-and-debt-information-from-ucc-filings",
+  "status": "completed",
+  "tokens_used": 951686,
+  "wall_clock_seconds": 696.2959904670715,
+  "deliverable_files": [
+    "lien-search-summary-report.docx"
+  ]
+}

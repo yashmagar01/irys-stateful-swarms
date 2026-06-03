@@ -1,0 +1,515 @@
+{
+  "task_instruction": "Review the attached trade finance documents and screening results, then produce a structured entity extraction report supporting a sanctions compliance go/no-go decision. Output: `entity-extraction-report.docx`.",
+  "documents": [
+    {
+      "id": "doc_86140121",
+      "name": "commercial-invoice-draft.docx",
+      "size_bytes": 41018,
+      "headings": [
+        "Full Document"
+      ],
+      "structural_profile": {
+        "numbered_items": 0,
+        "tables": 1,
+        "sections": 7,
+        "document_type": "other",
+        "key_entities": [
+          "Zenith Petrochem Industries LLC",
+          "Crestmoor Trading AG",
+          "Haverford National Bank",
+          "Indus Gateway Logistics Pvt. Ltd",
+          "Farhan Al-Rashidi",
+          "Salman Javed Qureshi"
+        ],
+        "estimated_complexity": "simple"
+      },
+      "read_status": "unread",
+      "sections_read": [],
+      "sections_unread": [
+        "Full Document"
+      ]
+    },
+    {
+      "id": "doc_0a5a8cba",
+      "name": "hnb-screening-policy-excerpt.docx",
+      "size_bytes": 50409,
+      "headings": [
+        "Full Document"
+      ],
+      "structural_profile": {
+        "numbered_items": 2,
+        "tables": 1,
+        "sections": 1,
+        "document_type": "other",
+        "key_entities": [
+          "Haverford National Bank",
+          "Derek R. Liu",
+          "Margaret T. Solano"
+        ],
+        "estimated_complexity": "simple"
+      },
+      "read_status": "unread",
+      "sections_read": [],
+      "sections_unread": [
+        "Full Document"
+      ]
+    },
+    {
+      "id": "doc_4c93986b",
+      "name": "kyc-crestmoor-trading.docx",
+      "size_bytes": 50615,
+      "headings": [
+        "Full Document"
+      ],
+      "structural_profile": {
+        "numbered_items": 10,
+        "tables": 1,
+        "sections": 1,
+        "document_type": "report",
+        "key_entities": [
+          "Crestmoor Trading AG",
+          "Haverford National Bank",
+          "Clearview Compliance Analytics Inc.",
+          "Derek R. Liu",
+          "Margaret T. Solano",
+          "Hartmann Dufour & Associ\u00e9s"
+        ],
+        "estimated_complexity": "medium"
+      },
+      "read_status": "unread",
+      "sections_read": [],
+      "sections_unread": [
+        "Full Document"
+      ]
+    },
+    {
+      "id": "doc_9013ef9f",
+      "name": "kyc-zenith-petrochemical.docx",
+      "size_bytes": 46731,
+      "headings": [
+        "Full Document"
+      ],
+      "structural_profile": {
+        "numbered_items": 0,
+        "tables": 1,
+        "sections": 1,
+        "document_type": "report",
+        "key_entities": [
+          "Zenith Petrochemical Industries LLC",
+          "Clearview Compliance Analytics Inc.",
+          "Haverford National Bank",
+          "Derek R. Liu",
+          "Crestmoor Trading AG",
+          "Rachel S. Underwood"
+        ],
+        "estimated_complexity": "medium"
+      },
+      "read_status": "unread",
+      "sections_read": [],
+      "sections_unread": [
+        "Full Document"
+      ]
+    },
+    {
+      "id": "doc_0912e9ce",
+      "name": "lc-application-transaction-request.docx",
+      "size_bytes": 49341,
+      "headings": [
+        "Full Document"
+      ],
+      "structural_profile": {
+        "numbered_items": 1,
+        "tables": 0,
+        "sections": 5,
+        "document_type": "filing",
+        "key_entities": [
+          "Crestmoor Trading AG",
+          "Haverford National Bank",
+          "Margaret T. Solano",
+          "Hartmann Dufour & Associ\u00e9s",
+          "Nikolai V. Petrov"
+        ],
+        "estimated_complexity": "medium"
+      },
+      "read_status": "unread",
+      "sections_read": [],
+      "sections_unread": [
+        "Full Document"
+      ]
+    },
+    {
+      "id": "doc_c453726b",
+      "name": "sentinel-screening-results.docx",
+      "size_bytes": 49450,
+      "headings": [
+        "Full Document"
+      ],
+      "structural_profile": {
+        "numbered_items": 1,
+        "tables": 2,
+        "sections": 4,
+        "document_type": "report",
+        "key_entities": [
+          "Haverford National Bank",
+          "Margaret T. Solano",
+          "Derek R. Liu"
+        ],
+        "estimated_complexity": "medium"
+      },
+      "read_status": "unread",
+      "sections_read": [],
+      "sections_unread": [
+        "Full Document"
+      ]
+    },
+    {
+      "id": "doc_56075aea",
+      "name": "transaction-referral-email-chain.eml",
+      "size_bytes": 12025,
+      "headings": [
+        "Full Document"
+      ],
+      "structural_profile": {
+        "numbered_items": 2,
+        "tables": 0,
+        "sections": 2,
+        "document_type": "memo",
+        "key_entities": [
+          "Derek R. Liu",
+          "Margaret T. Solano",
+          "Priya Chandrasekaran",
+          "Haverford National Bank",
+          "Eastport Maritime Insurance Brokers Ltd",
+          "Caledonia Mutual Underwriters",
+          "Lloyd's Syndicate 4417"
+        ],
+        "estimated_complexity": "complex"
+      },
+      "read_status": "unread",
+      "sections_read": [],
+      "sections_unread": [
+        "Full Document"
+      ]
+    }
+  ],
+  "entries": [
+    {
+      "id": "e1",
+      "type": "strategy",
+      "content": "This task is a multi-faceted compliance analysis combining extraction (pulling out entities, UBOs, and transaction terms), comparison (cross-referencing KYC data against screening results and transaction documents to find discrepancies), and issue-flagging (identifying sanctions risks, PEP matches, or policy violations) to ultimately support a drafting task (the go/no-go decision report). The approach will systematically map all transaction participants (direct and indirect) against the bank's internal screening policy and external sanctions databases, resolving any identity conflicts or red flags before making a final risk recommendation.",
+      "source": null,
+      "epistemic": null,
+      "created_by": {
+        "worker_id": "seed_planner",
+        "description": "analytical_framework",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e2",
+      "type": "strategy",
+      "content": "COMPLETENESS CRITERION: A comprehensive entity map listing every individual and organization identified across all 7 documents, including their roles and jurisdictions.",
+      "source": null,
+      "epistemic": null,
+      "created_by": {
+        "worker_id": "seed_planner",
+        "description": "completeness_criteria",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e3",
+      "type": "strategy",
+      "content": "COMPLETENESS CRITERION: A clear determination of the Ultimate Beneficial Ownership (UBO) for both Crestmoor Trading AG and Zenith Petrochemical Industries LLC down to the individual level (or explanation of why it cannot be determined).",
+      "source": null,
+      "epistemic": null,
+      "created_by": {
+        "worker_id": "seed_planner",
+        "description": "completeness_criteria",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e4",
+      "type": "strategy",
+      "content": "COMPLETENESS CRITERION: A detailed reconciliation table comparing the transaction details in the LC application, commercial invoice, and KYC files to identify any discrepancies.",
+      "source": null,
+      "epistemic": null,
+      "created_by": {
+        "worker_id": "seed_planner",
+        "description": "completeness_criteria",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e5",
+      "type": "strategy",
+      "content": "COMPLETENESS CRITERION: A complete analysis of all screening matches from sentinel-screening-results.docx, classifying each as a false positive or a true match with supporting evidence.",
+      "source": null,
+      "epistemic": null,
+      "created_by": {
+        "worker_id": "seed_planner",
+        "description": "completeness_criteria",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e6",
+      "type": "strategy",
+      "content": "COMPLETENESS CRITERION: A documented review of the maritime insurance entities (Eastport, Caledonia, Lloyd's Syndicate 4417) and logistics providers (Indus Gateway) against sanctions lists.",
+      "source": null,
+      "epistemic": null,
+      "created_by": {
+        "worker_id": "seed_planner",
+        "description": "completeness_criteria",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e7",
+      "type": "strategy",
+      "content": "COMPLETENESS CRITERION: A clear 'Go/No-Go' recommendation justified by the specific risk thresholds outlined in hnb-screening-policy-excerpt.docx.",
+      "source": null,
+      "epistemic": null,
+      "created_by": {
+        "worker_id": "seed_planner",
+        "description": "completeness_criteria",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    },
+    {
+      "id": "e8",
+      "type": "strategy",
+      "content": "COMPLETENESS CRITERION: An escalation log detailing any internal concerns raised in the email chain and how they were resolved or addressed in the final recommendation.",
+      "source": null,
+      "epistemic": null,
+      "created_by": {
+        "worker_id": "seed_planner",
+        "description": "completeness_criteria",
+        "iteration": 0
+      },
+      "confidence": 0.9,
+      "verified": null,
+      "tags": [],
+      "status": "active",
+      "supports": [],
+      "contradicts": [],
+      "supersedes": [],
+      "addresses_signals": []
+    }
+  ],
+  "signals": [
+    {
+      "id": "s1",
+      "type": "question",
+      "content": "Who are the Ultimate Beneficial Owners (UBOs) and key executives of Crestmoor Trading AG and Zenith Petrochemical Industries LLC, and what are their citizenships and countries of residence?",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s2",
+      "type": "question",
+      "content": "Are any of the identified individuals or entities (including UBOs, intermediaries, shippers, or insurers) listed on global sanctions lists (e.g., OFAC, EU, UN, UK)?",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s3",
+      "type": "question",
+      "content": "What is the exact nature, volume, and total monetary value of the goods being traded in the commercial invoice, and do they fall under dual-use or export-controlled categories?",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s4",
+      "type": "question",
+      "content": "What are the shipping routes, ports of loading, ports of discharge, and transshipment points, and do they involve sanctioned jurisdictions or high-risk ports?",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s5",
+      "type": "question",
+      "content": "What is the relationship between Crestmoor Trading AG, Zenith Petrochemical Industries LLC, and Hartmann Dufour & Associ\u00e9s?",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s6",
+      "type": "question",
+      "content": "Who is Nikolai V. Petrov, what is his exact role in the transaction, and does he have any connections to sanctioned entities or PEPs?",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s7",
+      "type": "question",
+      "content": "Are there any discrepancies between the KYC reports (Clearview) and the transaction documents (LC application, commercial invoice)?",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s8",
+      "type": "question",
+      "content": "What specific red flags or screening matches were generated in sentinel-screening-results.docx, and what are their risk levels?",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s9",
+      "type": "question",
+      "content": "What are the specific compliance thresholds and escalation protocols defined in hnb-screening-policy-excerpt.docx?",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s10",
+      "type": "question",
+      "content": "What concerns or issues were raised in the transaction-referral-email-chain.eml by Priya Chandrasekaran, Derek R. Liu, or Margaret T. Solano?",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s11",
+      "type": "question",
+      "content": "Are the maritime insurers (Eastport Maritime, Caledonia Mutual, Lloyd's Syndicate 4417) properly vetted and free of sanctions touchpoints?",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s12",
+      "type": "read_request",
+      "content": "In 'commercial-invoice-draft.docx': In the 'Full Document' section, extract the buyer and seller corporate names, physical addresses, invoice number, date, total financial value, description of goods, unit prices, shipping terms (Incoterms), port of loading, port of discharge, and the names/signatures of Farhan Al-Rashidi and Salman Javed Qureshi.",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s13",
+      "type": "read_request",
+      "content": "In 'hnb-screening-policy-excerpt.docx': In the 'Full Document' section, extract the specific criteria for 'high-risk' transactions, mandatory screening steps, escalation paths, and the defined roles of Derek R. Liu and Margaret T. Solano.",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s14",
+      "type": "read_request",
+      "content": "In 'kyc-crestmoor-trading.docx': In the 'Full Document' section, extract corporate registration details, jurisdiction, UBOs, directors, shareholding percentages, source of wealth, and any risk ratings or flags raised by Clearview Compliance Analytics.",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s16",
+      "type": "read_request",
+      "content": "In 'lc-application-transaction-request.docx': In the 'Full Document' section, extract the applicant, beneficiary, advising bank, LC amount, expiry date, detailed description of goods, required documents, and any specific clauses or conditions. Look for Nikolai V. Petrov's signature or role.",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s17",
+      "type": "read_request",
+      "content": "In 'sentinel-screening-results.docx': In the 'Full Document' section, extract all PEP (Politically Exposed Person) or sanctions match alerts, match strength/confidence scores, names flagged, and the specific databases triggered.",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    },
+    {
+      "id": "s18",
+      "type": "read_request",
+      "content": "In 'transaction-referral-email-chain.eml': In the 'Full Document' section, extract the timeline of emails, specific concerns raised regarding the transaction, internal disagreements or approvals, and references to insurers (Eastport, Caledonia, Lloyd's Syndicate 4417).",
+      "origin_entry": "seed_plan",
+      "priority": "high",
+      "status": "open",
+      "addressed_by": null
+    }
+  ],
+  "iteration": 0,
+  "total_tokens_used": 9067,
+  "token_budget": 3000000
+}

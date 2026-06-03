@@ -1,0 +1,9 @@
+{
+  "task_id": "international-trade-sanctions/extract-transaction-entity-details",
+  "status": "completed",
+  "tokens_used": 1229456,
+  "wall_clock_seconds": 748.1274318695068,
+  "deliverable_files": [
+    "entity-extraction-report.docx"
+  ]
+}

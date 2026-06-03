@@ -181,11 +181,105 @@ By the final iteration, the system has built enough state for a stronger model t
 
 From 7 strategy entries to 2,400 grounded findings — a **340x expansion** of structured analytical state over 12 iterations.
 
-### Explore it yourself
+### When it doesn't get a perfect score, you can see exactly why
 
-The full blackboard evolution for this task is in [`examples/compare-credit-agreement-to-commitment-letter/swarm/`](examples/compare-credit-agreement-to-commitment-letter/swarm/). Each `blackboard_iter_*.json` file is a complete snapshot of the system's state at that point.
+Not every task scores perfectly — but the blackboard makes failures **auditable**. You can trace exactly what the system knew, what it missed, and where the reasoning fell short.
 
-The complete outputs for all 1,251 benchmark tasks (including blackboard state) are available in the [GitHub Releases](../../releases).
+**Example: International Sanctions Entity Extraction** ([`examples/extract-transaction-entity-details/`](examples/extract-transaction-entity-details/)) — scored **80/85**.
+
+The system was asked to extract entity details from a complex sanctions transaction. Here's what happened on the five missed criteria:
+
+**Missed: "Identify Haverford National Bank as OCC-chartered national bank"** — the system found the bank:
+
+```json
+{
+  "id": "e266",
+  "type": "observation",
+  "content": "LC Issuing Bank: Haverford National Bank, 1200 Chestnut Street, Philadelphia, PA 19107, USA (SWIFT: HAVNUS33)"
+}
+```
+
+It got the name, the exact street address, the city, the SWIFT code — but didn't identify the charter type. The fact is *there*, the classification step is what's missing.
+
+**Missed: "Isabelle M. Renard — confirm Swiss/French dual nationality"** — the system found her:
+
+```json
+{
+  "id": "e219",
+  "type": "observation",
+  "content": "Screening ID 9: Isabelle M. Renard (DOB: Not provided), Direct Shareholder of Crestmoor (27%), Switzerland / France"
+}
+```
+
+It even extracted "Switzerland / France" — but didn't explicitly flag this as *dual nationality* in a way the scorer recognized.
+
+**Missed: "Beneficiary name inconsistency"** — the system found *both* name variants in separate entries:
+
+```json
+{"id": "e95", "content": "The exporter is Zenith Petrochem Industries LLC, located in Jebel Ali Free Zone, UAE."}
+```
+```json
+{"id": "e48", "content": "Zenith Petrochemical Industries LLC, Jebel Ali Free Zone, Dubai, UAE"}
+```
+
+Both "Zenith Petrochem" and "Zenith Petrochemical" are in the blackboard — the discrepancy is *visible in the state* — but no worker explicitly flagged the inconsistency.
+
+**Missed: "OFAC 50% rule aggregation principle"** — the system got close:
+
+```json
+{
+  "id": "e676",
+  "type": "analysis",
+  "content": "Orion Gulf's 49% stake in Zenith is 1% below the OFAC 50% rule threshold, but aggregate ownership by blocked persons could trigger a violation."
+}
+```
+
+It identified the 49% threshold proximity and even mentioned aggregation — but didn't elaborate on the aggregation *principle* with enough specificity.
+
+---
+
+**Example: UCC Lien Extraction** ([`examples/extract-lien-and-debt-information/`](examples/extract-lien-and-debt-information/)) — scored **54/59**.
+
+**Missed: "Debtor name discrepancy between filings"** — the system extracted both name variants:
+
+```json
+{"id": "e773", "content": "Debtor: Pinnacle Industrial Solutions, Inc., a corporation organized in Ohio, Charter No. 2187650"}
+```
+```json
+{"id": "e885", "content": "Filing OH-2019-0178443 (Tristate Capital Equipment Corp.) against Pinnacle Industrial Solutions is LAPSED as of May 15, 2024."}
+```
+
+"Pinnacle Industrial Solutions, Inc." in one entry, "Pinnacle Industrial Solutions" (without Inc.) in another. The variance exists in the blackboard but wasn't flagged.
+
+**Missed: "PMSI super-priority under UCC §9-324(a)"** — the system identified the concept:
+
+```json
+{
+  "id": "e1062",
+  "type": "observation",
+  "content": "Allegheny Equipment Finance LLC holds a purchase-money security interest (PMSI) in five specific pieces of equipment, which may have super-priority status over the proposed senior secured credit facility regarding those specific assets."
+}
+```
+
+It found the PMSI, recognized it *may have super-priority*, but didn't cite the specific UCC section.
+
+---
+
+**The pattern:** In every near-miss, the raw information was in the blackboard. The system read the right documents, extracted the right facts, and even flagged related concerns. What's missing is the final verification step — the explicit cross-reference, the legal citation, the formal classification. These are the kinds of failures that are **fixable through better state processing**, not fundamental architectural limitations.
+
+This is what auditability means: instead of a black-box answer, you get a complete reasoning trace you can inspect, debug, and improve.
+
+### Explore the examples
+
+| Example | Domain | Score | What it shows |
+|---|---|---:|---|
+| [`compare-credit-agreement-to-commitment-letter/`](examples/compare-credit-agreement-to-commitment-letter/) | Banking | 40/40 | Perfect cross-document deviation analysis |
+| [`draft-safe-agreement/`](examples/draft-safe-agreement/) | Venture Capital | 69/69 | Perfect generative drafting |
+| [`extract-transaction-entity-details/`](examples/extract-transaction-entity-details/) | Sanctions | 80/85 | Near-miss: entities found, specifics missed |
+| [`extract-lien-and-debt-information/`](examples/extract-lien-and-debt-information/) | Banking/UCC | 54/59 | Near-miss: facts extracted, cross-references missed |
+| [`compare-merger-remedies/`](examples/compare-merger-remedies/) | Antitrust | 56/61 | Near-miss: complex multi-jurisdiction comparison |
+
+Browse any task's `swarm/blackboard_iter_*.json` files to trace the full reasoning evolution. The complete outputs for all 1,251 tasks are available in the [GitHub Releases](../../releases).
 
 ## Why open source this?
 

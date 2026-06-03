@@ -1,0 +1,522 @@
+{
+  "score": 0.0,
+  "max_score": 1.0,
+  "all_pass": false,
+  "n_criteria": 85,
+  "n_passed": 80,
+  "criteria_results": [
+    {
+      "id": "C-001",
+      "title": "Entity: Haverford National Bank identified as OCC-chartered national bank in Philadelphia, PA, USA",
+      "verdict": "fail",
+      "reasoning": "The report identifies Haverford National Bank (HNB) as being headquartered in Philadelphia, PA, USA, but it does not explicitly state that it is an OCC-chartered national bank."
+    },
+    {
+      "id": "C-002",
+      "title": "Entity: Haverford National Bank role as issuing/financing bank",
+      "verdict": "pass",
+      "reasoning": "The report explicitly identifies Haverford National Bank (HNB) as the issuing bank for the Letter of Credit (LC) in multiple sections, including the 'Financials' section and the 'Issuing Bank' section."
+    },
+    {
+      "id": "C-003",
+      "title": "Entity: Haverford National Bank SWIFT code included",
+      "verdict": "pass",
+      "reasoning": "The report explicitly lists the SWIFT/BIC for Haverford National Bank as HAVNUS33 in the 'Financials' section and the 'Bank Information' section."
+    },
+    {
+      "id": "C-004",
+      "title": "Entity: Crestmoor Trading AG identified as Swiss AG in Z\u00fcrich with correct address",
+      "verdict": "pass",
+      "reasoning": "The report correctly identifies Crestmoor Trading AG as a Swiss stock corporation (Aktiengesellschaft) based in Z\u00fcrich, Switzerland, with the registered address at Bahnhofstrasse 42, 8001 Z\u00fcrich, Switzerland."
+    },
+    {
+      "id": "C-005",
+      "title": "Entity: Crestmoor Trading AG role as applicant/buyer",
+      "verdict": "pass",
+      "reasoning": "The agent's report explicitly identifies Crestmoor Trading AG as the 'Applicant/Buyer' in multiple sections, including the 'Entity Map' and 'Parties' sections."
+    },
+    {
+      "id": "C-006",
+      "title": "Entity: Crestmoor Trading AG Swiss Commercial Register number included",
+      "verdict": "pass",
+      "reasoning": "The report explicitly includes the Swiss Commercial Register number 'CHE-198.765.432' for Crestmoor Trading AG in multiple sections, including the 'Entity Map', 'Parties', and 'Entity Details' sections."
+    },
+    {
+      "id": "C-007",
+      "title": "Entity: Zenith Petrochemical Industries LLC identified as UAE LLC in JAFZA, Dubai",
+      "verdict": "pass",
+      "reasoning": "The report explicitly identifies Zenith Petrochemical Industries LLC as a 'Limited Liability Company (UAE LLC)' and states its registered address is 'Plot C-47, Jebel Ali Free Zone, Dubai, UAE'."
+    },
+    {
+      "id": "C-008",
+      "title": "Entity: Zenith Petrochemical Industries LLC role as beneficiary/seller",
+      "verdict": "pass",
+      "reasoning": "The report explicitly identifies Zenith Petrochemical Industries LLC as the 'Beneficiary/Seller' in multiple sections, including the 'Entity Map' and the 'Parties' section."
+    },
+    {
+      "id": "C-009",
+      "title": "Entity: Zenith Petrochemical Industries LLC JAFZA license number included",
+      "verdict": "pass",
+      "reasoning": "The agent's report explicitly lists the UAE Commercial License No. for Zenith Petrochemical Industries LLC as JAFZA-2019-08771 in multiple sections, including the 'Parties' and 'Entity Structure' sections."
+    },
+    {
+      "id": "C-010",
+      "title": "Entity: Meridian Star Shipping Co. Ltd identified as Greek SA in Piraeus",
+      "verdict": "pass",
+      "reasoning": "The report correctly identifies Meridian Star Shipping Co. Ltd as a Greek entity located in Piraeus, Greece, and explicitly lists it as a 'Shipping Co. Ltd' which aligns with the context of a Greek SA (Anonimi Etairia)."
+    },
+    {
+      "id": "C-011",
+      "title": "Entity: Meridian Star Shipping Co. Ltd role as carrier/vessel operator",
+      "verdict": "pass",
+      "reasoning": "The report explicitly identifies 'Meridian Star Shipping Co. Ltd' as the 'Carrier / Vessel Operator' in the 'Entity Screening' section and the 'Logistics' section."
+    },
+    {
+      "id": "C-012",
+      "title": "Entity: Meridian Star Shipping Co. Ltd G.E.MI. number included",
+      "verdict": "pass",
+      "reasoning": "The report explicitly lists 'GEMI No. 145692801000' for Meridian Star Shipping Co. Ltd in the 'Entity Screening' section."
+    },
+    {
+      "id": "C-013",
+      "title": "Entity: Indus Gateway Logistics Pvt. Ltd identified as Pakistani private limited company in Karachi",
+      "verdict": "pass",
+      "reasoning": "The report correctly identifies Indus Gateway Logistics Pvt. Ltd as a private limited company (Pvt. Ltd) located in Karachi, Pakistan, in multiple sections, including the 'Parties' and 'Logistics' sections."
+    },
+    {
+      "id": "C-014",
+      "title": "Entity: Indus Gateway Logistics Pvt. Ltd role as freight forwarder/customs broker",
+      "verdict": "pass",
+      "reasoning": "The report explicitly identifies Indus Gateway Logistics Pvt. Ltd as the 'Freight Forwarder / Customs Broker' in multiple sections, including the 'Parties' section and the 'Logistics' section."
+    },
+    {
+      "id": "C-015",
+      "title": "Entity: Indus Gateway Logistics Pvt. Ltd SECP registration number included",
+      "verdict": "pass",
+      "reasoning": "The agent's report explicitly lists 'SECP Registration No. 0154327' for the entity 'Indus Gateway Logistics Pvt. Ltd' in multiple sections, including the 'Parties' and 'Logistics' sections."
+    },
+    {
+      "id": "C-016",
+      "title": "Entity: Eastport Maritime Insurance Brokers Ltd identified as UK Limited Company in London",
+      "verdict": "pass",
+      "reasoning": "The report explicitly identifies Eastport Maritime Insurance Brokers Ltd as a UK Limited Company located at 7 Lime Street, London, EC3M 7AA, UK, and includes its Companies House registration number."
+    },
+    {
+      "id": "C-017",
+      "title": "Entity: Eastport Maritime Insurance Brokers Ltd role as marine cargo insurance broker",
+      "verdict": "pass",
+      "reasoning": "The report explicitly identifies Eastport Maritime Insurance Brokers Ltd as the 'Maritime Insurance Broker' and 'Insurance Broker' in multiple sections, including the 'Insurance & Logistics Review' and 'Insurance' sections."
+    },
+    {
+      "id": "C-018",
+      "title": "Entity: Eastport Maritime Insurance Brokers Ltd registration number(s) included",
+      "verdict": "pass",
+      "reasoning": "The report explicitly includes both the Companies House No. 10983654 and the FCA Registration No. 789234 for Eastport Maritime Insurance Brokers Ltd in the 'Compliance Analysis' section."
+    },
+    {
+      "id": "C-019",
+      "title": "Entity: Caledonia Mutual Underwriters correctly identified",
+      "verdict": "pass",
+      "reasoning": "The agent's report correctly identifies Caledonia Mutual Underwriters as Lloyd's Syndicate 4417, based in London, UK, and explicitly defines its role as the underwriter for the transaction's marine cargo insurance."
+    },
+    {
+      "id": "C-020",
+      "title": "Entity: Atlas Commercial Bank PJSC identified as UAE PJSC in DIFC, Dubai with role as advising/confirming bank",
+      "verdict": "pass",
+      "reasoning": "The report correctly identifies Atlas Commercial Bank PJSC as a UAE PJSC located in the DIFC, Dubai, and specifies its role as the advising/confirming bank."
+    },
+    {
+      "id": "C-021",
+      "title": "Entity: Atlas Commercial Bank PJSC SWIFT code and/or Central Bank license included",
+      "verdict": "pass",
+      "reasoning": "The agent's report explicitly includes both the SWIFT code 'ATLSAEADXXX' and the Central Bank license 'CB/UAE-2012-0198' for Atlas Commercial Bank PJSC in the 'Entity Screening' section."
+    },
+    {
+      "id": "C-022",
+      "title": "Entity: Petrov Family Holdings SA correctly identified",
+      "verdict": "fail",
+      "reasoning": "The agent identifies Petrov Family Holdings SA as a Luxembourg entity with RCS Luxembourg No. B-214587 and correctly identifies its role as an intermediate holding company for Nikolai V. Petrov's 38% stake in Crestmoor. However, the agent fails to provide the specific address (14 Boulevard Royal, L-2449 Luxembourg) required by the criterion."
+    },
+    {
+      "id": "C-023",
+      "title": "Entity: Orion Gulf Investments Ltd correctly identified",
+      "verdict": "pass",
+      "reasoning": "The report correctly identifies Orion Gulf Investments Ltd as a BVI Business Company (Registry No. 1987456) located in Road Town, Tortola, BVI, acting as a 49% minority shareholder of Zenith Petrochemical Industries LLC, with Dmitri K. Volkov identified as its 100% beneficial owner."
+    },
+    {
+      "id": "C-024",
+      "title": "Vessel: M/T Aegean Horizon identified with IMO number 9784321",
+      "verdict": "pass",
+      "reasoning": "The agent's report explicitly identifies the vessel as 'M/T Aegean Horizon' and correctly lists the IMO number as 9784321 in multiple sections, including the 'Shipping and Logistics' and 'Vessel' sections."
+    },
+    {
+      "id": "C-025",
+      "title": "Vessel: M/T Aegean Horizon flag state and MMSI included",
+      "verdict": "pass",
+      "reasoning": "The agent's report correctly identifies the flag state of the M/T Aegean Horizon as the Marshall Islands and includes the MMSI 538006712 in multiple sections, such as the 'Shipping and Logistics' and 'Vessel' sections."
+    },
+    {
+      "id": "C-026",
+      "title": "Individual: Nikolai V. Petrov identified with Russian nationality and Swiss permanent residency",
+      "verdict": "pass",
+      "reasoning": "The report explicitly identifies Nikolai V. Petrov as a Russian national and a holder of Swiss permanent residency (Permit C) in multiple sections, including the UBO Analysis and Screening Match Analysis."
+    },
+    {
+      "id": "C-027",
+      "title": "Individual: Nikolai V. Petrov DOB September 22, 1975",
+      "verdict": "pass",
+      "reasoning": "The report explicitly lists Nikolai V. Petrov's date of birth as September 22, 1975, in multiple sections, including the 'UBO Details' section and the 'Sanctions Analysis' section."
+    },
+    {
+      "id": "C-028",
+      "title": "Individual: Nikolai V. Petrov identified as 38% UBO of Crestmoor via Petrov Family Holdings SA",
+      "verdict": "pass",
+      "reasoning": "The report explicitly identifies Nikolai V. Petrov as the Ultimate Beneficial Owner (UBO) of Crestmoor Trading AG, holding a 38% indirect stake via his 100% ownership of Petrov Family Holdings SA."
+    },
+    {
+      "id": "C-029",
+      "title": "Individual: Dmitri K. Volkov identified with Russian nationality and UAE residency",
+      "verdict": "pass",
+      "reasoning": "The report explicitly identifies Dmitri K. Volkov as having Russian nationality and being a UAE resident in the 'UBO' section."
+    },
+    {
+      "id": "C-030",
+      "title": "Individual: Dmitri K. Volkov DOB June 8, 1971",
+      "verdict": "pass",
+      "reasoning": "The agent's report explicitly lists Dmitri K. Volkov's date of birth as June 8, 1971, in multiple sections, including the 'Screening Match Analysis' and 'UBO' sections."
+    },
+    {
+      "id": "C-031",
+      "title": "Individual: Dmitri K. Volkov identified as 100% UBO of Orion Gulf and indirect 49% owner of Zenith",
+      "verdict": "pass",
+      "reasoning": "The report explicitly identifies Dmitri K. Volkov as the 100% beneficial owner of Orion Gulf Investments Ltd and notes that Orion Gulf holds a 49% ownership stake in the transaction beneficiary, Zenith Petrochemical Industries LLC, thereby confirming his role as an indirect 49% owner."
+    },
+    {
+      "id": "C-032",
+      "title": "Individual: Isabelle M. Renard correctly cataloged",
+      "verdict": "fail",
+      "reasoning": "The report identifies Isabelle M. Renard as a 27% direct shareholder of Crestmoor Trading AG, but it fails to mention her nationality, let alone confirm it as Swiss/French dual nationality."
+    },
+    {
+      "id": "C-033",
+      "title": "Individual: Farhan Al-Rashidi correctly cataloged",
+      "verdict": "pass",
+      "reasoning": "The report explicitly identifies Farhan Al-Rashidi as the General Manager of Zenith Petrochemical Industries LLC and confirms his nationality as a United Arab Emirates (UAE) national in the 'Management' and 'Parties' sections."
+    },
+    {
+      "id": "C-034",
+      "title": "Individual: Alexandros P. Konstantinou correctly cataloged",
+      "verdict": "pass",
+      "reasoning": "The agent's report correctly identifies Alexandros P. Konstantinou as the Managing Director of Meridian Star Shipping Co. Ltd in the 'Parties' section, and the context of the report confirms the entity is based in Piraeus, Greece, satisfying the criterion."
+    },
+    {
+      "id": "C-035",
+      "title": "Individual: Salman Javed Qureshi correctly cataloged",
+      "verdict": "pass",
+      "reasoning": "The report explicitly identifies Salman Javed Qureshi as the 'Director' of 'Indus Gateway Logistics Pvt. Ltd' and lists the entity's address in Karachi, Pakistan, satisfying the requirement to catalog him as a Pakistani national and Director of the specified company."
+    },
+    {
+      "id": "C-036",
+      "title": "Beneficial ownership: Crestmoor \u2014 38% held by Petrov Family Holdings SA (100% owned by Nikolai V. Petrov)",
+      "verdict": "pass",
+      "reasoning": "The report explicitly states in multiple sections (e.g., 'UBO Analysis', 'Ownership & Control Analysis', and 'Beneficial Ownership') that Crestmoor Trading AG is 38% owned by Petrov Family Holdings SA, and that Nikolai V. Petrov is the 100% owner of Petrov Family Holdings SA."
+    },
+    {
+      "id": "C-037",
+      "title": "Beneficial ownership: Crestmoor \u2014 27% held directly by Isabelle M. Renard",
+      "verdict": "pass",
+      "reasoning": "The report explicitly states in the 'Entity Map' and 'UBO Analysis' sections that Isabelle M. Renard holds a direct ownership stake of 27% (representing 135,000 shares) in Crestmoor Trading AG."
+    },
+    {
+      "id": "C-038",
+      "title": "Beneficial ownership: Crestmoor \u2014 35% institutional float on SIX Swiss Exchange",
+      "verdict": "pass",
+      "reasoning": "The report explicitly states in the 'Beneficial Ownership' section that 35% of Crestmoor Trading AG is held as a public/institutional float on the SIX Swiss Exchange."
+    },
+    {
+      "id": "C-039",
+      "title": "Beneficial ownership: Zenith \u2014 51% held by Al-Rashidi family trust",
+      "verdict": "pass",
+      "reasoning": "The report explicitly states in multiple sections (e.g., 'UBO Analysis' and 'Ownership & Control Analysis') that the Al-Rashidi Family Trust holds a 51% controlling equity interest in Zenith Petrochemical Industries LLC."
+    },
+    {
+      "id": "C-040",
+      "title": "Beneficial ownership: Zenith \u2014 49% held by Orion Gulf Investments Ltd (100% owned by Dmitri K. Volkov)",
+      "verdict": "pass",
+      "reasoning": "The report explicitly states in the 'Beneficiary Ownership' section that 49% of Zenith Petrochemical Industries LLC is held by Orion Gulf Investments Ltd, and that Dmitri K. Volkov is the 100% beneficial owner of Orion Gulf Investments Ltd."
+    },
+    {
+      "id": "C-041",
+      "title": "ISSUE: Volkov SDN match flagged as high-priority or critical issue",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly identifies the Dmitri K. Volkov SDN match as a 'Critical Risk Trigger' and a 'High-Confidence True Match' in multiple sections of the report, including the Executive Summary, Compliance Recommendation, and Screening Match Analysis."
+    },
+    {
+      "id": "C-042",
+      "title": "ISSUE: Volkov SDN match identifies OFAC SDN entry 'VOLKOV, Dmitriy Konstantinovich'",
+      "verdict": "pass",
+      "reasoning": "The agent's report explicitly identifies the match for 'Dmitri K. Volkov' as a 'High-Confidence True Match' against the OFAC SDN list entry 'VOLKOV, Dmitriy Konstantinovich' in the 'Screening Match Analysis' section, satisfying the criterion."
+    },
+    {
+      "id": "C-043",
+      "title": "ISSUE: Volkov DOB exact match noted",
+      "verdict": "pass",
+      "reasoning": "The agent's report explicitly states in the 'Screening Match Analysis' section that there is a '100% Date of Birth (DOB) Match' (June 8, 1971) between the KYC file and the OFAC SDN list entry for Dmitri K. Volkov."
+    },
+    {
+      "id": "C-044",
+      "title": "ISSUE: Volkov name transliteration variant identified",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly identifies the name match between 'Dmitri K. Volkov' and 'Dmitriy Konstantinovich Volkov' as a match involving the patronymic 'Konstantinovich' and notes the transliteration/name variant (Dmitri/Dmitriy) in the 'Screening Match Analysis' and 'Sanctions Analysis' sections."
+    },
+    {
+      "id": "C-045",
+      "title": "ISSUE_001: Volkov match \u2014 escalation recommended",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly identifies the Volkov SDN match as a 'Critical Risk Trigger' and mandates escalation to the Sanctions Compliance Officer (Derek R. Liu) within 2 hours, as well as the immediate engagement of external legal counsel (Pemberton, Hale & Whitaker LLP)."
+    },
+    {
+      "id": "C-046",
+      "title": "ISSUE: OFAC 50% rule analysis applied to Zenith ownership",
+      "verdict": "pass",
+      "reasoning": "The report explicitly analyzes the OFAC 50% rule in relation to Zenith Petrochemical Industries LLC, noting that Dmitri K. Volkov is the 100% owner of Orion Gulf Investments Ltd, which holds a 49% stake in Zenith, and concludes that Zenith is subject to indirect sanctions under the OFAC 50% rule."
+    },
+    {
+      "id": "C-047",
+      "title": "ISSUE: Zenith 49% ownership noted as below 50% threshold",
+      "verdict": "pass",
+      "reasoning": "The report explicitly identifies that Orion Gulf Investments Ltd holds a 49% stake in Zenith Petrochemical Industries LLC and notes that this sits exactly one percentage point below the 50% threshold of the OFAC 50% Rule, representing an elevated risk of evasion."
+    },
+    {
+      "id": "C-048",
+      "title": "ISSUE_001: Property interest concern despite being below 50%",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly identifies the 49% ownership stake as an elevated risk, noting that it sits just below the 50% threshold and requires strict operational control verification to ensure the blocked person (Volkov) does not exercise effective control. It also correctly identifies that the transaction may be prohibited if a blocked person has a property interest in the transaction."
+    },
+    {
+      "id": "C-049",
+      "title": "ISSUE_002: Petrov EU list possible match flagged",
+      "verdict": "pass",
+      "reasoning": "The agent's report explicitly identifies Nikolai V. Petrov as a possible match against the EU Consolidated List entry EU-2023-4491 ('Nikolai Vladimirovich Petrov'), notes the designation under EU Regulation 269/2014, and references the Ukraine-related sanctions context."
+    },
+    {
+      "id": "C-050",
+      "title": "ISSUE: Petrov DOB discrepancy noted",
+      "verdict": "pass",
+      "reasoning": "The agent's report explicitly notes the DOB discrepancy for Nikolai V. Petrov in multiple sections, specifically citing the KYC file date of September 22, 1975, and the EU list entry date of March 15, 1968."
+    },
+    {
+      "id": "C-051",
+      "title": "ISSUE: Petrov match not auto-dismissed despite DOB difference",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly states that the match cannot be ruled a false positive despite the 7-year DOB discrepancy, citing the identical name, matching Russian nationality, and the alignment of the patronymic initial 'V.' with 'Vladimirovich'. It concludes that further enhanced due diligence is required to definitively resolve the identity, thus satisfying the criterion."
+    },
+    {
+      "id": "C-052",
+      "title": "ISSUE_002: Additional identifying info requested for Petrov",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly identifies the need for further enhanced due diligence (EDD) and identity verification to resolve the EU sanctions match for Nikolai V. Petrov, noting that the current file lacks sufficient documentation to rule out the match. Specifically, the report states that 'Further enhanced due diligence (EDD) is required to definitively resolve this identity' and lists 'Dmitri K. Volkov Biographic Verification' and 'Petrov Family Holdings SA Corporate Documentation' as remediation steps, while also noting the need to resolve the DOB discrepancy and identity verification for the Petrov match."
+    },
+    {
+      "id": "C-053",
+      "title": "ISSUE_003: Crestmoor entity-level fuzzy match flagged",
+      "verdict": "pass",
+      "reasoning": "The agent's report explicitly identifies the entity-level fuzzy match for 'Crestmoor Trading AG' against 'Crestmoor Trade & Supply GmbH' and correctly cites the 2022 FinCEN Advisory on Russian Petroleum Trade Circumvention Networks."
+    },
+    {
+      "id": "C-054",
+      "title": "ISSUE: Crestmoor entity match differences noted (AG vs. GmbH, Switzerland vs. Germany)",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly notes the differences in entity type (AG vs. GmbH) and jurisdiction (Switzerland vs. Germany) in the 'Screening Match Analysis' section, stating: 'While the legal suffix and jurisdiction differ (AG vs. GmbH), the high degree of similarity in the distinctive name \"Crestmoor\" requires further corporate registry searches...'"
+    },
+    {
+      "id": "C-055",
+      "title": "ISSUE: Crestmoor entity match not auto-dismissed",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly identifies the 74% fuzzy match for Crestmoor Trading AG as a 'High-Risk Fuzzy Match' and states that a definitive classification is 'pending further corporate registry verification and ownership structure mapping,' thereby recommending investigation rather than automatic dismissal."
+    },
+    {
+      "id": "C-056",
+      "title": "ISSUE_004: Zenith entity-level fuzzy match flagged",
+      "verdict": "pass",
+      "reasoning": "The agent's report explicitly identifies the fuzzy match between 'Zenith Petrochemical Industries LLC' and 'Zenith Petroleum Industries FZE' in the 'Screening Match Analysis' section, citing the 2023 UAE Central Bank Circular regarding Iran-related sanctions evasion."
+    },
+    {
+      "id": "C-057",
+      "title": "ISSUE: Zenith fuzzy match similarities and differences analyzed",
+      "verdict": "pass",
+      "reasoning": "The report explicitly identifies the 68% fuzzy match between Zenith Petrochemical Industries LLC and Zenith Petroleum Industries FZE, noting both the similarities (shared JAFZA jurisdiction, identical industry alignment) and the differences (different entity types: LLC vs. FZE)."
+    },
+    {
+      "id": "C-058",
+      "title": "ISSUE: Zenith fuzzy match \u2014 enhanced due diligence recommended",
+      "verdict": "pass",
+      "reasoning": "The report explicitly identifies the Zenith Petrochemical Industries LLC fuzzy match as a 'High-Risk Fuzzy Match' and states that 'Enhanced due diligence (EDD) is required to verify the corporate relationship, operational address, and ultimate beneficial ownership (UBO) of Zenith Petrochemical Industries LLC to determine if this constitutes an evasion attempt or a false positive.'"
+    },
+    {
+      "id": "C-059",
+      "title": "ISSUE: BVI opacity risk flagged for Orion Gulf Investments Ltd",
+      "verdict": "pass",
+      "reasoning": "The report explicitly identifies Orion Gulf Investments Ltd as a BVI entity and notes the lack of a certified BVI registry extract, which prevents independent verification of the ownership structure and authorized signatories, thereby highlighting the opacity and verification risk associated with this BVI structure."
+    },
+    {
+      "id": "C-060",
+      "title": "ISSUE_006: Luxembourg holding company risk flagged",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly identifies Petrov Family Holdings SA (Luxembourg) as an intermediate holding company in the ownership chain and notes in the 'Beneficiary' section that Luxembourg holding companies are frequently utilized in complex, multi-layered ownership structures and have been identified in active sanctions evasion case studies."
+    },
+    {
+      "id": "C-061",
+      "title": "ISSUE_007: 50% rule aggregation principle noted",
+      "verdict": "fail",
+      "reasoning": "The report mentions the OFAC 50% rule and notes that Zenith is 49% owned by Orion Gulf (UBO Dmitri Volkov, an SDN), but it fails to explicitly discuss the aggregation principle\u2014specifically that if any other blocked person held even 1% of Zenith, it would exceed the 50% threshold and be treated as a blocked entity."
+    },
+    {
+      "id": "C-062",
+      "title": "ISSUE_007: Al-Rashidi family trust screening gap identified",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly identifies the Al-Rashidi Family Trust as a critical KYC gap, noting that the natural person beneficiaries, trustees, and settlors remain unidentified and unscreened, which violates the bank's 25% UBO identification threshold policy."
+    },
+    {
+      "id": "C-063",
+      "title": "ISSUE: Vessel screening should include historical data (flag changes, port calls, ownership)",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly identifies the limitation of its automated screening system (Sentinel 5.0) regarding historical port call data, vessel tracking history, and ownership chain analysis. It further states that manual vessel tracking (AIS playback data) must be performed to mitigate risks related to sanctioned ports, satisfying the requirement to address broader vessel due diligence."
+    },
+    {
+      "id": "C-064",
+      "title": "ISSUE: Absence of vessel tracking/port call history identified as gap",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly identifies the lack of historical vessel tracking and port call data for the M/T Aegean Horizon as a critical compliance blind spot in the 'Insurance & Logistics Review' and 'Shipping and Logistics' sections of the report."
+    },
+    {
+      "id": "C-065",
+      "title": "ISSUE: Transshipment via Muscat, Oman identified from LC terms",
+      "verdict": "pass",
+      "reasoning": "The agent's report explicitly identifies and notes the transshipment point of Muscat, Oman in multiple sections, including the 'Shipping and Logistics' and 'Logistics' sections."
+    },
+    {
+      "id": "C-066",
+      "title": "ISSUE: Screening gap for Omani port agents/transshipment handlers identified",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly identifies the screening gap regarding the Muscat transshipment point in the 'Shipping and Logistics' section, stating that the identities of the local port agents and terminal operators are unknown and omitted from the transaction documents, and that they must be identified and screened."
+    },
+    {
+      "id": "C-067",
+      "title": "ISSUE_010: Beneficiary name inconsistency flagged",
+      "verdict": "fail",
+      "reasoning": "The agent failed to flag the specific inconsistency between 'Zenith Petrochemical Industries LLC' and 'Zenith Petrochem Industries LLC'. While the agent identified other document discrepancies (such as invoice number mismatches and entity name mismatches involving 'Apex Logistics'), it did not address the naming variation between the LC application and the commercial invoice for the beneficiary Zenith."
+    },
+    {
+      "id": "C-068",
+      "title": "ISSUE_011: Eastport not screened \u2014 gap identified",
+      "verdict": "pass",
+      "reasoning": "The report explicitly identifies in multiple sections (e.g., 'Insurance & Logistics Review', 'Insurance Vetting', and 'Compliance Gaps') that Eastport Maritime Insurance Brokers Ltd was omitted from the initial Sentinel 5.0 screening batch and that this omission violates HNB's mandatory insurance party screening policy."
+    },
+    {
+      "id": "C-069",
+      "title": "ISSUE_011: Caledonia Mutual not screened \u2014 gap identified",
+      "verdict": "pass",
+      "reasoning": "The agent's report explicitly identifies in multiple sections (e.g., 'Insurance & Logistics Review', 'Insurance Vetting', and 'Risk Triggers') that Caledonia Mutual Underwriters (Lloyd's Syndicate 4417) was omitted from the initial Sentinel 5.0 screening batch and that this omission violates HNB's mandatory insurance party screening policy."
+    },
+    {
+      "id": "C-070",
+      "title": "ISSUE_012: Petrov Russian nationality flagged as risk factor",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly identifies Nikolai V. Petrov's Russian nationality as a risk factor requiring enhanced due diligence (EDD) under current sanctions frameworks, specifically noting that his Russian nationality is relevant despite his Swiss permanent residency (Permit C)."
+    },
+    {
+      "id": "C-071",
+      "title": "ISSUE_012: Volkov Russian nationality flagged as risk factor",
+      "verdict": "pass",
+      "reasoning": "The agent explicitly identifies Dmitri K. Volkov as a Russian national and notes that his Russian nationality, combined with his SDN status, is a critical risk factor. The report also acknowledges his UAE residence but correctly identifies that this does not mitigate the sanctions exposure."
+    },
+    {
+      "id": "C-072",
+      "title": "Transaction summary table present with LC reference",
+      "verdict": "pass",
+      "reasoning": "The report includes an 'Executive Summary' section at the beginning which provides a structured overview of the transaction, and it explicitly lists the LC Reference: HNB-TF-2024-09832."
+    },
+    {
+      "id": "C-073",
+      "title": "Transaction summary includes LC amount USD 14,750,000",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly states the LC amount as USD 14,750,000.00 in multiple sections, including the Executive Summary and the Transaction Details."
+    },
+    {
+      "id": "C-074",
+      "title": "Transaction summary includes goods description",
+      "verdict": "pass",
+      "reasoning": "The agent's output explicitly identifies the goods as 'Linear Low-Density Polyethylene (LLDPE) resin pellets' and specifies the quantity as '7,500 MT' in multiple sections, including the Executive Summary and the Goods section."
+    },
+    {
+      "id": "C-075",
+      "title": "Transaction summary includes shipping route",
+      "verdict": "pass",
+      "reasoning": "The agent's output correctly identifies the shipping route as Jebel Ali Port, Dubai (loading) to Port Qasim, Karachi (discharge), with transshipment permitted via Muscat, Oman, as specified in the 'Logistics' section of the report."
+    },
+    {
+      "id": "C-076",
+      "title": "Transaction summary includes key dates",
+      "verdict": "pass",
+      "reasoning": "The agent's output includes all four required dates: LC application date (April 2, 2025), LC issuance date (April 7, 2025), latest shipment date (June 15, 2025), and LC expiry date (July 6, 2025), which satisfies the criterion of including at least three."
+    },
+    {
+      "id": "C-077",
+      "title": "Screening results documented: entities screened and cleared",
+      "verdict": "pass",
+      "reasoning": "The report explicitly lists all four entities (Meridian Star Shipping Co. Ltd, M/T Aegean Horizon, Indus Gateway Logistics Pvt. Ltd, and Atlas Commercial Bank PJSC) in the 'Entity Screening' section, confirming they were screened by Sentinel 5.0 and returned a 'CLEARED' status with no active sanctions matches."
+    },
+    {
+      "id": "C-078",
+      "title": "Screening timestamp documented",
+      "verdict": "pass",
+      "reasoning": "The report explicitly references the Sentinel 5.0 screening run date and time in the 'Report Metadata' section: 'Screening Run Date/Time: April 3, 2025, 14:22 EST'."
+    },
+    {
+      "id": "C-079",
+      "title": "Severity levels assigned to issues",
+      "verdict": "pass",
+      "reasoning": "The agent's report consistently assigns severity levels (e.g., 'Critical Risk Trigger', 'High-Risk Fuzzy Match', 'Medium Risk', 'Low Risk') to the identified sanctions-relevant issues throughout the document, particularly in the 'Compliance Recommendation', 'Screening Match Analysis', and 'Risk Triggers' sections."
+    },
+    {
+      "id": "C-080",
+      "title": "Volkov SDN match rated as Critical or highest severity",
+      "verdict": "pass",
+      "reasoning": "The agent identifies the Dmitri K. Volkov SDN match as a 'Critical Risk Trigger' and 'High-Confidence True Match', which is the highest severity level used throughout the report for compliance violations."
+    },
+    {
+      "id": "C-081",
+      "title": "Insured value correctly stated",
+      "verdict": "pass",
+      "reasoning": "The report explicitly states the insured value as USD 16,225,000.00, which is correctly calculated as 110% of the LC/invoice value of USD 14,750,000.00."
+    },
+    {
+      "id": "C-082",
+      "title": "HS Code 3901.10 included in goods description",
+      "verdict": "pass",
+      "reasoning": "The agent's report explicitly includes the HS Code 3901.10 in multiple sections, including the 'Executive Summary', 'Transaction Details', and 'Goods' sections, in relation to the LLDPE resin pellets."
+    },
+    {
+      "id": "C-083",
+      "title": "OFAC SDN program RUSSIA-EO14024 cited for Volkov match",
+      "verdict": "pass",
+      "reasoning": "The agent's report explicitly identifies the sanctions program for the Dmitri K. Volkov match as 'RUSSIA-EO14024' in multiple sections, including the 'Screening Match Analysis' and 'Sanctions Analysis' sections."
+    },
+    {
+      "id": "C-084",
+      "title": "EU Regulation 269/2014 cited for Petrov match",
+      "verdict": "pass",
+      "reasoning": "The agent's report explicitly cites 'EU Regulation 269/2014' and 'EU-2023-4491' in connection with the screening hit for Nikolai V. Petrov in multiple sections, including the 'Screening Match Analysis' and 'Sanctions Analysis' sections."
+    },
+    {
+      "id": "C-085",
+      "title": "Recommended next steps provided for each flagged issue",
+      "verdict": "pass",
+      "reasoning": "The agent's report consistently provides specific, actionable remediation steps for every identified compliance issue, including escalations to named officers (e.g., Derek R. Liu), requests for specific documentation (e.g., trust deeds, RCS extracts), and requirements for enhanced due diligence or manual screening."
+    }
+  ],
+  "run_id": "international-trade-sanctions/extract-transaction-entity-details",
+  "task": "international-trade-sanctions/extract-transaction-entity-details",
+  "judge_model": "gemini-3.1-flash-lite"
+}
