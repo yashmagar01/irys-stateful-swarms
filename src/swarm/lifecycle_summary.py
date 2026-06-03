@@ -253,11 +253,15 @@ def _aggregate_artifact_placement(
         reported.get("found_in_target_file"),
         sum(1 for item in items if item.get("found_in_target_file")),
     )
+    native_satisfied = _int(
+        reported.get("native_form_satisfied"),
+        sum(1 for item in items if item.get("native_form_satisfied")),
+    )
     found_elsewhere = _int(
         reported.get("found_elsewhere"),
         sum(1 for item in items if item.get("found_elsewhere")),
     )
-    lost = _int(reported.get("lost"), selected - found_target)
+    lost = _int(reported.get("lost"), selected - native_satisfied)
     death_modes = _dict_ints(reported.get("death_modes"))
     native_forms = _dict_ints(reported.get("native_forms"))
     if not death_modes:
@@ -274,6 +278,7 @@ def _aggregate_artifact_placement(
     target["selected"] += selected
     target["targeted"] += targeted
     target["found_in_target_file"] += found_target
+    target["native_form_satisfied"] += native_satisfied
     target["found_elsewhere"] += found_elsewhere
     target["lost"] += lost
     _merge_counts(target["death_modes"], death_modes)
@@ -286,7 +291,10 @@ def _aggregate_artifact_placement(
         lost=lost,
         death_modes=death_modes,
         type_counts=native_forms,
-        notes=f"targeted={targeted}; found_target={found_target}; found_elsewhere={found_elsewhere}",
+        notes=(
+            f"targeted={targeted}; found_target={found_target}; "
+            f"native_satisfied={native_satisfied}; found_elsewhere={found_elsewhere}"
+        ),
     ))
 
 
@@ -430,6 +438,7 @@ def _empty_artifact_summary() -> dict:
         "selected": 0,
         "targeted": 0,
         "found_in_target_file": 0,
+        "native_form_satisfied": 0,
         "found_elsewhere": 0,
         "lost": 0,
         "death_modes": {},

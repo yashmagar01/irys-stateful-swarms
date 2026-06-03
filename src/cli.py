@@ -438,8 +438,10 @@ def _cmd_summarize_lifecycle(args):
         f"{debt.get('coordinator_deferred', 0)}"
     )
     print(
-        "Artifact placement found/lost: "
-        f"{placement['found_in_target_file']}/{placement['lost']}"
+        "Artifact placement found/native/lost: "
+        f"{placement['found_in_target_file']}/"
+        f"{placement.get('native_form_satisfied', 0)}/"
+        f"{placement['lost']}"
     )
     print(
         "Maintenance consolidations/entries: "

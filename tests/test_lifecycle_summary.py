@@ -58,6 +58,7 @@ def test_aggregate_lifecycle_reports_writes_run_summary(tmp_path):
             "selected": 2,
             "targeted": 2,
             "found_in_target_file": 1,
+            "native_form_satisfied": 1,
             "found_elsewhere": 1,
             "lost": 1,
             "death_modes": {"wrong_file": 1},
@@ -105,6 +106,7 @@ def test_aggregate_lifecycle_reports_writes_run_summary(tmp_path):
     assert summary["reports"]["derived_work"]["lost"] == 1
     assert summary["reports"]["derived_work"]["death_modes"]["artifact_missing"] == 1
     assert summary["reports"]["artifact_placement"]["found_in_target_file"] == 1
+    assert summary["reports"]["artifact_placement"]["native_form_satisfied"] == 1
     assert summary["reports"]["artifact_placement"]["lost"] == 1
     assert summary["reports"]["prompt_audit"]["forbidden_text_hits"] == 1
     assert summary["reports"]["blackboard_maintenance"]["entries_created"] == 2
@@ -123,6 +125,7 @@ def test_aggregate_lifecycle_reports_counts_artifact_fallback_items(tmp_path):
                 "target_file": "memo.docx",
                 "native_form": "drafting_clause",
                 "found_in_target_file": False,
+                "native_form_satisfied": False,
                 "found_elsewhere": True,
                 "death_mode": "wrong_file",
             },
@@ -130,6 +133,7 @@ def test_aggregate_lifecycle_reports_counts_artifact_fallback_items(tmp_path):
                 "target_file": "model.xlsx",
                 "native_form": "workbook_row",
                 "found_in_target_file": False,
+                "native_form_satisfied": False,
                 "found_elsewhere": False,
                 "death_mode": "artifact_missing",
             },
@@ -141,6 +145,7 @@ def test_aggregate_lifecycle_reports_counts_artifact_fallback_items(tmp_path):
     placement = summary["reports"]["artifact_placement"]
     assert placement["selected"] == 2
     assert placement["targeted"] == 2
+    assert placement["native_form_satisfied"] == 0
     assert placement["lost"] == 2
     assert placement["death_modes"] == {"wrong_file": 1, "artifact_missing": 1}
     assert placement["native_forms"] == {"drafting_clause": 1, "workbook_row": 1}
