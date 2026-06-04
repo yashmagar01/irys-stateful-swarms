@@ -455,6 +455,11 @@ def _cmd_summarize_lifecycle(args):
         f"{maintenance['consolidations_selected']}/{maintenance['entries_created']}"
     )
     print(
+        "Maintenance fallback tasks/clusters: "
+        f"{maintenance.get('fallback_tasks', 0)}/"
+        f"{maintenance.get('fallback_cluster_count', 0)}"
+    )
+    print(
         "Prompt audit records/forbidden hits: "
         f"{audit['records']}/"
         f"{audit['forbidden_provenance_hits'] + audit['forbidden_text_hits']}"

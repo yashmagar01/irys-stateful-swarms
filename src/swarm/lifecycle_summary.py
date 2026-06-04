@@ -397,19 +397,28 @@ def _aggregate_maintenance(
         report_summary.get("entries_superseded"),
         len(report.get("superseded_entry_ids", []) or []),
     )
+    fallback_used = bool(report_summary.get("fallback_used"))
+    fallback_cluster_count = _int(report_summary.get("fallback_cluster_count"), 0)
 
     target["tasks"] += 1
     target["candidate_entry_count"] += candidates
     target["consolidations_selected"] += selected
     target["entries_created"] += created
     target["entries_superseded"] += superseded
+    if fallback_used:
+        target["fallback_tasks"] += 1
+    target["fallback_cluster_count"] += fallback_cluster_count
 
     rows.append(_row(
         task_id,
         "blackboard_maintenance",
         selected=selected,
         entries_created=created,
-        notes=f"mode={report.get('mode', '')}; candidates={candidates}; superseded={superseded}",
+        notes=(
+            f"mode={report.get('mode', '')}; candidates={candidates}; "
+            f"superseded={superseded}; fallback_used={fallback_used}; "
+            f"fallback_clusters={fallback_cluster_count}"
+        ),
     ))
 
 
@@ -542,6 +551,8 @@ def _empty_maintenance_summary() -> dict:
         "consolidations_selected": 0,
         "entries_created": 0,
         "entries_superseded": 0,
+        "fallback_tasks": 0,
+        "fallback_cluster_count": 0,
     }
 
 

@@ -96,6 +96,8 @@ def test_aggregate_lifecycle_reports_writes_run_summary(tmp_path):
             "consolidations_selected": 2,
             "entries_created": 2,
             "entries_superseded": 0,
+            "fallback_used": True,
+            "fallback_cluster_count": 5,
         },
     }), encoding="utf-8")
     (swarm_dir / "source_claim_verification.json").write_text(json.dumps({
@@ -136,6 +138,8 @@ def test_aggregate_lifecycle_reports_writes_run_summary(tmp_path):
     assert summary["reports"]["source_custody"]["invalid_documents"] == {"Incident Report Q3": 2}
     assert summary["reports"]["prompt_audit"]["forbidden_text_hits"] == 1
     assert summary["reports"]["blackboard_maintenance"]["entries_created"] == 2
+    assert summary["reports"]["blackboard_maintenance"]["fallback_tasks"] == 1
+    assert summary["reports"]["blackboard_maintenance"]["fallback_cluster_count"] == 5
     assert summary["reports"]["source_claim_verification"]["claims_checked"] == 4
     assert summary["reports"]["source_claim_verification"]["risky_claims"] == 2
     assert summary["reports"]["source_claim_verification"]["fallback_files"] == 1
