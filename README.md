@@ -4,7 +4,7 @@ ant-irys is a swarm-based document analysis system that coordinates multiple AI 
 
 ## Benchmark Results
 
-ant-irys completed the full public [Harvey Legal Agent Benchmark (LAB)](https://github.com/Harvey-AI/harvey-labs) — 1,251 tasks across 24 legal practice areas.
+ant-irys completed the full public [Harvey Legal Agent Benchmark (LAB)](https://github.com/harveyai/harvey-labs) — 1,251 tasks across 24 legal practice areas.
 
 | Metric | Result |
 |---|---|
@@ -17,7 +17,7 @@ ant-irys completed the full public [Harvey Legal Agent Benchmark (LAB)](https://
 
 ### Verification
 
-The complete outputs from the full benchmark run are available as downloadable archives in the [GitHub Releases](../../releases) section. You can score these outputs yourself using the [Harvey LAB scorer](https://github.com/Harvey-AI/harvey-labs) to independently verify these numbers.
+The complete outputs from the full benchmark run are available as downloadable archives in the [GitHub Releases](../../releases) section. You can score these outputs yourself using the [Harvey LAB scorer](https://github.com/harveyai/harvey-labs) to independently verify these numbers.
 
 ### Context
 
@@ -402,7 +402,7 @@ python -m src.cli score <results_dir> --bench-root /path/to/harvey-labs
 
 ## Sources
 
-- Harvey LAB repository: <https://github.com/Harvey-AI/harvey-labs>
+- Harvey LAB repository: <https://github.com/harveyai/harvey-labs>
 - Harvey initial LAB results: <https://www.harvey.ai/blog/legal-agent-benchmark-initial-results>
 - Harvey published 10.4% LAB update: <https://www.harvey.ai/blog/opus-4-8-now-live-in-harvey>
 
