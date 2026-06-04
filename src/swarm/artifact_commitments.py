@@ -2,11 +2,38 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from pathlib import Path
 
 from .blackboard import Blackboard
 from .models import Entry
 from .verification import extract_verification_targets
+
+
+_NARRATIVE_STOP_WORDS = {
+    "about", "above", "after", "again", "against", "also", "because", "before",
+    "being", "between", "cannot", "could", "creating", "depends", "entry",
+    "failed", "finding", "findings", "from", "have", "highly", "into",
+    "missing", "must", "only", "other", "remains", "should", "source",
+    "sources", "state", "states", "that", "their", "there", "these", "this",
+    "those", "through", "with", "without", "would",
+}
+
+_LOW_VALUE_PHRASES = {
+    "source backed",
+    "source backed entry",
+    "required findings",
+    "required calculations",
+    "memo statement",
+    "artifact native",
+}
+
+_DISTINCTIVE_HINT_WORDS = {
+    "automation", "breach", "calculation", "cap", "conflict", "control",
+    "covenant", "deadline", "downtime", "exception", "failure", "guardrail",
+    "manual", "mismatch", "pipeline", "reconciliation", "rollback", "safety",
+    "threshold", "unresolved", "variance", "violation",
+}
 
 
 def artifact_commitments_enabled() -> bool:
@@ -296,11 +323,73 @@ def _verification_terms(entry: Entry) -> list[str]:
         raw = target.get("raw")
         if raw and raw not in terms:
             terms.append(raw)
+    for phrase in _narrative_verification_terms(entry):
+        if phrase not in terms:
+            terms.append(phrase)
     if entry.source and entry.source.evidence:
         evidence = entry.source.evidence.strip()
-        if evidence and evidence not in terms:
+        if evidence and len(evidence) <= 140 and evidence not in terms:
             terms.append(evidence[:200])
     return terms[:8]
+
+
+def _narrative_verification_terms(entry: Entry) -> list[str]:
+    terms = []
+    for text in [entry.content, entry.source.evidence if entry.source else ""]:
+        for phrase in _distinctive_phrases(text):
+            if phrase not in terms:
+                terms.append(phrase)
+            if len(terms) >= 6:
+                return terms
+    return terms
+
+
+def _distinctive_phrases(text: str) -> list[str]:
+    if not text:
+        return []
+    candidates: dict[str, int] = {}
+    for segment in re.split(r"[\n.;:(){}\[\]|]+", text):
+        words = re.findall(r"[A-Za-z][A-Za-z0-9'-]*", segment.lower())
+        if len(words) < 2:
+            continue
+        for size in (4, 3, 2):
+            if len(words) < size:
+                continue
+            for index in range(0, len(words) - size + 1):
+                window = words[index:index + size]
+                if not _valid_phrase_window(window):
+                    continue
+                phrase = " ".join(window)
+                candidates[phrase] = max(
+                    candidates.get(phrase, 0),
+                    _phrase_score(window),
+                )
+    return [
+        phrase
+        for phrase, _score in sorted(
+            candidates.items(),
+            key=lambda item: (-item[1], item[0]),
+        )
+    ][:10]
+
+
+def _valid_phrase_window(words: list[str]) -> bool:
+    if any(word in _NARRATIVE_STOP_WORDS for word in words):
+        return False
+    if any(len(word) < 4 for word in words):
+        return False
+    phrase = " ".join(words)
+    if phrase in _LOW_VALUE_PHRASES:
+        return False
+    return len(set(words)) >= 2 and len(phrase) <= 90
+
+
+def _phrase_score(words: list[str]) -> int:
+    score = len(words) * 5 + min(sum(len(word) for word in words), 40)
+    score += sum(10 for word in words if word in _DISTINCTIVE_HINT_WORDS)
+    if any(word in _DISTINCTIVE_HINT_WORDS for word in words):
+        score += 8
+    return score
 
 
 def _counts(values) -> dict:

@@ -168,6 +168,45 @@ def test_artifact_placement_trace_marks_untraceable_commitment_ambiguous(tmp_pat
     assert trace["summary"]["death_modes"] == {"artifact_ambiguous": 1}
 
 
+def test_artifact_placement_trace_uses_finding_context_for_memo_phrases(tmp_path):
+    swarm_dir = tmp_path / "swarm"
+    swarm_dir.mkdir()
+    (swarm_dir / "artifact_commitments.json").write_text(json.dumps({
+        "items": [{
+            "entry_id": "e22",
+            "target_file": "ops_risk_memo.docx",
+            "native_form": "memo_statement",
+            "verification_terms": [
+                "deployment rollback automation",
+                "extended downtime",
+            ],
+            "summary": (
+                "Represent source-backed entry e22 in ops_risk_memo.docx as "
+                "memo_statement: Operational risk is concentrated in the deployment "
+                "pipeline because deployment rollback automation is missing and "
+                "failed pushes create extended downtime."
+            ),
+            "source": "artifact_commitment",
+        }]
+    }), encoding="utf-8")
+
+    trace = finalize_artifact_placement_trace(
+        tmp_path,
+        {
+            "ops_risk_memo.docx": (
+                "Deployment rollback automation remains manual, so deployment "
+                "failures can produce extended downtime before operators recover."
+            )
+        },
+    )
+
+    item = trace["items"][0]
+    assert item["placement_traceable"] is True
+    assert item["found_in_target_file"] is True
+    assert item["native_form_satisfied"] is True
+    assert item["death_mode"] is None
+
+
 def test_artifact_placement_trace_classifies_wrong_file(tmp_path):
     swarm_dir = tmp_path / "swarm"
     swarm_dir.mkdir()

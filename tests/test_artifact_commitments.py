@@ -69,6 +69,47 @@ def test_build_artifact_commitments_ignores_unsourced_entries(tmp_path, monkeypa
     assert build_artifact_commitments(blackboard, {"memo": "memo.docx"}) == []
 
 
+def test_memo_commitment_uses_concise_narrative_verification_terms(tmp_path, monkeypatch):
+    monkeypatch.setenv("SWARM_ENABLE_ARTIFACT_COMMITMENTS", "1")
+    blackboard = Blackboard(
+        task_instruction="Prepare an operational risk memo.",
+        output_dir=str(tmp_path),
+        entries=[
+            Entry(
+                id="e22",
+                type="analysis",
+                content=(
+                    "Operational risk is highly concentrated in the deployment pipeline. "
+                    "Deployment rollback automation is missing, creating extended downtime "
+                    "without automated safety nets."
+                ),
+                source=EntrySource(
+                    document="ops_report.md",
+                    section="Deployment controls",
+                    evidence=(
+                        "Rollback automation remains manual and recovery from failed pushes "
+                        "depends on manual coordination, creating extended downtime without "
+                        "automated safety nets."
+                    ),
+                ),
+                tags=["materiality:high", "missing_work:analyze"],
+                confidence=0.91,
+            )
+        ],
+    )
+
+    commitments = build_artifact_commitments(
+        blackboard,
+        {"memo": "ops_risk_memo.docx", "model": "ops_risk_workbook.xlsx"},
+    )
+
+    terms = commitments[0]["verification_terms"]
+    assert "deployment rollback automation" in terms
+    assert "extended downtime" in terms
+    assert all(len(term.split()) <= 4 for term in terms if not term.startswith("$"))
+    assert all(len(term) <= 90 for term in terms)
+
+
 def test_apply_target_file_pins_moves_artifact_commitment_to_target_file():
     item_pool = [
         (1, {"summary": "General memo point", "entry_id": "e1"}),

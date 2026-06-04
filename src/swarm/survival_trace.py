@@ -199,7 +199,7 @@ def _artifact_commitment_locations(
     if not verification_terms:
         return []
     context_terms = _context_terms({
-        "expected_text": commitment.get("summary", ""),
+        "expected_text": _artifact_context_text(commitment),
         "required_inputs": [],
     })
     locations = []
@@ -213,6 +213,13 @@ def _artifact_commitment_locations(
                 locations.append(location)
                 break
     return locations
+
+
+def _artifact_context_text(commitment: dict) -> str:
+    summary = str(commitment.get("summary", "") or "")
+    if ":" in summary and summary.lower().startswith("represent source-backed entry"):
+        return summary.split(":", 1)[1]
+    return summary
 
 
 def _native_form_satisfaction(
