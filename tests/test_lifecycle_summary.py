@@ -100,6 +100,12 @@ def test_aggregate_lifecycle_reports_writes_run_summary(tmp_path):
     }), encoding="utf-8")
     (swarm_dir / "source_claim_verification.json").write_text(json.dumps({
         "mode": "audit_only",
+        "files": [{
+            "filename": "memo.docx",
+            "fallback_used": True,
+            "fallback_candidate_count": 12,
+            "evidence_entry_count": 31,
+        }],
         "summary": {
             "files_checked": 1,
             "claims_checked": 4,
@@ -132,6 +138,9 @@ def test_aggregate_lifecycle_reports_writes_run_summary(tmp_path):
     assert summary["reports"]["blackboard_maintenance"]["entries_created"] == 2
     assert summary["reports"]["source_claim_verification"]["claims_checked"] == 4
     assert summary["reports"]["source_claim_verification"]["risky_claims"] == 2
+    assert summary["reports"]["source_claim_verification"]["fallback_files"] == 1
+    assert summary["reports"]["source_claim_verification"]["fallback_candidate_count"] == 12
+    assert summary["reports"]["source_claim_verification"]["evidence_entry_count"] == 31
     assert (tmp_path / "lifecycle_summary.json").exists()
     assert (tmp_path / "lifecycle_summary.csv").exists()
 

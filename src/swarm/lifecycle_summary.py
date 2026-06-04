@@ -427,11 +427,24 @@ def _aggregate_source_claims(
     risky_claims = _int(report_summary.get("risky_claims"), 0)
     status_counts = _dict_ints(report_summary.get("status_counts"))
     severity_counts = _dict_ints(report_summary.get("severity_counts"))
+    fallback_files = 0
+    fallback_candidate_count = 0
+    evidence_entry_count = 0
+    for file_report in report.get("files", []):
+        if not isinstance(file_report, dict):
+            continue
+        if file_report.get("fallback_used"):
+            fallback_files += 1
+        fallback_candidate_count += _int(file_report.get("fallback_candidate_count"), 0)
+        evidence_entry_count += _int(file_report.get("evidence_entry_count"), 0)
 
     target["tasks"] += 1
     target["files_checked"] += files_checked
     target["claims_checked"] += claims_checked
     target["risky_claims"] += risky_claims
+    target["fallback_files"] += fallback_files
+    target["fallback_candidate_count"] += fallback_candidate_count
+    target["evidence_entry_count"] += evidence_entry_count
     _merge_counts(target["status_counts"], status_counts)
     _merge_counts(target["severity_counts"], severity_counts)
 
@@ -442,7 +455,11 @@ def _aggregate_source_claims(
         unresolved=risky_claims,
         type_counts=status_counts,
         status_counts=severity_counts,
-        notes=f"mode={report.get('mode', '')}; files_checked={files_checked}",
+        notes=(
+            f"mode={report.get('mode', '')}; files_checked={files_checked}; "
+            f"fallback_files={fallback_files}; "
+            f"fallback_candidates={fallback_candidate_count}"
+        ),
     ))
 
 
@@ -534,6 +551,9 @@ def _empty_source_claim_summary() -> dict:
         "files_checked": 0,
         "claims_checked": 0,
         "risky_claims": 0,
+        "fallback_files": 0,
+        "fallback_candidate_count": 0,
+        "evidence_entry_count": 0,
         "status_counts": {},
         "severity_counts": {},
     }

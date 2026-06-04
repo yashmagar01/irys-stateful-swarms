@@ -460,9 +460,10 @@ def _cmd_summarize_lifecycle(args):
         f"{audit['forbidden_provenance_hits'] + audit['forbidden_text_hits']}"
     )
     print(
-        "Source claims checked/risky: "
+        "Source claims checked/risky/fallback-files: "
         f"{source_claims.get('claims_checked', 0)}/"
-        f"{source_claims.get('risky_claims', 0)}"
+        f"{source_claims.get('risky_claims', 0)}/"
+        f"{source_claims.get('fallback_files', 0)}"
     )
 
 
