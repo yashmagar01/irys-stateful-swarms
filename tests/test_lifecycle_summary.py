@@ -98,6 +98,29 @@ def test_aggregate_lifecycle_reports_writes_run_summary(tmp_path):
             "entries_superseded": 0,
             "fallback_used": True,
             "fallback_cluster_count": 5,
+            "state_quality": {
+                "before": {
+                    "active_total": 20,
+                    "state_mix_score": 25.0,
+                    "reasoning_density": 0.3,
+                    "gap_density": 0.05,
+                },
+                "after": {
+                    "active_total": 22,
+                    "state_mix_score": 31.0,
+                    "reasoning_density": 0.36,
+                    "gap_density": 0.045,
+                },
+                "delta": {
+                    "active_total": 2,
+                    "reasoning_density": 0.06,
+                    "observation_density": -0.04,
+                    "gap_density": -0.005,
+                    "state_mix_score": 6.0,
+                },
+                "compaction_ratio": 0.0,
+                "creation_ratio": 0.1,
+            },
         },
     }), encoding="utf-8")
     (swarm_dir / "source_claim_verification.json").write_text(json.dumps({
@@ -140,6 +163,12 @@ def test_aggregate_lifecycle_reports_writes_run_summary(tmp_path):
     assert summary["reports"]["blackboard_maintenance"]["entries_created"] == 2
     assert summary["reports"]["blackboard_maintenance"]["fallback_tasks"] == 1
     assert summary["reports"]["blackboard_maintenance"]["fallback_cluster_count"] == 5
+    assert summary["reports"]["blackboard_maintenance"]["avg_state_mix_score_before"] == 25.0
+    assert summary["reports"]["blackboard_maintenance"]["avg_state_mix_score_after"] == 31.0
+    assert summary["reports"]["blackboard_maintenance"]["avg_state_mix_score_delta"] == 6.0
+    assert summary["reports"]["blackboard_maintenance"]["avg_reasoning_density_delta"] == 0.06
+    assert summary["reports"]["blackboard_maintenance"]["avg_gap_density_delta"] == -0.005
+    assert summary["reports"]["blackboard_maintenance"]["positive_state_score_tasks"] == 1
     assert summary["reports"]["source_claim_verification"]["claims_checked"] == 4
     assert summary["reports"]["source_claim_verification"]["risky_claims"] == 2
     assert summary["reports"]["source_claim_verification"]["fallback_files"] == 1

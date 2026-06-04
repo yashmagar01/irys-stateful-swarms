@@ -38,7 +38,7 @@ def run_blackboard_maintenance(
         candidates = _maintenance_candidates(blackboard.entries)
         before = _active_type_counts(blackboard.entries)
         if len(candidates) < 2:
-            report = _empty_report(before)
+            report = _empty_report(before, candidate_entry_count=len(candidates))
             write_blackboard_maintenance_report(blackboard.output_dir, report)
             return report, 0
 
@@ -109,6 +109,13 @@ def run_blackboard_maintenance(
             blackboard.add_entries_batch(entries)
 
         after = _active_type_counts(blackboard.entries)
+        state_quality = _state_quality_metrics(
+            before,
+            after,
+            candidate_entry_count=len(candidates),
+            entries_created=len(entries),
+            entries_superseded=sum(len(e.supersedes_entries) for e in entries),
+        )
         report = {
             "schema_version": 1,
             "mode": (
@@ -130,6 +137,7 @@ def run_blackboard_maintenance(
                 "entries_superseded": sum(len(e.supersedes_entries) for e in entries),
                 "fallback_used": fallback_used,
                 "fallback_cluster_count": fallback_cluster_count,
+                "state_quality": state_quality,
             },
         }
         write_blackboard_maintenance_report(blackboard.output_dir, report)
@@ -208,7 +216,7 @@ def consolidation_entries(
             else []
         )
         entries.append(Entry(
-            id=gen_entry_id(),
+            id=_unique_entry_id(blackboard),
             type=item.get("type", "analysis"),
             content=item.get("content", ""),
             source=source,
@@ -225,6 +233,16 @@ def consolidation_entries(
             supersedes_entries=supersedes_entries,
         ))
     return entries
+
+
+def _unique_entry_id(blackboard: Blackboard) -> str:
+    """Generate an entry id that does not collide with existing replayed state."""
+    existing = {entry.id for entry in blackboard.entries if entry.id}
+    for _ in range(len(existing) + 100):
+        candidate = gen_entry_id()
+        if candidate not in existing:
+            return candidate
+    raise RuntimeError("could not allocate unique blackboard maintenance entry id")
 
 
 def write_blackboard_maintenance_report(output_dir: str, report: dict) -> None:
@@ -474,11 +492,18 @@ def _active_type_counts(entries: list[Entry]) -> dict[str, int]:
     return counts
 
 
-def _empty_report(before: dict[str, int]) -> dict:
+def _empty_report(before: dict[str, int], *, candidate_entry_count: int = 0) -> dict:
+    state_quality = _state_quality_metrics(
+        before,
+        before,
+        candidate_entry_count=candidate_entry_count,
+        entries_created=0,
+        entries_superseded=0,
+    )
     return {
         "schema_version": 1,
         "mode": "consolidate_only",
-        "candidate_entry_count": 0,
+        "candidate_entry_count": candidate_entry_count,
         "consolidations": [],
         "created_entry_ids": [],
         "superseded_entry_ids": [],
@@ -488,8 +513,73 @@ def _empty_report(before: dict[str, int]) -> dict:
             "consolidations_selected": 0,
             "entries_created": 0,
             "entries_superseded": 0,
+            "fallback_used": False,
+            "fallback_cluster_count": 0,
+            "state_quality": state_quality,
         },
     }
+
+
+def _state_quality_metrics(
+    before: dict[str, int],
+    after: dict[str, int],
+    *,
+    candidate_entry_count: int,
+    entries_created: int,
+    entries_superseded: int,
+) -> dict:
+    before_mix = _state_mix(before)
+    after_mix = _state_mix(after)
+    return {
+        "before": before_mix,
+        "after": after_mix,
+        "delta": {
+            "active_total": after_mix["active_total"] - before_mix["active_total"],
+            "reasoning_density": _round(
+                after_mix["reasoning_density"] - before_mix["reasoning_density"]
+            ),
+            "observation_density": _round(
+                after_mix["observation_density"] - before_mix["observation_density"]
+            ),
+            "gap_density": _round(after_mix["gap_density"] - before_mix["gap_density"]),
+            "state_mix_score": _round(
+                after_mix["state_mix_score"] - before_mix["state_mix_score"]
+            ),
+        },
+        "compaction_ratio": _round(
+            entries_superseded / max(candidate_entry_count, 1)
+        ),
+        "creation_ratio": _round(entries_created / max(candidate_entry_count, 1)),
+    }
+
+
+def _state_mix(counts: dict[str, int]) -> dict:
+    active_total = sum(int(v) for v in counts.values())
+    reasoning = (
+        int(counts.get("analysis", 0))
+        + int(counts.get("calculation", 0))
+        + int(counts.get("strategy", 0))
+    )
+    observations = int(counts.get("observation", 0))
+    gaps = int(counts.get("gap", 0))
+    calculations = int(counts.get("calculation", 0))
+    strategies = int(counts.get("strategy", 0))
+    density_denominator = max(active_total, 1)
+    score = max(0.0, min(100.0, 100.0 * ((reasoning - gaps) / density_denominator)))
+    return {
+        "active_total": active_total,
+        "reasoning_entries": reasoning,
+        "reasoning_density": _round(reasoning / density_denominator),
+        "observation_density": _round(observations / density_denominator),
+        "gap_density": _round(gaps / density_denominator),
+        "calculation_density": _round(calculations / density_denominator),
+        "strategy_density": _round(strategies / density_denominator),
+        "state_mix_score": _round(score),
+    }
+
+
+def _round(value: float) -> float:
+    return round(float(value), 4)
 
 
 def _dedupe(values: list[str]) -> list[str]:

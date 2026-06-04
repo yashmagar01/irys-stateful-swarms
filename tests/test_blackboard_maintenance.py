@@ -143,6 +143,14 @@ def test_run_blackboard_maintenance_writes_report_and_can_supersede(tmp_path, mo
     assert tokens == 30
     assert report["summary"]["entries_created"] == 1
     assert report["summary"]["entries_superseded"] == 2
+    assert set(report["created_entry_ids"]).isdisjoint({"e1", "e2", "e3"})
+    quality = report["summary"]["state_quality"]
+    assert quality["before"]["state_mix_score"] == 0.0
+    assert quality["after"]["state_mix_score"] == 50.0
+    assert quality["delta"]["state_mix_score"] == 50.0
+    assert quality["delta"]["reasoning_density"] == 0.5
+    assert quality["compaction_ratio"] == 1.0
+    assert quality["creation_ratio"] == 0.5
     assert blackboard.find_entry("e1").status == "superseded"
     assert blackboard.find_entry("e2").status == "superseded"
     assert any(e for e in blackboard.entries if "blackboard_maintenance" in e.tags)
@@ -186,4 +194,6 @@ def test_run_blackboard_maintenance_fallback_clusters_when_first_pass_empty(tmp_
     assert report["summary"]["fallback_used"] is True
     assert report["summary"]["fallback_cluster_count"] >= 1
     assert report["summary"]["entries_created"] == 1
+    assert report["summary"]["state_quality"]["after"]["reasoning_density"] == 0.2
+    assert report["summary"]["state_quality"]["delta"]["state_mix_score"] == 20.0
     assert any(e for e in blackboard.entries if "maintenance_type:consolidation" in e.tags)

@@ -106,6 +106,7 @@ def aggregate_lifecycle_reports(results_dir: str | Path) -> dict:
             task_dirs.add(task_id)
 
     summary["tasks"] = len(task_dirs)
+    _finalize_maintenance_summary(summary["reports"]["blackboard_maintenance"])
     (root / "lifecycle_summary.json").write_text(
         json.dumps(summary, indent=2),
         encoding="utf-8",
@@ -399,6 +400,18 @@ def _aggregate_maintenance(
     )
     fallback_used = bool(report_summary.get("fallback_used"))
     fallback_cluster_count = _int(report_summary.get("fallback_cluster_count"), 0)
+    state_quality = report_summary.get("state_quality", {})
+    if not isinstance(state_quality, dict):
+        state_quality = {}
+    quality_delta = state_quality.get("delta", {})
+    if not isinstance(quality_delta, dict):
+        quality_delta = {}
+    before_quality = state_quality.get("before", {})
+    if not isinstance(before_quality, dict):
+        before_quality = {}
+    after_quality = state_quality.get("after", {})
+    if not isinstance(after_quality, dict):
+        after_quality = {}
 
     target["tasks"] += 1
     target["candidate_entry_count"] += candidates
@@ -408,6 +421,25 @@ def _aggregate_maintenance(
     if fallback_used:
         target["fallback_tasks"] += 1
     target["fallback_cluster_count"] += fallback_cluster_count
+    score_delta = _float(quality_delta.get("state_mix_score"), 0.0)
+    target["state_mix_score_before_sum"] += _float(
+        before_quality.get("state_mix_score"), 0.0,
+    )
+    target["state_mix_score_after_sum"] += _float(
+        after_quality.get("state_mix_score"), 0.0,
+    )
+    target["state_mix_score_delta_sum"] += score_delta
+    target["reasoning_density_delta_sum"] += _float(
+        quality_delta.get("reasoning_density"), 0.0,
+    )
+    target["gap_density_delta_sum"] += _float(
+        quality_delta.get("gap_density"), 0.0,
+    )
+    target["compaction_ratio_sum"] += _float(
+        state_quality.get("compaction_ratio"), 0.0,
+    )
+    if score_delta > 0:
+        target["positive_state_score_tasks"] += 1
 
     rows.append(_row(
         task_id,
@@ -417,7 +449,8 @@ def _aggregate_maintenance(
         notes=(
             f"mode={report.get('mode', '')}; candidates={candidates}; "
             f"superseded={superseded}; fallback_used={fallback_used}; "
-            f"fallback_clusters={fallback_cluster_count}"
+            f"fallback_clusters={fallback_cluster_count}; "
+            f"state_score_delta={score_delta:.4f}"
         ),
     ))
 
@@ -553,7 +586,42 @@ def _empty_maintenance_summary() -> dict:
         "entries_superseded": 0,
         "fallback_tasks": 0,
         "fallback_cluster_count": 0,
+        "state_mix_score_before_sum": 0.0,
+        "state_mix_score_after_sum": 0.0,
+        "state_mix_score_delta_sum": 0.0,
+        "reasoning_density_delta_sum": 0.0,
+        "gap_density_delta_sum": 0.0,
+        "compaction_ratio_sum": 0.0,
+        "positive_state_score_tasks": 0,
+        "avg_state_mix_score_before": 0.0,
+        "avg_state_mix_score_after": 0.0,
+        "avg_state_mix_score_delta": 0.0,
+        "avg_reasoning_density_delta": 0.0,
+        "avg_gap_density_delta": 0.0,
+        "avg_compaction_ratio": 0.0,
     }
+
+
+def _finalize_maintenance_summary(target: dict) -> None:
+    tasks = max(_int(target.get("tasks"), 0), 1)
+    target["avg_state_mix_score_before"] = _round_float(
+        _float(target.get("state_mix_score_before_sum"), 0.0) / tasks
+    )
+    target["avg_state_mix_score_after"] = _round_float(
+        _float(target.get("state_mix_score_after_sum"), 0.0) / tasks
+    )
+    target["avg_state_mix_score_delta"] = _round_float(
+        _float(target.get("state_mix_score_delta_sum"), 0.0) / tasks
+    )
+    target["avg_reasoning_density_delta"] = _round_float(
+        _float(target.get("reasoning_density_delta_sum"), 0.0) / tasks
+    )
+    target["avg_gap_density_delta"] = _round_float(
+        _float(target.get("gap_density_delta_sum"), 0.0) / tasks
+    )
+    target["avg_compaction_ratio"] = _round_float(
+        _float(target.get("compaction_ratio_sum"), 0.0) / tasks
+    )
 
 
 def _empty_source_claim_summary() -> dict:
@@ -602,6 +670,17 @@ def _int(value: Any, default: int = 0) -> int:
         return int(value)
     except (TypeError, ValueError):
         return default
+
+
+def _float(value: Any, default: float = 0.0) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _round_float(value: float) -> float:
+    return round(float(value), 4)
 
 
 def _load_json(path: Path) -> dict:

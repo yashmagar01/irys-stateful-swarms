@@ -460,6 +460,17 @@ def _cmd_summarize_lifecycle(args):
         f"{maintenance.get('fallback_cluster_count', 0)}"
     )
     print(
+        "Maintenance avg state score before/after/delta: "
+        f"{maintenance.get('avg_state_mix_score_before', 0)}/"
+        f"{maintenance.get('avg_state_mix_score_after', 0)}/"
+        f"{maintenance.get('avg_state_mix_score_delta', 0)}"
+    )
+    print(
+        "Maintenance avg reasoning/gap density delta: "
+        f"{maintenance.get('avg_reasoning_density_delta', 0)}/"
+        f"{maintenance.get('avg_gap_density_delta', 0)}"
+    )
+    print(
         "Prompt audit records/forbidden hits: "
         f"{audit['records']}/"
         f"{audit['forbidden_provenance_hits'] + audit['forbidden_text_hits']}"
