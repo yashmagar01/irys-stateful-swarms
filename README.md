@@ -135,31 +135,11 @@ Workers also identify what's missing. Gap entries flag incomplete extraction and
 }
 ```
 
-**2,203 entries:** 2,023 observations, 78 calculations, 54 analyses, 41 gaps. The blackboard is dense with source-grounded facts.
+**2,203 entries:** 2,023 observations, 78 calculations, 54 analyses, 41 gaps, and 7 strategies. The blackboard is dense with source-grounded facts.
 
 ### Iteration 12 — Cross-document analysis reveals deviations
 
 By the final iteration, the system has built enough state for a stronger model to perform cross-document analysis. It finds specific deviations between the commitment letter and the draft credit agreement:
-
-```json
-{
-  "id": "e156",
-  "type": "analysis",
-  "content": "The term sheet requires a 0.50% SOFR floor for the TLB, but the draft credit agreement fails to include this value, creating a potential financial impact where the interest rate could be lower than intended if SOFR drops below 0.50%.",
-  "source": {
-    "document": "term-sheet.docx",
-    "section": "IV.A. First Lien Term Loan B",
-    "evidence": "Term Sheet: 'SOFR Floor: 0.50% per annum.' Draft Credit Agreement: 'Adjusted Term SOFR... greater of (a) Term SOFR... and (b) the Floor.' Floor is not defined."
-  },
-  "created_by": {
-    "worker_id": "w5_da99",
-    "description": "Calculate the financial impact of the 0.50% TLB floor and verify if it matches the term-sheet.docx requirements",
-    "iteration": 5
-  },
-  "confidence": 0.98,
-  "addresses_signals": ["s663"]
-}
-```
 
 ```json
 {
@@ -179,9 +159,28 @@ By the final iteration, the system has built enough state for a stronger model t
 }
 ```
 
-**Final state: 2,400 entries** (2,044 observations, 113 analyses, 87 calculations, 135 gaps, 21 strategies). **210 signals** with 127 addressed and 45 still open. The system found 10+ material deviations — unauthorized margin increases, missing fee definitions, tightened covenant triggers, restricted reinvestment periods — each grounded in specific clauses from specific documents.
+```json
+{
+  "id": "e2331",
+  "type": "gap",
+  "content": "The 6-month soft call provision is absent from the draft credit agreement.",
+  "source": {
+    "document": "comparison-template.xlsx",
+    "section": "6.0",
+    "evidence": "Section 6.0 (Term Loan B — Voluntary Prepayment / Soft Call) shows no mapping to the draft credit agreement."
+  },
+  "created_by": {
+    "worker_id": "w12_ecc1",
+    "description": "Perform targeted re-extraction of comparison-template.xlsx to identify the remaining 48 missing items",
+    "iteration": 12
+  },
+  "confidence": 0.98
+}
+```
 
-From 7 strategy entries to 2,400 grounded findings — a **340x expansion** of structured analytical state over 12 iterations.
+**Final state: 2,400 entries** (2,044 observations, 113 analyses, 87 calculations, 135 gaps, 21 strategies). **210 signals** — 127 addressed, 45 still open, 38 expired. The system found 10+ material deviations — unauthorized margin increases, missing fee definitions, tightened covenant triggers, restricted reinvestment periods — each grounded in specific clauses from specific documents.
+
+From 7 entries to 2,400 grounded findings — a **343x expansion** of structured analytical state over 12 iterations.
 
 ### When it doesn't get a perfect score, you can see exactly why
 
