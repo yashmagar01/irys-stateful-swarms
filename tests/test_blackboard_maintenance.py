@@ -27,6 +27,25 @@ class FakeCaller:
         )
 
 
+class SequenceCaller:
+    def __init__(self, texts: list[str]):
+        self.texts = list(texts)
+        self.prompts: list[str] = []
+
+    def complete(self, prompt: str, *, max_tokens: int = 8192,
+                 temperature: float = 0.05, json_mode: bool = True) -> ModelResult:
+        self.prompts.append(prompt)
+        text = self.texts.pop(0)
+        return ModelResult(
+            text=text,
+            tokens_input=20,
+            tokens_output=10,
+            tokens_total=30,
+            model="fake-model",
+            latency_ms=1,
+        )
+
+
 def _source_entry(entry_id: str, content: str, document: str = "doc.pdf") -> Entry:
     return Entry(
         id=entry_id,
@@ -130,3 +149,41 @@ def test_run_blackboard_maintenance_writes_report_and_can_supersede(tmp_path, mo
     assert (tmp_path / "swarm" / "blackboard_maintenance.json").exists()
     audit = json.loads((tmp_path / "swarm" / "prompt_audit.json").read_text())
     assert audit["summary"]["records"] == 1
+
+
+def test_run_blackboard_maintenance_fallback_clusters_when_first_pass_empty(tmp_path, monkeypatch):
+    monkeypatch.setenv("SWARM_ENABLE_BLACKBOARD_MAINTENANCE", "1")
+    monkeypatch.setenv("SWARM_PROMPT_AUDIT", "1")
+    blackboard = Blackboard(
+        task_instruction="Assess routing implementation risks.",
+        output_dir=str(tmp_path),
+        entries=[
+            _source_entry("e1", "chat-service.ts calls the memory coverage judge before web routing.", "chat-service.ts.txt"),
+            _source_entry("e2", "chat-service.ts records source_need_decision from the judge result.", "chat-service.ts.txt"),
+            _source_entry("e3", "chat-service.ts does not preserve matched memory IDs in the downstream audit packet.", "chat-service.ts.txt"),
+            _source_entry("e4", "settings.ts stores an unrelated user interface preference.", "settings.ts.txt"),
+        ],
+    )
+    caller = SequenceCaller([
+        json.dumps({"consolidations": []}),
+        json.dumps({
+            "consolidations": [{
+                "type": "analysis",
+                "content": "The routing state is fragmented across judge invocation, source-need recording, and missing matched-ID preservation in chat-service.ts.",
+                "source_entry_ids": ["e1", "e2", "e3"],
+                "reason": "The entries describe adjacent pieces of the same routing-state flow.",
+                "confidence": 0.86,
+                "supersede_source_entries": False,
+            }]
+        }),
+    ])
+
+    report, tokens = run_blackboard_maintenance(blackboard, {}, caller)
+
+    assert tokens == 60
+    assert len(caller.prompts) == 2
+    assert "SOURCE-LOCAL CLUSTERS" in caller.prompts[1]
+    assert report["summary"]["fallback_used"] is True
+    assert report["summary"]["fallback_cluster_count"] >= 1
+    assert report["summary"]["entries_created"] == 1
+    assert any(e for e in blackboard.entries if "maintenance_type:consolidation" in e.tags)

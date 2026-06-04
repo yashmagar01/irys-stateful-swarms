@@ -63,6 +63,43 @@ def run_blackboard_maintenance(
             payload.get("consolidations", []),
             candidates,
         )
+        fallback_used = False
+        fallback_cluster_count = 0
+        if not consolidations:
+            clusters = _source_local_clusters(candidates)
+            fallback_cluster_count = len(clusters)
+            if clusters:
+                fallback_used = True
+                fallback_prompt = _build_clustered_maintenance_prompt(
+                    blackboard,
+                    seed,
+                    candidates,
+                    clusters,
+                )
+                fallback_payload, fallback_tokens = call_model(
+                    caller,
+                    fallback_prompt,
+                    max_tokens=8192,
+                    audit_context=PromptAuditContext(
+                        stage="blackboard_maintenance_fallback",
+                        output_dir=blackboard.output_dir,
+                        provenance=[
+                            "user.instruction",
+                            "swarm.seed_generated",
+                            "swarm.blackboard",
+                            "clean.professional_prior_dynamic",
+                        ],
+                        metadata={
+                            "candidate_entry_count": len(candidates),
+                            "fallback_cluster_count": fallback_cluster_count,
+                        },
+                    ),
+                )
+                tokens += fallback_tokens
+                consolidations = normalize_consolidations(
+                    fallback_payload.get("consolidations", []),
+                    candidates,
+                )
         entries = consolidation_entries(
             blackboard,
             consolidations,
@@ -91,6 +128,8 @@ def run_blackboard_maintenance(
                 "consolidations_selected": len(consolidations),
                 "entries_created": len(entries),
                 "entries_superseded": sum(len(e.supersedes_entries) for e in entries),
+                "fallback_used": fallback_used,
+                "fallback_cluster_count": fallback_cluster_count,
             },
         }
         write_blackboard_maintenance_report(blackboard.output_dir, report)
@@ -243,6 +282,64 @@ Return JSON:
 """
 
 
+def _build_clustered_maintenance_prompt(
+    blackboard: Blackboard,
+    seed: dict,
+    candidates: list[Entry],
+    clusters: list[dict],
+) -> str:
+    key_questions = "\n".join(
+        f"- {q}" for q in seed.get("key_questions", [])[:10]
+    )
+    by_id = {entry.id: entry for entry in candidates}
+    rendered_clusters = []
+    for cluster in clusters:
+        entries = [by_id[eid] for eid in cluster["entry_ids"] if eid in by_id]
+        if not entries:
+            continue
+        rendered_clusters.append(
+            f"### {cluster['id']}: {cluster['label']}\n"
+            f"Reason for review: {cluster['reason']}\n"
+            f"{_render_entries(entries)}"
+        )
+    return f"""You are doing a second blackboard-maintenance pass.
+
+The first pass returned no consolidations. The clusters below were grouped
+mechanically by source locality to make repeated or fragmented state easier to
+inspect. The grouping is only a review aid; you must decide whether any
+consolidation is actually safe.
+
+TASK:
+{blackboard.task_instruction}
+
+SEED KEY QUESTIONS:
+{key_questions or "None"}
+
+SOURCE-LOCAL CLUSTERS:
+{chr(10).join(rendered_clusters)}
+
+Rules:
+- Do NOT write the final deliverable.
+- Do NOT introduce new facts beyond the listed entries.
+- Prefer consolidations that merge 3-6 entries into one stronger analysis, calculation, or strategy.
+- Preserve exact values, dates, party names, and source caveats.
+- Return an empty list if the listed entries are merely adjacent, not meaningfully redundant or fragmented.
+- Return at most 8 consolidations.
+
+Return JSON:
+{{"consolidations": [
+  {{
+    "type": "analysis|calculation|strategy",
+    "content": "consolidated source-grounded blackboard entry",
+    "source_entry_ids": ["e1", "e2", "e3"],
+    "reason": "why these entries should become one stronger piece of state",
+    "confidence": 0.0,
+    "supersede_source_entries": false
+  }}
+]}}
+"""
+
+
 def _maintenance_candidates(entries: list[Entry]) -> list[Entry]:
     active = [
         entry for entry in entries
@@ -271,6 +368,66 @@ def _maintenance_candidates(entries: list[Entry]) -> list[Entry]:
         )
 
     return sorted(active, key=score, reverse=True)[:limit]
+
+
+def _source_local_clusters(
+    entries: list[Entry],
+    *,
+    max_clusters: int = 18,
+    min_size: int = 3,
+    max_size: int = 6,
+) -> list[dict]:
+    grouped: dict[tuple[str, str], list[Entry]] = {}
+    for entry in entries:
+        if "blackboard_maintenance" in (entry.tags or []):
+            continue
+        if not entry.source or not entry.source.document:
+            continue
+        key = (
+            entry.source.document,
+            entry.source.section or "",
+        )
+        grouped.setdefault(key, []).append(entry)
+
+    def entry_score(entry: Entry) -> tuple[int, float, int]:
+        return (
+            {
+                "analysis": 5,
+                "calculation": 5,
+                "strategy": 4,
+                "gap": 3,
+                "observation": 2,
+            }.get(entry.type, 1),
+            entry.confidence,
+            min(len(entry.content), 1200),
+        )
+
+    def group_score(item: tuple[tuple[str, str], list[Entry]]) -> tuple[int, float, int]:
+        _key, group = item
+        analytical = sum(1 for entry in group if entry.type in {"analysis", "calculation", "strategy"})
+        confidence = sum(entry.confidence for entry in group) / max(len(group), 1)
+        return (analytical, confidence, len(group))
+
+    clusters = []
+    for index, ((document, section), group) in enumerate(
+        sorted(grouped.items(), key=group_score, reverse=True),
+        1,
+    ):
+        if len(group) < min_size:
+            continue
+        selected = sorted(group, key=entry_score, reverse=True)[:max_size]
+        label = document
+        if section:
+            label = f"{label} / {section}"
+        clusters.append({
+            "id": f"cluster_{index:03d}",
+            "label": label,
+            "reason": "Multiple active entries share the same source location and may be fragmented.",
+            "entry_ids": [entry.id for entry in selected],
+        })
+        if len(clusters) >= max_clusters:
+            break
+    return clusters
 
 
 def _render_entries(entries: list[Entry]) -> str:
