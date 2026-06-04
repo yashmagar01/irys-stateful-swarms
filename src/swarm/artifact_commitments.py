@@ -123,6 +123,8 @@ def _is_candidate(entry: Entry) -> bool:
     if not entry.source or not entry.source.document:
         return False
     tags = entry.tags or []
+    if _is_debt_sensor_entry(entry) and entry.type != "gap":
+        return True
     if any(tag.startswith(("state_conversion", "plan_coverage", "plan_coverage_repair")) for tag in tags):
         return True
     if any(tag.startswith(("missing_work:", "materiality:critical", "materiality:high")) for tag in tags):
@@ -135,7 +137,9 @@ def _is_candidate(entry: Entry) -> bool:
 def _candidate_score(entry: Entry) -> tuple[int, float, int]:
     tags = entry.tags or []
     materiality = 0
-    if any(tag == "materiality:critical" for tag in tags):
+    if _is_debt_sensor_entry(entry):
+        materiality = 4
+    elif any(tag == "materiality:critical" for tag in tags):
         materiality = 3
     elif any(tag == "materiality:high" for tag in tags):
         materiality = 2
@@ -149,6 +153,8 @@ def _candidate_score(entry: Entry) -> tuple[int, float, int]:
 
 
 def _is_high_materiality(entry: Entry) -> bool:
+    if _is_debt_sensor_entry(entry):
+        return True
     return any(
         tag in {"materiality:critical", "materiality:high"}
         for tag in (entry.tags or [])
@@ -170,6 +176,19 @@ def _target_file(entry: Entry, filenames: list[str]) -> str:
         return ""
     if len(filenames) == 1:
         return filenames[0]
+    debt_type = _debt_type(entry)
+    if debt_type in {"relation", "severity", "authority"}:
+        memo = _preferred_file(filenames, ("memo", "analysis", "report", "summary"))
+        if memo:
+            return memo
+    if debt_type == "source_object":
+        workbook = _preferred_file(
+            filenames,
+            ("tracker", "schedule", "inventory", "workbook", "model"),
+            suffixes=(".xlsx", ".csv"),
+        )
+        if workbook:
+            return workbook
     lower_content = entry.content.lower()
     if entry.type == "calculation":
         for filename in filenames:
@@ -207,6 +226,29 @@ def _native_form(filename: str, entry: Entry) -> str:
 
 
 def _artifact_function(filename: str, entry: Entry, native_form: str) -> str:
+    debt_type = _debt_type(entry)
+    if debt_type == "relation":
+        return (
+            "workbook_cross_document_link"
+            if native_form == "workbook_row"
+            else "memo_cross_document_link"
+        )
+    if debt_type == "severity":
+        return (
+            "workbook_risk_recommendation"
+            if native_form == "workbook_row"
+            else "memo_risk_recommendation"
+        )
+    if debt_type == "authority":
+        return (
+            "workbook_source_authority"
+            if native_form == "workbook_row"
+            else "memo_source_authority"
+        )
+    if debt_type == "source_object" and native_form == "workbook_row":
+        return "workbook_source_object"
+    if debt_type == "source_object":
+        return "memo_source_coverage"
     if native_form == "workbook_row":
         return "workbook_calculation" if entry.type == "calculation" else "workbook_finding"
     if native_form == "slide_bullet":
@@ -222,6 +264,15 @@ def _artifact_function(filename: str, entry: Entry, native_form: str) -> str:
 
 
 def _section_for_entry(entry: Entry, native_form: str) -> str:
+    debt_type = _debt_type(entry)
+    if debt_type == "relation":
+        return "Sheet: Cross-Document Analysis" if native_form == "workbook_row" else "Cross-Document Analysis"
+    if debt_type == "severity":
+        return "Sheet: Risk and Recommendations" if native_form == "workbook_row" else "Risk and Recommendations"
+    if debt_type == "authority":
+        return "Sheet: Source Authority" if native_form == "workbook_row" else "Source Authority"
+    if debt_type == "source_object":
+        return "Sheet: Source Coverage" if native_form == "workbook_row" else "Source Coverage"
     if native_form == "workbook_row":
         return "Sheet: Required Calculations" if entry.type == "calculation" else "Sheet: Required Findings"
     if native_form == "slide_bullet":
@@ -251,6 +302,13 @@ def _satisfaction_conditions(
     target = filename or "the selected deliverable"
     terms = _verification_terms(entry)
     source_ref = _source_ref_label(entry)
+    debt_type = _debt_type(entry)
+
+    debt_conditions = _debt_satisfaction_conditions(
+        entry, debt_type, target, native_form,
+    )
+    if debt_conditions:
+        conditions.extend(debt_conditions)
 
     if native_form == "workbook_row":
         conditions.extend([
@@ -289,6 +347,42 @@ def _satisfaction_conditions(
     return conditions[:7]
 
 
+def _debt_satisfaction_conditions(
+    entry: Entry,
+    debt_type: str,
+    target: str,
+    native_form: str,
+) -> list[str]:
+    if not debt_type:
+        return []
+    if debt_type == "relation":
+        return [
+            f"Carry debt-sensor entry {entry.id} into {target} as an explicit cross-document comparison or reconciliation.",
+            "Name the compared source documents and state whether they conflict, align, or require a caveat.",
+        ]
+    if debt_type == "severity":
+        return [
+            f"Carry debt-sensor entry {entry.id} into {target} as a risk/consequence finding.",
+            "State severity or priority and preserve any recommended action from the blackboard entry.",
+        ]
+    if debt_type == "authority":
+        return [
+            f"Carry debt-sensor entry {entry.id} into {target} as a source-authority or citation-backed finding.",
+            "Preserve the controlling document, clause, section, standard, or evidence anchor.",
+        ]
+    if debt_type == "source_object":
+        if native_form == "workbook_row":
+            return [
+                f"Carry debt-sensor entry {entry.id} into {target} as a source/object coverage row.",
+                "Include object/entity, source document, extracted value or finding, and coverage status columns.",
+            ]
+        return [
+            f"Carry debt-sensor entry {entry.id} into {target} as a source/object coverage finding.",
+            "Identify the discovered object, source document, and why it closes the source/object gap.",
+        ]
+    return []
+
+
 def _source_refs(entry: Entry) -> list[dict]:
     if not entry.source:
         return []
@@ -315,6 +409,33 @@ def _source_ref_label(entry: Entry) -> str:
     if evidence:
         parts.append(evidence[:160])
     return " / ".join(parts)
+
+
+def _is_debt_sensor_entry(entry: Entry) -> bool:
+    return "debt_sensor" in (entry.tags or [])
+
+
+def _debt_type(entry: Entry) -> str:
+    for tag in entry.tags or []:
+        if isinstance(tag, str) and tag.startswith("debt_type:"):
+            return tag.split(":", 1)[1].strip()
+    return ""
+
+
+def _preferred_file(
+    filenames: list[str],
+    keywords: tuple[str, ...],
+    suffixes: tuple[str, ...] = (),
+) -> str:
+    for filename in filenames:
+        lower = filename.lower()
+        if suffixes and lower.endswith(suffixes):
+            return filename
+    for filename in filenames:
+        lower = filename.lower()
+        if any(keyword in lower for keyword in keywords):
+            return filename
+    return ""
 
 
 def _verification_terms(entry: Entry) -> list[str]:
