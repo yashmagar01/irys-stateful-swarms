@@ -1,0 +1,406 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{fontspec}
+\usepackage{titlesec}
+\usepackage{titling}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage{abstract}
+\usepackage{parskip}
+\usepackage{microtype}
+
+\setmainfont{Calibri}
+\setmonofont{Consolas}
+
+\definecolor{irysblue}{RGB}{25,55,109}
+\definecolor{codebg}{RGB}{245,245,248}
+\definecolor{codetext}{RGB}{40,40,40}
+\definecolor{linkblue}{RGB}{0,90,170}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=irysblue,
+    urlcolor=linkblue,
+    citecolor=irysblue,
+    pdftitle={Stateful Swarms for Document Intelligence},
+    pdfauthor={Devansh — Irys AI}
+}
+
+\titleformat{\section}{\Large\bfseries\color{irysblue}}{\thesection}{1em}{}
+\titleformat{\subsection}{\large\bfseries\color{irysblue!80!black}}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries\color{irysblue!60!black}}{\thesubsubsection}{1em}{}
+
+\lstset{
+    backgroundcolor=\color{codebg},
+    basicstyle=\small\ttfamily\color{codetext},
+    breaklines=true,
+    frame=single,
+    rulecolor=\color{irysblue!30},
+    framesep=8pt,
+    xleftmargin=8pt,
+    xrightmargin=8pt,
+    aboveskip=12pt,
+    belowskip=12pt,
+    showstringspaces=false,
+    columns=fullflexible,
+    literate={"}{"}{1}{"}{"}{1},
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{irysblue!60}Stateful Swarms for Document Intelligence}
+\fancyhead[R]{\small\color{irysblue!60}Irys AI}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{irysblue!30}\leaders\hrule height \headrulewidth\hfill}}
+
+\begin{document}
+
+% ────────────────────────────── TITLE PAGE ──────────────────────────────
+
+\begin{titlepage}
+\begin{center}
+
+\vspace*{2cm}
+
+{\fontsize{28}{34}\selectfont\bfseries\color{irysblue} Stateful Swarms for\\[8pt] Document Intelligence}
+
+\vspace{1.2cm}
+
+{\Large Auditability, Cost Efficiency, and Persistent Learning\\[4pt] in Multi-Agent Systems}
+
+\vspace{2cm}
+
+{\large\bfseries Devansh}\\[6pt]
+{\large Irys AI\enspace{\normalsize(Iqidis, Inc.)}}\\[6pt]
+{\normalsize\href{mailto:devansh@iqidis.ai}{devansh@iqidis.ai}}
+
+\vspace{1.5cm}
+
+{\normalsize June 2026}
+
+\vspace{2.5cm}
+
+\begin{minipage}{0.85\textwidth}
+\hrule height 0.5pt
+\vspace{12pt}
+\noindent\textbf{Repository:} \href{https://github.com/dl1683/ant-irys}{github.com/dl1683/ant-irys}\\
+\textbf{License:} MIT — use however you want, including commercially.\\
+\textbf{Results:} 83.74\% criteria pass on 1,251-task Harvey Legal Agent Benchmark at \$1.30/task.
+\vspace{12pt}
+\hrule height 0.5pt
+\end{minipage}
+
+\end{center}
+\end{titlepage}
+
+% ────────────────────────────── ABSTRACT ──────────────────────────────
+
+\begin{abstract}
+\noindent We present a swarm-based architecture for long-context document analysis that coordinates multiple AI agents through a shared, evolving blackboard. Unlike monolithic single-prompt approaches, the system decomposes tasks into planning, extraction, analysis, and synthesis phases — each producing structured, source-grounded state that can be inspected, debugged, and extended. We evaluate on the full 1,251-task Harvey Legal Agent Benchmark (LAB), achieving 83.74\% pooled criteria pass rate and 17.75\% strict all-pass at \$1.30 per task. We argue that the primary value of swarm coordination is not raw performance but three properties that monolithic systems cannot provide: full auditability of the reasoning process, predictable cost scaling, and the foundation for persistent cross-session learning that reduces marginal cost over time. We open-source the complete system, all benchmark outputs, and five annotated reasoning traces under the MIT license.
+\end{abstract}
+
+\vspace{1em}
+
+% ────────────────────────────── INTRODUCTION ──────────────────────────────
+
+\section{Introduction}
+
+The dominant approach to applying large language models to professional document work is the single-pass pipeline: ingest documents, construct a prompt, call a model, return the output. This approach has three structural problems that become severe as task complexity increases.
+
+\textbf{Opacity.} A single model call produces an answer but no explanation of how that answer was derived. When the output is wrong — a missed clause, an incorrect calculation, a misattributed party — there is no intermediate state to inspect. The failure is visible only in the output, not in the reasoning that produced it. For professional work where accountability matters, this is not a minor limitation.
+
+\textbf{Cost unpredictability.} Single-pass systems send the entire document context to the most capable (and most expensive) model for every query. A simple factual extraction and a complex multi-document comparison cost the same. There is no mechanism for routing simpler subtasks to cheaper models or for avoiding redundant processing of previously analyzed material.
+
+\textbf{Statelessness.} Each invocation starts from zero. A system that analyzed a 200-page credit agreement yesterday has no memory of that analysis today. Every follow-up question, every new document added to the same matter, triggers a full re-processing cycle. The cost of the tenth question is identical to the cost of the first.
+
+We propose that multi-agent swarm coordination with structured shared state addresses all three problems simultaneously. The key insight is that the intermediate state — the blackboard — is not just an implementation detail. It is the primary artifact of the system, more valuable than the final output it produces.
+
+% ────────────────────────────── ARCHITECTURE ──────────────────────────────
+
+\section{Architecture: The Blackboard Pattern}
+
+\subsection{Core Design}
+
+The system coordinates multiple AI agents through a shared blackboard — a structured, append-only knowledge base that evolves over multiple iterations. Each agent reads from the blackboard, performs a specific type of cognitive work, and writes its findings back as typed entries with source provenance.
+
+The pipeline proceeds through ordered phases:
+
+\begin{enumerate}[leftmargin=2em]
+\item \textbf{Seed Planning.} Before any document is read in detail, a planning agent scans document structure (headings, tables, estimated complexity) and produces: key questions the investigation must answer, extraction focus areas per document, an analytical framework, completeness criteria, and a task-specific state map defining what object types and fields must be populated.
+
+\item \textbf{Parallel Extraction.} Worker agents read source documents and write structured findings to the blackboard. Each finding carries a type (observation, analysis, calculation, strategy, gap, contradiction), source provenance (document name, section, evidence quote), confidence, and epistemic classification (fact, inference, expert opinion, adversarial claim).
+
+\item \textbf{Analytical Review.} A stronger model reviews accumulated state, identifies cross-document patterns, resolves contradictions, and produces higher-order analytical entries that reference the evidence entries they synthesize.
+
+\item \textbf{Convergence Check.} A supervisor assesses whether the blackboard is complete enough to answer the task. If not, it dispatches targeted follow-up workers with specific questions derived from identified gaps.
+
+\item \textbf{Obligation Extraction.} The system converts blackboard state into concrete deliverable obligations — specific items that must appear in the final output, each traced back to source entries.
+
+\item \textbf{Curation.} The most relevant entries are selected and ordered for synthesis, enforcing minimum density thresholds to prevent thin outputs.
+
+\item \textbf{Synthesis.} The final deliverable is produced from curated state. Large tasks use sectioned synthesis, drafting each section independently to avoid output truncation.
+
+\item \textbf{Verification.} Deterministic and model-based checks confirm the output meets structural requirements. Missing obligations trigger targeted augmentation.
+\end{enumerate}
+
+\subsection{Model Routing}
+
+Not every phase requires the same model capability. The system routes work to models based on the cognitive demands of each phase:
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Phase} & \textbf{Model Tier} & \textbf{Rationale} \\
+\midrule
+Extraction & Lightweight & High-volume, factual, parallelizable \\
+Planning, Analysis, Synthesis & Mid-tier & Requires reasoning, cross-referencing \\
+Convergence, Verification & Mid-tier & Quality judgment \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+This routing is the primary mechanism for cost control. Extraction — which constitutes the majority of model calls — uses the cheapest available model. Only phases requiring genuine reasoning use more capable (and expensive) models.
+
+\subsection{Signal Lifecycle}
+
+The blackboard maintains a signal queue: typed questions, read requests, and investigation prompts that guide worker behavior. Signals are generated during seed planning and dynamically during extraction as gaps are discovered. Each signal tracks its status (open, addressed, expired) and which entries address it. This creates a self-correcting feedback loop: the system generates questions, workers attempt to answer them, and the convergence check evaluates whether the answers are sufficient.
+
+% ────────────────────────────── EVALUATION ──────────────────────────────
+
+\section{Evaluation}
+
+\subsection{Benchmark}
+
+We evaluate on the Harvey Legal Agent Benchmark (LAB), a public benchmark consisting of 1,251 tasks across 24 legal practice areas. Each task provides source documents (contracts, filings, correspondence, spreadsheets) and an instruction requiring the system to produce one or more deliverables (memos, analyses, redlines, spreadsheets). Tasks are scored against per-criterion rubrics; strict all-pass requires every criterion to be satisfied.
+
+Harvey's published results on their private holdout set (which mirrors the public distribution) report 10.4\% strict all-pass at approximately \$50.90 per task. We do not have access to the private holdout and would welcome the opportunity to run on it for a direct comparison.
+
+\subsection{Results}
+
+\begin{center}
+\begin{tabular}{lr}
+\toprule
+\textbf{Metric} & \textbf{Result} \\
+\midrule
+Tasks completed & 1,251 / 1,251 \\
+Criteria pass rate & 62,800 / 74,990 = 83.74\% \\
+Strict all-pass & 222 / 1,251 = 17.75\% \\
+Success gate ($\leq$2 misses or $\geq$95\%) & 336 / 1,251 = 26.86\% \\
+Total cost & \$1,626.08 \\
+Cost per task & \$1.30 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.5em}
+
+Performance varies significantly by task type:
+
+\begin{center}
+\begin{tabular}{lrr}
+\toprule
+\textbf{Task Type} & \textbf{Tasks} & \textbf{Criteria \%} \\
+\midrule
+draft & 427 & 90.22 \\
+analyze & 89 & 86.42 \\
+scenario & 119 & 83.91 \\
+review & 58 & 80.86 \\
+compare & 148 & 77.14 \\
+extract & 138 & 75.67 \\
+identify & 195 & 74.26 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The system is strongest on generative tasks (drafting, analysis) where partial state can still produce useful output, and weakest on exhaustive recall tasks (extraction, identification) that require complete enumeration of specific facts. This asymmetry is informative: it reveals that the primary bottleneck is state completeness, not synthesis quality.
+
+\subsection{Cost Analysis}
+
+The \$1.30 per task average represents a 39x reduction compared to Harvey's published \$50.90 figure. This reduction comes from three sources:
+
+\begin{enumerate}[leftmargin=2em]
+\item \textbf{Model routing.} The majority of extraction work uses lightweight models at \$0.25/M input tokens, while only planning, analysis, and synthesis use mid-tier models at \$1.50/M input tokens.
+\item \textbf{Parallel extraction.} Workers process document sections concurrently, reducing wall-clock time without increasing per-token costs.
+\item \textbf{Targeted follow-up.} Rather than re-processing entire documents when information is missing, the convergence check dispatches focused workers to specific sections, avoiding redundant processing.
+\end{enumerate}
+
+% ────────────────────────────── AUDITABILITY ──────────────────────────────
+
+\section{Auditability}
+
+\subsection{The Case for Structured Reasoning Traces}
+
+The most significant property of the blackboard architecture is not performance but auditability. Every task produces a complete, structured record of how the system arrived at its conclusions.
+
+Each blackboard snapshot is a JSON document containing every entry the system has produced, with full provenance:
+
+\begin{lstlisting}
+{
+  "id": "e716",
+  "type": "observation",
+  "content": "Northbrook Capital Markets, LLC commits to provide
+    a first lien senior secured term loan B facility in an
+    aggregate principal amount of $350,000,000.",
+  "source": {
+    "document": "commitment-letter.docx",
+    "section": "Full Document (part 1)"
+  },
+  "created_by": {
+    "worker_id": "reader_commitment-letter.do",
+    "description": "initial_reading",
+    "iteration": 0
+  },
+  "confidence": 0.9
+}
+\end{lstlisting}
+
+This entry records not just \textit{what} was found, but \textit{where} it was found, \textit{who} found it (which worker), \textit{when} in the process it was found (iteration 0), and \textit{how confident} the system is in the finding.
+
+\subsection{Auditing Perfect Scores}
+
+When the system succeeds, the reasoning trace demonstrates \textit{why} it succeeded. In a credit agreement comparison task that scored 40/40, the blackboard evolved from 7 seed planning entries to 2,400 grounded findings over 12 iterations. The system:
+
+\begin{itemize}[leftmargin=2em]
+\item Generated 12 targeted questions before reading any documents
+\item Extracted 2,044 source-grounded observations with exact dollar amounts, dates, and clause references
+\item Produced 87 calculations cross-referencing terms across documents
+\item Identified 135 gaps requiring follow-up extraction
+\item Built 113 cross-document analysis entries identifying specific deviations
+\end{itemize}
+
+The final analysis entries contain findings such as:
+
+\begin{lstlisting}
+{
+  "id": "e865",
+  "type": "analysis",
+  "content": "Section 2.06 of the draft credit agreement specifies
+    an annual agency fee of $50,000. This is a deviation from the
+    Commitment Letter, which requires an Administrative Agent Fee
+    of $150,000 per annum, payable annually in advance.",
+  "created_by": {
+    "worker_id": "flash35_analyst",
+    "description": "direct_analysis",
+    "iteration": 12
+  },
+  "confidence": 0.98,
+  "supports": ["e260", "e261", "e35"]
+}
+\end{lstlisting}
+
+The \texttt{supports} field creates an explicit evidence chain: this analysis entry is grounded in three earlier observations, each of which carries its own source provenance. A reviewer can follow the chain from conclusion to evidence to source document.
+
+\subsection{Auditing Failures}
+
+More importantly, when the system fails, the reasoning trace reveals \textit{why} it failed — and whether the failure is fundamental or fixable.
+
+In a sanctions entity extraction task (80/85), the system missed five criteria. Examining the blackboard reveals that in every case, the relevant information was present in the state but the final verification step was incomplete:
+
+\textbf{Missed criterion: ``Beneficiary name inconsistency.''} The blackboard contained two entries with different name variants — ``Zenith Petrochem Industries LLC'' in one entry and ``Zenith Petrochemical Industries LLC'' in another. Both name variants existed in the state. The system extracted the facts correctly from both documents. What it failed to do was cross-reference these entries and flag the discrepancy. The information was there; the cross-reference step wasn't.
+
+\textbf{Missed criterion: ``OFAC 50\% rule aggregation principle.''} The system identified the threshold proximity (49\% vs 50\%) and even mentioned that aggregate ownership by blocked persons could trigger a violation — but didn't elaborate on the aggregation principle with sufficient specificity for the scorer.
+
+This pattern — correct extraction, incomplete verification — is qualitatively different from a system that never found the relevant information. It indicates that the failure mode is in the state processing pipeline, not in the extraction capability. These are fixable failures, and the blackboard makes it possible to identify them precisely.
+
+\subsection{Implications for Professional Adoption}
+
+For legal work specifically, auditability is not optional. Attorneys are professionally responsible for the accuracy of their work product. A system that produces correct answers 83\% of the time is useful only if the remaining 17\% can be identified and corrected. The blackboard pattern provides the mechanism for this: every conclusion is traceable to evidence, every evidence entry is traceable to a source document, and every gap is explicitly logged.
+
+This is fundamentally different from a system that produces a final document with no intermediate reasoning. Even if the final document is correct, the lack of a reasoning trace means there is no way to verify \textit{why} it is correct — and no way to determine whether a specific conclusion is well-supported or hallucinated.
+
+% ────────────────────────────── PERSISTENT STATE ──────────────────────────────
+
+\section{The Case for Persistent Stateful Swarms}
+
+\subsection{The Benchmark Constraint}
+
+The results presented above were produced under a significant constraint: every task starts from an empty blackboard. The system has no memory of previous tasks, no accumulated domain knowledge, and no persistent document indexes. This is the correct approach for benchmark evaluation — persistent state would constitute an unfair advantage.
+
+However, this constraint means the benchmark results systematically understate the performance and cost efficiency of a deployed system.
+
+\subsection{What Persistence Enables}
+
+In a production deployment, the system operates within the context of ongoing matters — deals, cases, investigations, compliance programs. These matters involve recurring documents analyzed repeatedly as new questions arise, accumulated understanding from early analysis that remains valid for subsequent queries, and incremental updates where new documents must be reconciled against existing state.
+
+A persistent swarm would retain its blackboard state across sessions. The 2,400 entries produced during the credit agreement analysis would persist. When a follow-up question arrives, the system would query existing state rather than re-reading the entire document set. When a new amendment arrives, the system would reconcile it against the existing entity graph and flag changes.
+
+\subsection{Cost Implications}
+
+The cost structure of the current system is dominated by extraction — lightweight worker calls that constitute the majority of model invocations. With persistent state, subsequent queries on the same document set would skip extraction entirely and proceed directly to analysis and synthesis from cached state.
+
+Conservative estimates suggest that for matters with 5+ queries against the same document set, persistent state would reduce marginal cost by 60--80\% per additional query. The first analysis costs roughly \$1.30; the fifth analysis of the same documents would cost a fraction of that.
+
+\subsection{Learning Across Sessions}
+
+Beyond caching, persistent state enables a more sophisticated form of learning. As the system processes more documents within a domain, it accumulates entity knowledge (named entities, roles, relationships, prior appearances), domain patterns (common structures, typical formulations, standard obligation types), and quality feedback (which extraction strategies produced useful state).
+
+This is not fine-tuning. The model weights remain unchanged. The learning happens in the structured state layer — the system becomes more effective because it has more context, not because it has been retrained. This preserves the auditability property: every piece of accumulated knowledge is traceable to the document that produced it.
+
+\subsection{Evaluation Isolation}
+
+Persistent state creates a tension with benchmark evaluation. If the system retains knowledge from previous benchmark tasks, its performance is no longer a clean measurement. This is why we deliberately strip all persistence for benchmark runs.
+
+The solution is evaluation-aware persistence: strict boundaries between benchmark and production state, separate storage contexts, and audit mechanisms that verify no benchmark-derived knowledge contaminates generation. We have implemented a provenance audit system that monitors every model prompt for forbidden benchmark metadata and logs violations.
+
+% ────────────────────────────── RELATED WORK ──────────────────────────────
+
+\section{Related Approaches}
+
+The swarm architecture intersects with several active research directions that we believe are complementary:
+
+\textbf{Latent space reasoning.} Inference-time perturbation of model activations can improve reasoning without training. We have demonstrated +19.6pp arithmetic improvement on frozen models through soft token injection. Applied to swarm worker models, this could improve extraction accuracy on the precise numerical and citation tasks where the current system is weakest.\footnote{\url{https://github.com/dl1683/Latent-Space-Reasoning}}
+
+\textbf{Hierarchical embeddings.} Standard dense embeddings treat all dimensions equally, but document semantics are hierarchical. Multi-scale embeddings that align dimensional structure to semantic hierarchy improve retrieval quality. We have demonstrated that correct geometric hierarchy causally improves embedding quality.\footnote{\url{https://github.com/dl1683/moonshot-fractal-embeddings}}
+
+\textbf{Representation quality theory.} We have derived a universal law governing learned representation quality from first principles using extreme value theory, validated across 12 NLP architectures ($R^2$=0.955) and biological neural systems. This provides a theoretical framework for optimal model routing in multi-model swarms.\footnote{\url{https://github.com/dl1683/moonshot-cti-universal-law}}
+
+\textbf{Persistent agent memory.} Provenance-backed knowledge memory systems that maintain source attribution, conflict state, and temporal validity across sessions are a necessary complement to the swarm pattern for production deployment.\footnote{\url{https://github.com/dl1683/MapU}}
+
+% ────────────────────────────── LIMITATIONS ──────────────────────────────
+
+\section{Limitations}
+
+\textbf{Recall on exhaustive tasks.} The system achieves 90\%+ on generative tasks but 74--77\% on extraction and identification tasks requiring complete enumeration.
+
+\textbf{Single-run benchmark.} The results represent a single full benchmark run. We have not performed statistical analysis of run-to-run variance.
+
+\textbf{Public benchmark only.} We do not have access to Harvey's private holdout set. We would welcome the opportunity to run on it for a direct comparison.
+
+\textbf{No persistent state evaluation.} The cost and accuracy benefits of persistent state are projections based on observed cost structure, not measured results from a deployed persistent system.
+
+\textbf{API-only.} The system uses only standard API calls to frontier language models. No fine-tuning, custom embeddings, or model modifications. This is both a limitation and a deliberate design choice — it establishes a baseline for what coordination alone can achieve.
+
+% ────────────────────────────── CONCLUSION ──────────────────────────────
+
+\section{Conclusion}
+
+We have presented a swarm-based document analysis architecture that achieves competitive benchmark performance at dramatically lower cost than published alternatives. The system's primary contribution is not raw performance but three structural properties: full auditability of the reasoning process through structured blackboard state, predictable cost through model routing and targeted processing, and a natural foundation for persistent cross-session learning.
+
+The complete system is open-source under the MIT license. The repository includes source code, the full benchmark manifest, five annotated example tasks with complete reasoning traces, and verification instructions. Benchmark outputs for all 1,251 tasks are available for independent scoring.
+
+We believe that stateful multi-agent coordination represents an important direction for professional AI systems — not because agents are inherently better than monolithic models, but because the structured intermediate state they produce is essential for accountability, cost control, and continuous improvement. We invite collaborators interested in extending this work to additional benchmarks, new problem domains, or production deployment.
+
+\vspace{1.5em}
+\noindent\textbf{Contact:} \href{mailto:devansh@iqidis.ai}{devansh@iqidis.ai}\\
+\textbf{Repository:} \href{https://github.com/dl1683/ant-irys}{github.com/dl1683/ant-irys}\\
+\textbf{License:} MIT — use however you want, including commercially.
+
+% ────────────────────────────── REFERENCES ──────────────────────────────
+
+\section*{References}
+
+\begin{enumerate}[leftmargin=2em]
+\item Harvey AI. ``Legal Agent Benchmark Initial Results.'' \url{https://www.harvey.ai/blog/legal-agent-benchmark-initial-results}, 2025.
+\item Harvey AI. ``Opus 4.8 Now Live in Harvey.'' \url{https://www.harvey.ai/blog/opus-4-8-now-live-in-harvey}, 2026.
+\item Harvey AI. Harvey Legal Agent Benchmark. \url{https://github.com/harveyai/harvey-labs}, 2025.
+\end{enumerate}
+
+\end{document}
