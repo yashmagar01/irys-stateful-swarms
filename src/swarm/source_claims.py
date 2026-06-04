@@ -103,6 +103,66 @@ def _audit_one_file(
         render_entry(entry, max_content=650)
         for entry in evidence_entries[:260]
     )
+    payload, tokens = _run_claim_audit(
+        filename,
+        text,
+        blackboard,
+        caller,
+        evidence_text,
+        len(evidence_entries),
+    )
+    claims = normalize_claim_audit_items(payload.get("claims", []))
+    fallback_used = False
+    fallback_candidate_count = 0
+    if not claims and _needs_claim_audit_fallback(text):
+        candidates = _claim_candidate_lines(text)
+        fallback_candidate_count = len(candidates)
+        if candidates:
+            fallback_used = True
+            fallback_payload, fallback_tokens = _run_claim_audit(
+                filename,
+                text,
+                blackboard,
+                caller,
+                evidence_text,
+                len(evidence_entries),
+                claim_candidates=candidates,
+            )
+            tokens += fallback_tokens
+            claims = normalize_claim_audit_items(fallback_payload.get("claims", []))
+    return {
+        "filename": filename,
+        "claims": claims,
+        "fallback_used": fallback_used,
+        "fallback_candidate_count": fallback_candidate_count,
+        "evidence_entry_count": len(evidence_entries),
+        "summary": _summarize_claims(claims),
+    }, tokens
+
+
+def _run_claim_audit(
+    filename: str,
+    text: str,
+    blackboard: Blackboard,
+    caller: ModelCaller,
+    evidence_text: str,
+    evidence_entry_count: int,
+    claim_candidates: list[str] | None = None,
+) -> tuple[dict, int]:
+    candidate_block = ""
+    if claim_candidates:
+        candidate_block = (
+            "\nCANDIDATE FINAL-OUTPUT CLAIM LINES:\n"
+            + "\n".join(
+                f"- {line}"
+                for line in claim_candidates[:40]
+            )
+            + "\n\nAudit these candidate lines first. If a candidate line is "
+            "not a factual/source-dependent claim, omit it. Do not return an "
+            "empty list unless none of the candidate lines makes a factual "
+            "claim that depends on the source evidence.\n"
+        )
+
     prompt = f"""You are auditing final deliverable claims for source support.
 
 TASK:
@@ -113,6 +173,8 @@ FILE:
 
 FINAL DELIVERABLE EXCERPT:
 {_deliverable_excerpt(text)}
+
+{candidate_block}
 
 SOURCE-GROUNDED BLACKBOARD EVIDENCE:
 {evidence_text[:120000]}
@@ -156,16 +218,11 @@ Return JSON:
             metadata={
                 "filename": filename,
                 "deliverable_chars": len(text),
-                "evidence_entry_count": len(evidence_entries),
+                "evidence_entry_count": evidence_entry_count,
             },
         ),
     )
-    claims = normalize_claim_audit_items(payload.get("claims", []))
-    return {
-        "filename": filename,
-        "claims": claims,
-        "summary": _summarize_claims(claims),
-    }, tokens
+    return payload, tokens
 
 
 def normalize_claim_audit_items(raw_claims: Any) -> list[dict]:
@@ -347,10 +404,18 @@ def _valid_source_documents(blackboard: Blackboard) -> set[str]:
     names = set()
     for doc in blackboard.documents:
         for raw in (doc.name, doc.id):
-            value = str(raw or "").strip().lower()
-            if value:
-                names.add(value)
+            names.update(_document_name_aliases(raw))
     return names
+
+
+def _document_name_aliases(raw: str | None) -> set[str]:
+    value = str(raw or "").strip().lower()
+    if not value:
+        return set()
+    aliases = {value}
+    if value.endswith(".txt") and len(value) > 4:
+        aliases.add(value[:-4])
+    return aliases
 
 
 def _deliverable_excerpt(text: str, max_chars: int = 140000) -> str:
@@ -366,6 +431,60 @@ def _deliverable_excerpt(text: str, max_chars: int = 140000) -> str:
         + "\n\n[... tail excerpt ...]\n\n"
         + text[-part:]
     )
+
+
+def _needs_claim_audit_fallback(text: str) -> bool:
+    if len(text.strip()) >= 1200:
+        return True
+    return len([line for line in text.splitlines() if line.strip()]) >= 12
+
+
+def _claim_candidate_lines(text: str) -> list[str]:
+    candidates = []
+    seen = set()
+    for line in text.splitlines():
+        cleaned = _clean_candidate_line(line)
+        if not _is_claim_candidate_line(cleaned):
+            continue
+        key = cleaned[:180].lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        candidates.append(cleaned)
+        if len(candidates) >= 80:
+            break
+    return candidates
+
+
+def _clean_candidate_line(line: str) -> str:
+    cleaned = str(line or "").strip()
+    cleaned = re.sub(r"^[#*\-\s\d.():]+", "", cleaned).strip()
+    cleaned = re.sub(r"\s+", " ", cleaned)
+    return cleaned[:600]
+
+
+def _is_claim_candidate_line(line: str) -> bool:
+    if len(line) < 30 or len(line) > 700:
+        return False
+    lower = line.lower()
+    if lower.startswith(("required findings", "required calculations")):
+        return False
+    if lower in {"confirmed facts", "inferred risks", "recommended actions"}:
+        return False
+    has_specific_marker = bool(
+        re.search(
+            r"\b[A-Za-z0-9_.-]+\.(?:py|ts|tsx|md|json|sql|docx|xlsx)\b|"
+            r"\b(?:function|class|method|route|policy|model|schema|config|"
+            r"threshold|confidence|risk|gate|promotion|false positive|"
+            r"false negative|error|audit|source|memory|packet|actor|entity)\b|"
+            r"\b\d+(?:\.\d+)?%?\b|`[^`]+`",
+            line,
+            re.IGNORECASE,
+        )
+    )
+    if not has_specific_marker:
+        return False
+    return bool(re.search(r"[.!?)]$|[`A-Za-z0-9_]$", line))
 
 
 def _summarize_files(files: list[dict]) -> dict:

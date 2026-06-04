@@ -212,3 +212,53 @@ def test_source_claim_audit_excludes_synthetic_cross_cutting_evidence(tmp_path, 
 
     assert "ops_report.md states there are 74 open incidents" in caller.prompts[0]
     assert "fabricated Q3 Incident Report totals" not in caller.prompts[0]
+
+
+def test_source_claim_audit_falls_back_when_large_output_returns_no_claims(tmp_path, monkeypatch):
+    monkeypatch.setenv("SWARM_ENABLE_SOURCE_CLAIM_VERIFICATION", "1")
+    blackboard = Blackboard(
+        task_instruction="Review Special Agent routing.",
+        output_dir=str(tmp_path),
+        documents=[DocumentStatus(id="d1", name="chat-service.ts.txt")],
+        entries=[
+            Entry(
+                id="e1",
+                type="analysis",
+                content="chat-service.ts routes memory_answer through the Special Agent path.",
+                source=EntrySource(
+                    document="chat-service.ts",
+                    evidence="route: memory_answer",
+                ),
+                confidence=0.9,
+            ),
+        ],
+    )
+    caller = FakeCaller([
+        json.dumps({"claims": []}),
+        json.dumps({
+            "claims": [{
+                "claim": "chat-service.ts routes memory_answer through the Special Agent path.",
+                "status": "supported",
+                "supporting_entry_ids": ["e1"],
+                "source_documents": ["chat-service.ts"],
+                "reason": "Entry e1 directly supports the route claim.",
+                "severity": "high",
+            }]
+        }),
+    ])
+    deliverable = "\n".join([
+        "chat-service.ts routes memory_answer through the Special Agent path.",
+        "The routing memo includes source-grounded architecture analysis.",
+    ] * 30)
+
+    _, tokens, report = verify_source_claims(deliverable, blackboard, caller)
+
+    assert tokens == 30
+    assert len(caller.prompts) == 2
+    assert "CANDIDATE FINAL-OUTPUT CLAIM LINES" in caller.prompts[1]
+    assert "chat-service.ts routes memory_answer" in caller.prompts[1]
+    assert report["files"][0]["fallback_used"] is True
+    assert report["files"][0]["fallback_candidate_count"] > 0
+    assert report["files"][0]["evidence_entry_count"] == 1
+    assert report["summary"]["claims_checked"] == 1
+    assert report["summary"]["risky_claims"] == 0
