@@ -22,6 +22,7 @@ SECTION_CHUNK_SIZE = int(os.getenv("SWARM_SYNTHESIS_SECTION_CHUNK_SIZE", "25"))
 SECTION_DRAFT_MAX_TOKENS = int(os.getenv("SWARM_SYNTHESIS_SECTION_MAX_TOKENS", "8192"))
 ASSIGNMENT_BATCH_SIZE = 50
 SECTION_EVIDENCE_CHARS = int(os.getenv("SWARM_SYNTHESIS_SECTION_EVIDENCE_CHARS", "24000"))
+SELECTED_ITEM_SUMMARY_CHARS = int(os.getenv("SWARM_SYNTHESIS_ITEM_SUMMARY_CHARS", "700"))
 
 
 def render_entry(e: Entry, max_content: int = 400) -> str:
@@ -944,7 +945,10 @@ def _format_selected_items(items: list[dict]) -> str:
     parts = []
     for i, item in enumerate(items, 1):
         section = item.get("section", "General")
-        summary = item.get("summary", "")
+        summary = _compact_selected_item_summary(
+            item.get("summary", ""),
+            max_chars=SELECTED_ITEM_SUMMARY_CHARS,
+        )
         entry_id = item.get("entry_id") or item.get("entry_ids", "")
         block = [f"{i}. [{section}] {summary} (ref: {entry_id})"]
         native_details = _format_artifact_commitment_details(item)
@@ -952,6 +956,18 @@ def _format_selected_items(items: list[dict]) -> str:
             block.append(native_details)
         parts.append("\n".join(block))
     return "\n".join(parts)
+
+
+def _compact_selected_item_summary(summary: str, max_chars: int) -> str:
+    text = str(summary or "").strip()
+    if not text:
+        return ""
+    if text.lower().startswith("represent source-backed entry ") and ":" in text:
+        text = text.split(":", 1)[1].strip()
+    text = re.sub(r"\s+", " ", text).strip()
+    if len(text) <= max_chars:
+        return text
+    return text[:max_chars].rstrip() + "..."
 
 
 def _format_artifact_commitment_inline(item: dict) -> str:
@@ -1003,6 +1019,12 @@ def _format_artifact_commitment_details(item: dict) -> str:
         if clean:
             lines.append("   Satisfaction conditions:")
             lines.extend(f"   - {cond}" for cond in clean[:7])
+
+    terms = item.get("verification_terms") or []
+    if isinstance(terms, list):
+        clean_terms = [str(term).strip() for term in terms if str(term).strip()]
+        if clean_terms:
+            lines.append("   Verification terms: " + "; ".join(clean_terms[:8]))
     return "\n".join(lines)
 
 

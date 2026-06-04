@@ -7,6 +7,7 @@ from src.swarm.synthesis import (
     _append_missing_items_for_file,
     _assign_unassigned_items,
     _clean_assembled_deliverable,
+    _compact_selected_item_summary,
     _format_criteria,
     _format_item_pool,
     _format_selected_items,
@@ -754,13 +755,30 @@ def test_artifact_commitment_details_render_for_synthesis_prompt():
                 "Place entry e1 in model.xlsx as a workbook row or table line, not as prose.",
                 "Show the calculation expression and final result in separate workbook cells or columns.",
             ],
+            "verification_terms": ["$1,849,900", "Net equity"],
         }
     ])
 
     assert "Artifact-native contract: target=model.xlsx, native=workbook_row, function=workbook_calculation" in rendered
+    assert "Verification terms: $1,849,900; Net equity" in rendered
     assert "Required source refs: schedule.xlsx / A: $1,849,900" in rendered
     assert "Satisfaction conditions:" in rendered
     assert "workbook row or table line" in rendered
+
+
+def test_selected_item_summary_compacts_artifact_wrapper_and_long_text():
+    summary = (
+        "Represent source-backed entry e1 in memo.docx as memo_statement: "
+        + "Specific sourced conclusion. "
+        + ("Additional explanatory material. " * 80)
+    )
+
+    compact = _compact_selected_item_summary(summary, max_chars=120)
+
+    assert compact.startswith("Specific sourced conclusion.")
+    assert "Represent source-backed entry" not in compact
+    assert len(compact) <= 123
+    assert compact.endswith("...")
 
 
 def test_selected_evidence_prioritizes_selected_entry_over_early_entries():
