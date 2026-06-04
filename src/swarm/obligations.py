@@ -11,6 +11,7 @@ import json
 from .blackboard import Blackboard
 from .models import Entry, ModelCaller
 from .seed import format_task_state_map
+from .verification import extract_verification_targets
 from .worker_dispatch import call_model
 
 
@@ -106,7 +107,10 @@ Return JSON: {{"obligations": [...]}}"""
         obligations = []
 
     # Convert to must_include format for compatibility
-    must_include_items = _derived_calculation_obligations(active)
+    must_include_items = (
+        _derived_calculation_obligations(active)
+        + _debt_sensor_obligations(active)
+    )
     for o in obligations:
         if not isinstance(o, dict):
             continue
@@ -134,7 +138,7 @@ def _render_analytical_entry(e: Entry) -> str:
         if t.startswith((
             "state_conversion", "plan_coverage", "materiality:", "coverage:",
             "missing_work:", "derived_work:", "derived_type:", "debt_subtype:",
-            "lifecycle:",
+            "debt_type:", "severity:", "lifecycle:",
         ))
     ]
     if conv_tags:
@@ -166,3 +170,61 @@ def _derived_calculation_obligations(entries: list[Entry]) -> list[dict]:
             "source": "derived_work",
         })
     return items
+
+
+def _debt_sensor_obligations(entries: list[Entry]) -> list[dict]:
+    items = []
+    for entry in entries:
+        if entry.status != "active" or entry.type == "gap":
+            continue
+        tags = entry.tags or []
+        if "debt_sensor" not in tags:
+            continue
+        debt_type = _tag_value(tags, "debt_type:")
+        debt_subtype = _tag_value(tags, "debt_subtype:")
+        obligation_type = {
+            "relation": "cross_document_link",
+            "source_object": "task_state_field",
+            "severity": "risk_recommendation",
+            "authority": "legal_authority",
+        }.get(debt_type, "task_state_closure")
+        section = {
+            "relation": "Cross-Document Analysis",
+            "source_object": "Source Coverage",
+            "severity": "Risk and Recommendations",
+            "authority": "Source Authority",
+        }.get(debt_type, "Required Findings")
+        verification_terms = _entry_verification_terms(entry)
+        items.append({
+            "entry_id": entry.id,
+            "importance": "critical" if entry.confidence >= 0.85 else "high",
+            "section": section,
+            "summary": entry.content,
+            "obligation_type": obligation_type,
+            "verification_terms": verification_terms,
+            "source": "debt_sensor",
+            "debt_type": debt_type,
+            "debt_subtype": debt_subtype,
+        })
+    return items
+
+
+def _entry_verification_terms(entry: Entry) -> list[str]:
+    terms: list[str] = []
+    for target in extract_verification_targets(entry.content):
+        raw = str(target.get("raw", "")).strip()
+        if raw and raw not in terms:
+            terms.append(raw)
+    if entry.source:
+        for raw in (entry.source.section, entry.source.evidence):
+            value = str(raw or "").strip()
+            if value and len(value) <= 160 and value not in terms:
+                terms.append(value)
+    return terms[:12]
+
+
+def _tag_value(tags: list[str], prefix: str) -> str:
+    for tag in tags:
+        if isinstance(tag, str) and tag.startswith(prefix):
+            return tag[len(prefix):].strip()
+    return ""
