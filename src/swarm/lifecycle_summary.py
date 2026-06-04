@@ -38,7 +38,14 @@ def aggregate_lifecycle_reports(results_dir: str | Path) -> dict:
         debt = _load_json(swarm_dir / "debt_sensors.json")
         if debt:
             task_seen = True
-            _aggregate_debt(task_id, debt, summary["reports"]["debt_sensors"], task_rows)
+            trace = _load_json(swarm_dir / "commitment_survival_trace.json")
+            _aggregate_debt(
+                task_id,
+                debt,
+                trace,
+                summary["reports"]["debt_sensors"],
+                task_rows,
+            )
 
         derived = _load_json(swarm_dir / "derived_work_items.json")
         if derived:
@@ -133,6 +140,7 @@ def _task_id(task_dir: Path, root: Path) -> str:
 def _aggregate_debt(
     task_id: str,
     report: dict,
+    trace: dict,
     target: dict,
     rows: list[dict],
 ) -> None:
@@ -174,6 +182,30 @@ def _aggregate_debt(
         target["coordinator_tasks"] += 1
         target["coordinator_selected"] += _int(coordinator.get("selected_actionable"), 0)
         target["coordinator_deferred"] += _int(coordinator.get("deferred"), 0)
+    trace_by_id = {
+        item.get("debt_sensor_id"): item
+        for item in trace.get("items", [])
+        if isinstance(item, dict) and item.get("commitment_source") == "debt_sensor"
+    }
+    obligated = 0
+    survived = 0
+    lost = 0
+    death_modes: dict[str, int] = {}
+    for item in items:
+        trace_item = trace_by_id.get(item.get("id"), {})
+        if trace_item.get("obligated"):
+            obligated += 1
+        if trace_item.get("found_in_artifact"):
+            survived += 1
+        elif item.get("created_entry_ids"):
+            lost += 1
+        mode = trace_item.get("death_mode")
+        if mode:
+            death_modes[str(mode)] = death_modes.get(str(mode), 0) + 1
+    target["obligated"] += obligated
+    target["artifact_survived"] += survived
+    target["lost"] += lost
+    _merge_counts(target["death_modes"], death_modes)
 
     rows.append(_row(
         task_id,
@@ -181,10 +213,15 @@ def _aggregate_debt(
         selected=selected,
         actionable=actionable,
         entries_created=entries_created,
+        lost=lost,
         unresolved=unresolved,
+        death_modes=death_modes,
         type_counts=type_counts,
         status_counts=status_counts,
-        notes=f"mode={report.get('mode', '')}; gap_entries={gap_entries}",
+        notes=(
+            f"mode={report.get('mode', '')}; gap_entries={gap_entries}; "
+            f"obligated={obligated}; survived={survived}"
+        ),
     ))
 
 
@@ -523,6 +560,10 @@ def _empty_debt_summary() -> dict:
         "coordinator_tasks": 0,
         "coordinator_selected": 0,
         "coordinator_deferred": 0,
+        "obligated": 0,
+        "artifact_survived": 0,
+        "lost": 0,
+        "death_modes": {},
     }
 
 

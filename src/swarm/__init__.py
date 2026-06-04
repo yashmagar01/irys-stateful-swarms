@@ -361,8 +361,9 @@ def run_swarm(task: Task, caller: ModelCaller, *,
         if custody_report.get("items"):
             blackboard.save_snapshot("post_blackboard_maintenance_source_custody")
 
+    debt_sensor_report = None
     if review_caller is not None and debt_sensors_enabled():
-        _, debt_sensor_tokens = run_debt_sensors(
+        debt_sensor_report, debt_sensor_tokens = run_debt_sensors(
             blackboard, seed_plan, review_caller,
         )
         if debt_sensor_tokens:
@@ -426,9 +427,12 @@ def run_swarm(task: Task, caller: ModelCaller, *,
                 must_include.insert(0, commitment)
                 seen.add(key)
 
-    if derived_work_report:
+    if derived_work_report or debt_sensor_report:
         write_pending_survival_trace(
-            blackboard.output_dir, derived_work_report, must_include,
+            blackboard.output_dir,
+            derived_work_report,
+            must_include,
+            debt_sensor_report,
         )
 
     if _should_use_file_scoped_synthesis(deliverables_map):

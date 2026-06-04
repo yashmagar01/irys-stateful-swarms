@@ -72,6 +72,50 @@ def test_pending_trace_file_shape(tmp_path):
     assert data["items"][0]["death_mode"] == "selected_but_not_executed"
 
 
+def test_survival_trace_includes_debt_sensor_entries(tmp_path):
+    debt_report = {
+        "items": [{
+            "id": "ds_001",
+            "type": "severity",
+            "subtype": "risk_without_severity",
+            "status": "severity_executed",
+            "created_entry_ids": ["e17"],
+            "reason": "Severity should be assigned to the missing backup vendor risk.",
+        }]
+    }
+    must_include = [{
+        "entry_id": "e17",
+        "summary": "Missing backup vendor is a high severity continuity risk.",
+    }]
+    swarm_dir = tmp_path / "swarm"
+    swarm_dir.mkdir()
+    (swarm_dir / "artifact_commitments.json").write_text(json.dumps({
+        "items": [{
+            "entry_id": "e17",
+            "target_file": "memo.docx",
+            "native_form": "memo_statement",
+            "verification_terms": ["high severity continuity risk"],
+            "summary": "Missing backup vendor is a high severity continuity risk.",
+            "source": "artifact_commitment",
+        }]
+    }), encoding="utf-8")
+
+    write_pending_survival_trace(str(tmp_path), None, must_include, debt_report)
+    trace = finalize_survival_trace(
+        tmp_path,
+        {"memo.docx": "The missing backup vendor is a high severity continuity risk."},
+    )
+
+    item = trace["items"][0]
+    assert item["commitment_source"] == "debt_sensor"
+    assert item["debt_sensor_id"] == "ds_001"
+    assert item["debt_type"] == "severity"
+    assert item["obligated"] is True
+    assert item["found_in_artifact"] is True
+    assert item["death_mode"] is None
+    assert trace["summary"]["artifact_survived"] == 1
+
+
 def test_artifact_placement_trace_marks_target_file_hit(tmp_path):
     swarm_dir = tmp_path / "swarm"
     swarm_dir.mkdir()

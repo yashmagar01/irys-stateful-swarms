@@ -10,29 +10,62 @@ def write_pending_survival_trace(
     output_dir: str,
     derived_report: dict | None,
     must_include: list[dict],
+    debt_sensor_report: dict | None = None,
 ) -> None:
     """Write a pending trace after obligations/curation select final items."""
-    if not output_dir or not derived_report:
+    if not output_dir:
         return
     items = []
-    for item in derived_report.get("items", []):
-        if not isinstance(item, dict):
-            continue
-        created_ids = item.get("created_entry_ids") or []
-        obligation_ids = _matching_must_include_ids(created_ids, must_include)
-        items.append({
-            "derived_work_id": item.get("id"),
-            "created_entry_ids": created_ids,
-            "obligation_ids": obligation_ids,
-            "obligated": bool(obligation_ids),
-            "curated": bool(obligation_ids),
-            "target_files": item.get("target_deliverables") or [],
-            "found_in_artifact": False,
-            "artifact_locations": [],
-            "death_mode": _pending_death_mode(item, obligation_ids),
-            "expected_values": _expected_values(item),
-            "expected_text": item.get("reason", ""),
-        })
+    if derived_report:
+        for item in derived_report.get("items", []):
+            if not isinstance(item, dict):
+                continue
+            created_ids = item.get("created_entry_ids") or []
+            obligation_ids = _matching_must_include_ids(created_ids, must_include)
+            items.append({
+                "commitment_source": "derived_work",
+                "derived_work_id": item.get("id"),
+                "debt_sensor_id": None,
+                "debt_type": None,
+                "debt_subtype": item.get("subtype"),
+                "status": item.get("status", ""),
+                "created_entry_ids": created_ids,
+                "obligation_ids": obligation_ids,
+                "obligated": bool(obligation_ids),
+                "curated": bool(obligation_ids),
+                "target_files": item.get("target_deliverables") or [],
+                "found_in_artifact": False,
+                "artifact_locations": [],
+                "death_mode": _pending_death_mode(item, obligation_ids),
+                "expected_values": _expected_values(item),
+                "expected_text": item.get("reason", ""),
+            })
+    if debt_sensor_report:
+        for item in debt_sensor_report.get("items", []):
+            if not isinstance(item, dict):
+                continue
+            created_ids = item.get("created_entry_ids") or []
+            obligation_ids = _matching_must_include_ids(created_ids, must_include)
+            items.append({
+                "commitment_source": "debt_sensor",
+                "derived_work_id": None,
+                "debt_sensor_id": item.get("id"),
+                "debt_type": item.get("type"),
+                "debt_subtype": item.get("subtype"),
+                "status": item.get("status", ""),
+                "created_entry_ids": created_ids,
+                "obligation_ids": obligation_ids,
+                "obligated": bool(obligation_ids),
+                "curated": bool(obligation_ids),
+                "target_files": [],
+                "found_in_artifact": False,
+                "artifact_locations": [],
+                "death_mode": _pending_debt_sensor_death_mode(item, obligation_ids),
+                "expected_values": _expected_values(item),
+                "expected_text": item.get("reason", ""),
+            })
+    if not items:
+        return
     trace = {
         "schema_version": 1,
         "items": items,
@@ -50,15 +83,18 @@ def finalize_survival_trace(output_dir: str | Path,
                             artifact_texts: dict[str, str]) -> dict:
     """Finalize survival trace after deliverable files have been written."""
     out_dir = Path(output_dir)
-    finalize_artifact_placement_trace(out_dir, artifact_texts)
+    placement_trace = finalize_artifact_placement_trace(out_dir, artifact_texts)
     pending_path = out_dir / "swarm" / "commitment_survival_trace.pending.json"
     if not pending_path.exists():
         return {}
     trace = json.loads(pending_path.read_text(encoding="utf-8"))
+    placement_locations = _placement_locations_by_entry(placement_trace)
     for item in trace.get("items", []):
         if not isinstance(item, dict):
             continue
         locations = _artifact_locations(item, artifact_texts)
+        if not locations:
+            locations = _placement_locations_for_item(item, placement_locations)
         item["artifact_locations"] = locations
         item["found_in_artifact"] = bool(locations)
         if locations:
@@ -357,6 +393,22 @@ def _pending_death_mode(item: dict, obligation_ids: list[str]) -> str | None:
     return None
 
 
+def _pending_debt_sensor_death_mode(
+    item: dict,
+    obligation_ids: list[str],
+) -> str | None:
+    status = str(item.get("status") or "")
+    if status.endswith("_executed"):
+        if not item.get("created_entry_ids"):
+            return "executed_no_entry"
+        if not obligation_ids:
+            return "not_obligated"
+        return None
+    if status == "execution_failed":
+        return item.get("death_mode") or "executed_no_entry"
+    return "selected_but_not_executed"
+
+
 def _expected_values(item: dict) -> list[str]:
     values = []
     for key in ("expected_result", "result", "expression"):
@@ -376,6 +428,40 @@ def _artifact_locations(item: dict,
             if value_survives_in_text(value, text, context_terms):
                 locations.append({"file": filename, "evidence": value})
                 break
+    return locations
+
+
+def _placement_locations_by_entry(placement_trace: dict) -> dict[str, list[dict]]:
+    by_entry: dict[str, list[dict]] = {}
+    trace_items = (
+        placement_trace.get("items", [])
+        if isinstance(placement_trace, dict)
+        else []
+    )
+    for item in trace_items:
+        if not isinstance(item, dict):
+            continue
+        entry_id = str(item.get("entry_id") or "")
+        if not entry_id:
+            continue
+        locations = item.get("artifact_locations") or []
+        if item.get("found_in_target_file") and isinstance(locations, list):
+            by_entry[entry_id] = [
+                loc for loc in locations
+                if isinstance(loc, dict)
+            ]
+    return by_entry
+
+
+def _placement_locations_for_item(
+    item: dict,
+    placement_locations: dict[str, list[dict]],
+) -> list[dict]:
+    locations: list[dict] = []
+    for entry_id in item.get("created_entry_ids") or []:
+        for location in placement_locations.get(str(entry_id), []):
+            if location not in locations:
+                locations.append(location)
     return locations
 
 

@@ -46,12 +46,22 @@ def test_aggregate_lifecycle_reports_writes_run_summary(tmp_path):
         }]
     }), encoding="utf-8")
     (swarm_dir / "commitment_survival_trace.json").write_text(json.dumps({
-        "items": [{
-            "derived_work_id": "dw_001",
-            "obligated": True,
-            "found_in_artifact": False,
-            "death_mode": "artifact_missing",
-        }]
+        "items": [
+            {
+                "commitment_source": "debt_sensor",
+                "debt_sensor_id": "ds_001",
+                "obligated": True,
+                "found_in_artifact": True,
+                "death_mode": None,
+            },
+            {
+                "commitment_source": "derived_work",
+                "derived_work_id": "dw_001",
+                "obligated": True,
+                "found_in_artifact": False,
+                "death_mode": "artifact_missing",
+            },
+        ]
     }), encoding="utf-8")
     (swarm_dir / "artifact_placement_trace.json").write_text(json.dumps({
         "summary": {
@@ -149,6 +159,9 @@ def test_aggregate_lifecycle_reports_writes_run_summary(tmp_path):
     assert summary["reports"]["debt_sensors"]["unresolved_actionable"] == 1
     assert summary["reports"]["debt_sensors"]["coordinator_selected"] == 1
     assert summary["reports"]["debt_sensors"]["coordinator_deferred"] == 1
+    assert summary["reports"]["debt_sensors"]["obligated"] == 1
+    assert summary["reports"]["debt_sensors"]["artifact_survived"] == 1
+    assert summary["reports"]["debt_sensors"]["lost"] == 0
     assert summary["reports"]["derived_work"]["lost"] == 1
     assert summary["reports"]["derived_work"]["death_modes"]["artifact_missing"] == 1
     assert summary["reports"]["artifact_placement"]["found_in_target_file"] == 1

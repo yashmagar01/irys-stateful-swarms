@@ -434,6 +434,12 @@ def _cmd_summarize_lifecycle(args):
         f"{debt['selected']}/{debt['actionable']}/{debt['unresolved_actionable']}"
     )
     print(
+        "Debt obligated/survived/lost: "
+        f"{debt.get('obligated', 0)}/"
+        f"{debt.get('artifact_survived', 0)}/"
+        f"{debt.get('lost', 0)}"
+    )
+    print(
         "Lens coordinator selected/deferred: "
         f"{debt.get('coordinator_selected', 0)}/"
         f"{debt.get('coordinator_deferred', 0)}"
