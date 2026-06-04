@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
@@ -303,11 +304,12 @@ def _sectioned_synthesis(blackboard: Blackboard, must_include: list[dict],
             continue
         _, chunk_name, section_text, _, _ = result
         if section_text:
+            section_text = _strip_redundant_section_heading(section_text, chunk_name)
             section_drafts.append(f"## {chunk_name}\n\n{section_text}")
 
     # Assemble deterministically. Do not ask the model to reproduce completed
     # sections; that can drop exactly the details sectioning is meant to save.
-    assembled = "\n\n".join(section_drafts)
+    assembled = _clean_assembled_deliverable("\n\n".join(section_drafts))
     return assembled, total_tokens
 
 
@@ -1137,7 +1139,7 @@ CRITICAL INSTRUCTIONS:
     text = payload.get("text", "").strip()
     if not text:
         text = str(payload)
-    return text, tokens
+    return _clean_assembled_deliverable(text), tokens
 
 
 def _sectioned_file_deliverable(
@@ -1220,13 +1222,14 @@ CRITICAL INSTRUCTIONS:
             if not text:
                 continue
             heading = _section_heading_for_file(filename, chunk_name)
+            text = _strip_redundant_section_heading(text, chunk_name)
             section_drafts.append(f"{heading}\n\n{text}")
             _write_sectioned_synthesis_progress(
                 blackboard, len(section_drafts), total_sections,
                 f"completed {filename}: {chunk_name}",
             )
 
-    return "\n\n".join(section_drafts), total_tokens
+    return _clean_assembled_deliverable("\n\n".join(section_drafts)), total_tokens
 
 
 def _section_heading_for_file(filename: str, section_name: str) -> str:
@@ -1236,6 +1239,87 @@ def _section_heading_for_file(filename: str, section_name: str) -> str:
             return f"# {clean}"
         return f"# Sheet: {clean}"
     return f"## {section_name.strip() or 'Section'}"
+
+
+def _strip_redundant_section_heading(text: str, section_name: str) -> str:
+    lines = str(text or "").splitlines()
+    while lines and not lines[0].strip():
+        lines.pop(0)
+    if not lines:
+        return ""
+
+    first = lines[0].strip()
+    section_key = _heading_key(section_name)
+    first_key = _heading_key(first)
+    sheet_key = _heading_key(f"sheet: {section_name}")
+    if first_key in {section_key, sheet_key}:
+        lines.pop(0)
+        while lines and not lines[0].strip():
+            lines.pop(0)
+    return "\n".join(lines).strip()
+
+
+def _clean_assembled_deliverable(text: str) -> str:
+    lines = str(text or "").replace("\r\n", "\n").replace("\r", "\n").splitlines()
+    cleaned: list[str] = []
+    previous_nonblank = ""
+    previous_heading_key = ""
+
+    for raw in lines:
+        line = raw.rstrip()
+        stripped = line.strip()
+        if not stripped:
+            if cleaned and cleaned[-1].strip():
+                cleaned.append("")
+            continue
+
+        current_key = _heading_key(stripped)
+        if _line_is_heading_like(stripped) and current_key == _heading_key(previous_nonblank):
+            continue
+        if previous_heading_key and current_key == previous_heading_key:
+            continue
+
+        cleaned.append(line)
+        previous_nonblank = stripped
+        previous_heading_key = (
+            current_key if _markdown_heading_level(stripped) is not None else ""
+        )
+
+    while cleaned and not cleaned[-1].strip():
+        cleaned.pop()
+    return "\n".join(cleaned).strip()
+
+
+def _heading_key(text: str) -> str:
+    value = str(text or "").strip()
+    value = re.sub(r"^[#*\-\s\d.():]+", "", value)
+    value = re.sub(r"[*_`]+", "", value)
+    value = re.sub(r"\s+", " ", value).strip().lower()
+    return value
+
+
+def _line_is_heading_like(line: str) -> bool:
+    stripped = str(line or "").strip()
+    if not stripped:
+        return False
+    if _markdown_heading_level(stripped) is not None:
+        return True
+    if len(stripped) > 90:
+        return False
+    if "|" in stripped:
+        return False
+    words = re.findall(r"[A-Za-z0-9]+", stripped)
+    if not words:
+        return False
+    lowercase_words = sum(1 for word in words if word[:1].islower())
+    return lowercase_words <= max(1, len(words) // 4)
+
+
+def _markdown_heading_level(line: str) -> int | None:
+    match = re.match(r"^\s*(#{1,6})\s+\S", str(line or ""))
+    if not match:
+        return None
+    return len(match.group(1))
 
 
 def _append_missing_items_for_file(
@@ -1295,7 +1379,7 @@ Write ONLY a supplemental addition for {filename}. Keep it appropriate for this 
             supplement = "# Sheet: Supplemental Required Items\n\n" + supplement
     elif not stripped.startswith("#"):
         supplement = "## Supplemental Required Items\n\n" + supplement
-    return f"{draft.rstrip()}\n\n{supplement}", tokens
+    return _clean_assembled_deliverable(f"{draft.rstrip()}\n\n{supplement}"), tokens
 
 
 def _draft_synthesis(blackboard: Blackboard, must_include: list[dict],

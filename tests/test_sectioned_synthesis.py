@@ -6,6 +6,7 @@ from src.swarm.synthesis import (
     _append_missing_items,
     _append_missing_items_for_file,
     _assign_unassigned_items,
+    _clean_assembled_deliverable,
     _format_criteria,
     _format_item_pool,
     _format_selected_items,
@@ -60,6 +61,35 @@ def test_sectioned_synthesis_preserves_section_drafts_without_final_rewrite():
     assert "DOCUMENT SECTIONS" not in "\n".join(caller.prompts)
     assert "## Alpha\n\nAlpha section SENTINEL_ALPHA" in draft
     assert "## Beta\n\nBeta section SENTINEL_BETA" in draft
+
+
+def test_sectioned_synthesis_strips_redundant_model_section_headings():
+    blackboard = Blackboard(task_instruction="Prepare a memo.")
+    must_include = [{"section": "Required Findings", "summary": "Include finding."}]
+    caller = FakeCaller([
+        "Required Findings\n\nRequired Findings\n\nThe finding survives.",
+    ])
+
+    draft, _ = _sectioned_synthesis(blackboard, must_include, [], caller)
+
+    assert draft == "## Required Findings\n\nThe finding survives."
+
+
+def test_clean_assembled_deliverable_preserves_tables_but_dedupes_headings():
+    text = (
+        "## Routing Mechanism Overview\n\n"
+        "Routing Mechanism Overview\n\n"
+        "Routing Mechanism Overview\n"
+        "| Field | Value |\n"
+        "| Field | Value |\n\n"
+        "Detailed finding remains.\n"
+    )
+
+    cleaned = _clean_assembled_deliverable(text)
+
+    assert cleaned.count("Routing Mechanism Overview") == 1
+    assert cleaned.count("| Field | Value |") == 2
+    assert "Detailed finding remains." in cleaned
 
 
 def test_sectioned_synthesis_chunks_large_single_section_and_scopes_evidence():
