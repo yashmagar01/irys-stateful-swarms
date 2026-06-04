@@ -194,6 +194,7 @@ def execute_calculation_work_items(
     updated_items = [dict(item) for item in items]
     total_tokens = 0
     created_entries: list[Entry] = []
+    reserved_ids = _entry_ids(blackboard)
     for item in updated_items:
         if not item.get("execution_eligible"):
             continue
@@ -202,7 +203,9 @@ def execute_calculation_work_items(
 
         payload, tokens = _run_calculation_worker(blackboard, caller, item)
         total_tokens += tokens
-        entry = _entry_from_calculation_payload(blackboard, item, payload)
+        entry = _entry_from_calculation_payload(
+            blackboard, item, payload, reserved_ids,
+        )
         if entry is None:
             item["status"] = "execution_failed"
             item["death_mode"] = "executed_no_entry"
@@ -292,6 +295,7 @@ def _entry_from_calculation_payload(
     blackboard: Blackboard,
     item: dict,
     payload: dict,
+    reserved_ids: set[str] | None = None,
 ) -> Entry | None:
     if not isinstance(payload, dict) or payload.get("status") != "computed":
         return None
@@ -316,7 +320,7 @@ def _entry_from_calculation_payload(
         content = f"{content}\nFormula: {expression} = {result}"
 
     return Entry(
-        id=gen_entry_id(),
+        id=_unique_entry_id(blackboard, reserved_ids),
         type="calculation",
         content=content,
         source=source,
@@ -455,6 +459,24 @@ def _parents_have_source(parent_ids: list[str], entry_by_id: dict[str, Entry]) -
         if entry and entry.source and entry.source.document:
             return True
     return False
+
+
+def _entry_ids(blackboard: Blackboard) -> set[str]:
+    return {entry.id for entry in blackboard.entries if entry.id}
+
+
+def _unique_entry_id(
+    blackboard: Blackboard,
+    reserved_ids: set[str] | None = None,
+) -> str:
+    if reserved_ids is None:
+        reserved_ids = _entry_ids(blackboard)
+    for _ in range(10_000):
+        entry_id = gen_entry_id()
+        if entry_id not in reserved_ids and blackboard.find_entry(entry_id) is None:
+            reserved_ids.add(entry_id)
+            return entry_id
+    raise RuntimeError("could not allocate unique derived work entry id")
 
 
 def _as_str_list(value: Any) -> list[str]:

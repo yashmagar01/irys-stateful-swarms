@@ -10,7 +10,7 @@ from src.swarm.derived_work import (
     run_calculation_debt_detection,
     summarize_derived_work_items,
 )
-from src.swarm.models import Entry, EntrySource, ModelResult
+from src.swarm.models import Entry, EntrySource, ModelResult, reset_id_counters
 
 
 class FakeCaller:
@@ -351,6 +351,149 @@ def test_execute_calculation_work_items_creates_verified_entry(tmp_path, monkeyp
     assert created.verified is True
     assert "derived_work:dw_001" in created.tags
     assert created.supports_entries == ["e1", "e2", "e3"]
+
+
+def test_execute_calculation_work_items_does_not_reuse_existing_ids(tmp_path, monkeypatch):
+    reset_id_counters()
+    monkeypatch.setenv("SWARM_ENABLE_CALCULATION_DEBT", "1")
+    blackboard = Blackboard(
+        task_instruction="Compute fee exposure.",
+        output_dir=str(tmp_path),
+        entries=[
+            Entry(
+                id="e1",
+                type="observation",
+                content="Commitment amount is $1,000,000.",
+                source=EntrySource(document="lpa.pdf", section="Fees", evidence="$1,000,000"),
+            ),
+            Entry(
+                id="e2",
+                type="observation",
+                content="Fee rate is 2%.",
+                source=EntrySource(document="lpa.pdf", section="Fees", evidence="2%"),
+            ),
+            Entry(
+                id="e3",
+                type="gap",
+                content="Need to calculate annual fee exposure.",
+                tags=["missing_work:calculate"],
+            ),
+        ],
+    )
+    items = normalize_derived_work_items([{
+        "subtype": "missing_operation",
+        "reason": "Compute annual fee from commitment and rate.",
+        "parent_entry_ids": ["e1", "e2", "e3"],
+        "required_inputs": [
+            {"label": "commitment", "value": "$1,000,000", "entry_id": "e1"},
+            {"label": "rate", "value": "2%", "entry_id": "e2"},
+        ],
+        "expression": "1000000 * 0.02",
+    }], blackboard.entries)
+    caller = FakeCaller(json.dumps({
+        "status": "computed",
+        "content": "The annual fee is $20,000 based on $1,000,000 times 2%.",
+        "expression": "1000000 * 2%",
+        "result": "$20,000",
+        "source_document": "lpa.pdf",
+        "source_section": "Fees",
+        "evidence": "$1,000,000 * 2%",
+        "confidence": 0.86,
+    }))
+
+    report, _tokens = execute_calculation_work_items(blackboard, caller, items)
+
+    assert report["items"][0]["created_entry_ids"] == ["e4"]
+    assert blackboard.find_entry("e1").content == "Commitment amount is $1,000,000."
+
+
+def test_execute_multiple_calculation_work_items_have_unique_ids(tmp_path, monkeypatch):
+    reset_id_counters()
+    monkeypatch.setenv("SWARM_ENABLE_CALCULATION_DEBT", "1")
+    blackboard = Blackboard(
+        task_instruction="Compute fee exposures.",
+        output_dir=str(tmp_path),
+        entries=[
+            Entry(
+                id="e1",
+                type="observation",
+                content="Base amount is $1,000,000.",
+                source=EntrySource(document="lpa.pdf", section="Fees", evidence="$1,000,000"),
+            ),
+            Entry(
+                id="e2",
+                type="observation",
+                content="Fee rate is 2%.",
+                source=EntrySource(document="lpa.pdf", section="Fees", evidence="2%"),
+            ),
+            Entry(
+                id="e3",
+                type="observation",
+                content="Reserve rate is 5%.",
+                source=EntrySource(document="lpa.pdf", section="Reserve", evidence="5%"),
+            ),
+            Entry(
+                id="e4",
+                type="gap",
+                content="Need to calculate fee and reserve.",
+                tags=["missing_work:calculate"],
+            ),
+        ],
+    )
+    items = normalize_derived_work_items([
+        {
+            "subtype": "missing_operation",
+            "reason": "Compute fee.",
+            "parent_entry_ids": ["e1", "e2", "e4"],
+            "required_inputs": [
+                {"label": "base", "value": "$1,000,000", "entry_id": "e1"},
+                {"label": "fee_rate", "value": "2%", "entry_id": "e2"},
+            ],
+            "expression": "1000000 * 0.02",
+        },
+        {
+            "subtype": "missing_operation",
+            "reason": "Compute reserve.",
+            "parent_entry_ids": ["e1", "e3", "e4"],
+            "required_inputs": [
+                {"label": "base", "value": "$1,000,000", "entry_id": "e1"},
+                {"label": "reserve_rate", "value": "5%", "entry_id": "e3"},
+            ],
+            "expression": "1000000 * 0.05",
+        },
+    ], blackboard.entries)
+    caller = SequenceCaller([
+        json.dumps({
+            "status": "computed",
+            "content": "The fee amount is $20,000.",
+            "expression": "1000000 * 2%",
+            "result": "$20,000",
+            "source_document": "lpa.pdf",
+            "source_section": "Fees",
+            "evidence": "$1,000,000 * 2%",
+            "confidence": 0.86,
+        }),
+        json.dumps({
+            "status": "computed",
+            "content": "The reserve amount is $50,000.",
+            "expression": "1000000 * 5%",
+            "result": "$50,000",
+            "source_document": "lpa.pdf",
+            "source_section": "Reserve",
+            "evidence": "$1,000,000 * 5%",
+            "confidence": 0.86,
+        }),
+    ])
+
+    report, _tokens = execute_calculation_work_items(blackboard, caller, items)
+
+    created_ids = [
+        item["created_entry_ids"][0]
+        for item in report["items"]
+        if item.get("created_entry_ids")
+    ]
+    assert created_ids == ["e5", "e6"]
+    assert len(set(created_ids)) == 2
 
 
 def test_run_calculation_debt_detection_executes_when_not_detect_only(tmp_path, monkeypatch):
