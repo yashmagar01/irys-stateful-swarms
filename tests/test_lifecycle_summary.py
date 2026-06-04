@@ -66,6 +66,20 @@ def test_aggregate_lifecycle_reports_writes_run_summary(tmp_path):
             "native_forms": {"workbook_row": 1, "drafting_clause": 1},
         }
     }), encoding="utf-8")
+    (swarm_dir / "source_custody.json").write_text(json.dumps({
+        "audits": [
+            {"stage": "post_state_repair"},
+            {"stage": "post_debt_sensors"},
+        ],
+        "summary": {
+            "entries_quarantined": 3,
+            "invalid_documents": {"Incident Report Q3": 2},
+            "reasons": {
+                "invalid_source_document": 2,
+                "depends_on_invalid_source_state": 1,
+            },
+        },
+    }), encoding="utf-8")
     (swarm_dir / "prompt_audit.json").write_text(json.dumps({
         "summary": {
             "records": 3,
@@ -111,6 +125,9 @@ def test_aggregate_lifecycle_reports_writes_run_summary(tmp_path):
     assert summary["reports"]["artifact_placement"]["untraceable"] == 0
     assert summary["reports"]["artifact_placement"]["native_form_satisfied"] == 1
     assert summary["reports"]["artifact_placement"]["lost"] == 1
+    assert summary["reports"]["source_custody"]["audits"] == 2
+    assert summary["reports"]["source_custody"]["entries_quarantined"] == 3
+    assert summary["reports"]["source_custody"]["invalid_documents"] == {"Incident Report Q3": 2}
     assert summary["reports"]["prompt_audit"]["forbidden_text_hits"] == 1
     assert summary["reports"]["blackboard_maintenance"]["entries_created"] == 2
     assert summary["reports"]["source_claim_verification"]["claims_checked"] == 4

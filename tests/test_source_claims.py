@@ -1,7 +1,7 @@
 import json
 
 from src.swarm.blackboard import Blackboard
-from src.swarm.models import Entry, EntrySource, ModelResult
+from src.swarm.models import DocumentStatus, Entry, EntrySource, ModelResult
 from src.swarm.source_claims import (
     normalize_claim_audit_items,
     verify_source_claims,
@@ -181,3 +181,34 @@ def test_source_claim_quarantine_removes_unsupported_workbook_rows(tmp_path, mon
     assert "SOURCE-CHECK QUARANTINED" in body
     assert "Total incident count per ops_report.md | 74" in body
     assert "Quarantined unsupported artifact lines: 1" in caveats
+
+
+def test_source_claim_audit_excludes_synthetic_cross_cutting_evidence(tmp_path, monkeypatch):
+    monkeypatch.setenv("SWARM_ENABLE_SOURCE_CLAIM_VERIFICATION", "1")
+    blackboard = Blackboard(
+        task_instruction="Prepare memo.",
+        output_dir=str(tmp_path),
+        documents=[DocumentStatus(id="d1", name="ops_report.md")],
+        entries=[
+            Entry(
+                id="e1",
+                type="observation",
+                content="ops_report.md states there are 74 open incidents.",
+                source=EntrySource(document="ops_report.md", evidence="74 open incidents"),
+                confidence=0.9,
+            ),
+            Entry(
+                id="e2",
+                type="analysis",
+                content="cross_cutting fabricated Q3 Incident Report totals.",
+                source=EntrySource(document="cross_cutting", evidence=""),
+                confidence=0.9,
+            ),
+        ],
+    )
+    caller = FakeCaller([json.dumps({"claims": []})])
+
+    verify_source_claims("There are 74 open incidents.", blackboard, caller)
+
+    assert "ops_report.md states there are 74 open incidents" in caller.prompts[0]
+    assert "fabricated Q3 Incident Report totals" not in caller.prompts[0]

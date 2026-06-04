@@ -33,6 +33,7 @@ from .source_claims import (
     source_claim_verification_enabled,
     verify_source_claims,
 )
+from .source_custody import enforce_source_custody
 from .state_conversion import (
     coverage_report_to_entries, run_plan_coverage_review,
     run_plan_coverage_state_repair, run_state_conversion_review,
@@ -345,13 +346,20 @@ def run_swarm(task: Task, caller: ModelCaller, *,
 
         blackboard.save_snapshot("post_state_repair")
 
+    custody_report = enforce_source_custody(blackboard, "post_state_repair")
+    if custody_report.get("items"):
+        blackboard.save_snapshot("post_source_custody")
+
     if review_caller is not None and blackboard_maintenance_enabled():
         _, maintenance_tokens = run_blackboard_maintenance(
             blackboard, seed_plan, review_caller,
         )
         if maintenance_tokens:
             blackboard.add_tokens_from_last_call(maintenance_tokens)
+        custody_report = enforce_source_custody(blackboard, "post_blackboard_maintenance")
         blackboard.save_snapshot("post_blackboard_maintenance")
+        if custody_report.get("items"):
+            blackboard.save_snapshot("post_blackboard_maintenance_source_custody")
 
     if review_caller is not None and debt_sensors_enabled():
         _, debt_sensor_tokens = run_debt_sensors(
@@ -359,7 +367,10 @@ def run_swarm(task: Task, caller: ModelCaller, *,
         )
         if debt_sensor_tokens:
             blackboard.add_tokens_from_last_call(debt_sensor_tokens)
+        custody_report = enforce_source_custody(blackboard, "post_debt_sensors")
         blackboard.save_snapshot("post_debt_sensors")
+        if custody_report.get("items"):
+            blackboard.save_snapshot("post_debt_sensors_source_custody")
 
     derived_work_report = None
     if review_caller is not None and calculation_debt_enabled():
@@ -368,7 +379,10 @@ def run_swarm(task: Task, caller: ModelCaller, *,
         )
         if calc_debt_tokens:
             blackboard.add_tokens_from_last_call(calc_debt_tokens)
+        custody_report = enforce_source_custody(blackboard, "post_calculation_debt_detection")
         blackboard.save_snapshot("post_calculation_debt_detection")
+        if custody_report.get("items"):
+            blackboard.save_snapshot("post_calculation_debt_source_custody")
 
     # Phase 7b: build synthesis obligations
     obligations = []

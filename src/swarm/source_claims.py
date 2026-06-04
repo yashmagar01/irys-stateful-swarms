@@ -9,6 +9,7 @@ from typing import Any
 from .blackboard import Blackboard
 from .models import Entry, ModelCaller
 from .prompt_audit import PromptAuditContext
+from .source_custody import source_document_is_valid
 from .synthesis import render_entry
 from .worker_dispatch import begin_call_model_usage, call_model, end_call_model_usage
 
@@ -93,7 +94,11 @@ def _audit_one_file(
     blackboard: Blackboard,
     caller: ModelCaller,
 ) -> tuple[dict, int]:
-    evidence_entries = _source_grounded_entries(blackboard.entries)
+    valid_documents = _valid_source_documents(blackboard)
+    evidence_entries = _source_grounded_entries(
+        blackboard.entries,
+        valid_documents,
+    )
     evidence_text = "\n".join(
         render_entry(entry, max_content=650)
         for entry in evidence_entries[:260]
@@ -294,12 +299,24 @@ def _claim_word_markers(text: str) -> list[str]:
     return markers
 
 
-def _source_grounded_entries(entries: list[Entry]) -> list[Entry]:
+def _source_grounded_entries(
+    entries: list[Entry],
+    valid_documents: set[str] | None = None,
+) -> list[Entry]:
+    valid_documents = valid_documents or set()
     grounded = [
         entry for entry in entries
         if entry.status == "active"
         and entry.source
         and entry.source.document
+        and (
+            not valid_documents
+            or source_document_is_valid(
+                entry.source.document,
+                valid_documents,
+                allow_synthetic=False,
+            )
+        )
         and (
             (entry.source.evidence and len(entry.source.evidence.strip()) >= 8)
             or (entry.content and len(entry.content.strip()) >= 20)
@@ -324,6 +341,16 @@ def _source_grounded_entries(entries: list[Entry]) -> list[Entry]:
         )
 
     return sorted(grounded, key=score, reverse=True)
+
+
+def _valid_source_documents(blackboard: Blackboard) -> set[str]:
+    names = set()
+    for doc in blackboard.documents:
+        for raw in (doc.name, doc.id):
+            value = str(raw or "").strip().lower()
+            if value:
+                names.add(value)
+    return names
 
 
 def _deliverable_excerpt(text: str, max_chars: int = 140000) -> str:

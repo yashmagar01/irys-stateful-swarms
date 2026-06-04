@@ -23,6 +23,7 @@ def aggregate_lifecycle_reports(results_dir: str | Path) -> dict:
             "debt_sensors": _empty_debt_summary(),
             "derived_work": _empty_derived_summary(),
             "artifact_placement": _empty_artifact_summary(),
+            "source_custody": _empty_source_custody_summary(),
             "prompt_audit": _empty_prompt_audit_summary(),
             "blackboard_maintenance": _empty_maintenance_summary(),
             "source_claim_verification": _empty_source_claim_summary(),
@@ -58,6 +59,16 @@ def aggregate_lifecycle_reports(results_dir: str | Path) -> dict:
                 task_id,
                 placement,
                 summary["reports"]["artifact_placement"],
+                task_rows,
+            )
+
+        custody = _load_json(swarm_dir / "source_custody.json")
+        if custody:
+            task_seen = True
+            _aggregate_source_custody(
+                task_id,
+                custody,
+                summary["reports"]["source_custody"],
                 task_rows,
             )
 
@@ -334,6 +345,39 @@ def _aggregate_prompt_audit(
     ))
 
 
+def _aggregate_source_custody(
+    task_id: str,
+    report: dict,
+    target: dict,
+    rows: list[dict],
+) -> None:
+    report_summary = report.get("summary", {})
+    if not isinstance(report_summary, dict):
+        report_summary = {}
+    audits = report.get("audits", [])
+    if not isinstance(audits, list):
+        audits = []
+    quarantined = _int(report_summary.get("entries_quarantined"), 0)
+    invalid_documents = _dict_ints(report_summary.get("invalid_documents"))
+    reasons = _dict_ints(report_summary.get("reasons"))
+
+    target["tasks"] += 1
+    target["audits"] += len(audits)
+    target["entries_quarantined"] += quarantined
+    _merge_counts(target["invalid_documents"], invalid_documents)
+    _merge_counts(target["reasons"], reasons)
+
+    rows.append(_row(
+        task_id,
+        "source_custody",
+        selected=quarantined,
+        unresolved=quarantined,
+        type_counts=invalid_documents,
+        status_counts=reasons,
+        notes=f"audits={len(audits)}",
+    ))
+
+
 def _aggregate_maintenance(
     task_id: str,
     report: dict,
@@ -451,6 +495,16 @@ def _empty_artifact_summary() -> dict:
         "lost": 0,
         "death_modes": {},
         "native_forms": {},
+    }
+
+
+def _empty_source_custody_summary() -> dict:
+    return {
+        "tasks": 0,
+        "audits": 0,
+        "entries_quarantined": 0,
+        "invalid_documents": {},
+        "reasons": {},
     }
 
 

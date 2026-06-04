@@ -424,6 +424,7 @@ def _cmd_summarize_lifecycle(args):
     reports = summary["reports"]
     debt = reports["debt_sensors"]
     placement = reports["artifact_placement"]
+    custody = reports.get("source_custody", {})
     audit = reports["prompt_audit"]
     maintenance = reports["blackboard_maintenance"]
     source_claims = reports.get("source_claim_verification", {})
@@ -443,6 +444,11 @@ def _cmd_summarize_lifecycle(args):
         f"{placement['found_in_target_file']}/"
         f"{placement.get('native_form_satisfied', 0)}/"
         f"{placement['lost']}"
+    )
+    print(
+        "Source custody audits/quarantined: "
+        f"{custody.get('audits', 0)}/"
+        f"{custody.get('entries_quarantined', 0)}"
     )
     print(
         "Maintenance consolidations/entries: "
