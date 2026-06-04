@@ -107,7 +107,7 @@ def _cmd_run(args):
 
 
 def _cmd_batch(args):
-    manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
+    manifest = json.loads(args.manifest.read_text(encoding="utf-8-sig"))
     bench_root = Path(manifest.get("bench_root", ""))
     tasks = manifest.get("tasks", [])
 
@@ -133,7 +133,7 @@ def _cmd_batch(args):
         out_status = args.output / task_id.replace("/", os.sep) / "status.json"
         if out_status.exists():
             try:
-                s = json.loads(out_status.read_text(encoding="utf-8"))
+                s = json.loads(out_status.read_text(encoding="utf-8-sig"))
                 if s.get("status") == "completed":
                     skipped += 1
                     continue
@@ -271,7 +271,7 @@ def _cmd_score(args):
     for root, dirs, files in os.walk(args.results_dir):
         root_path = Path(root)
         if "output" in dirs and (root_path / "status.json").exists():
-            status = json.loads((root_path / "status.json").read_text(encoding="utf-8"))
+            status = json.loads((root_path / "status.json").read_text(encoding="utf-8-sig"))
             if status.get("status") == "completed":
                 scores_path = root_path / "scores.json"
                 if not scores_path.exists():
@@ -285,7 +285,7 @@ def _cmd_score(args):
         if not task_json_path.exists():
             return task_id, None, f"no task.json"
 
-        task_data = json.loads(task_json_path.read_text(encoding="utf-8"))
+        task_data = json.loads(task_json_path.read_text(encoding="utf-8-sig"))
         criteria = task_data.get("criteria", [])
         task_desc = task_data.get("title", task_id)
 
@@ -342,7 +342,7 @@ def _cmd_analyze(args):
     for root, dirs, files in os.walk(results_dir):
         if "scores.json" in files:
             scores = json.loads(
-                (Path(root) / "scores.json").read_text(encoding="utf-8")
+                (Path(root) / "scores.json").read_text(encoding="utf-8-sig")
             )
             all_scores.append(scores)
 
@@ -468,7 +468,7 @@ def _cmd_summarize_lifecycle(args):
 
 def _extract_task_id(run_dir: Path, results_root: Path) -> str:
     try:
-        status = json.loads((run_dir / "status.json").read_text(encoding="utf-8"))
+        status = json.loads((run_dir / "status.json").read_text(encoding="utf-8-sig"))
         if "task_id" in status:
             return status["task_id"]
     except Exception:

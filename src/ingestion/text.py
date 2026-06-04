@@ -6,7 +6,7 @@ from pathlib import Path
 
 def read_text(path: Path) -> tuple[str, dict]:
     try:
-        text = path.read_text(encoding="utf-8")
+        text = path.read_text(encoding="utf-8-sig")
     except UnicodeDecodeError:
         try:
             text = path.read_text(encoding="latin-1")

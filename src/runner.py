@@ -45,7 +45,7 @@ def run_single_task(task_dir: Path, output_dir: Path, *,
     if not task_json_path.exists():
         return RunResult(task_id=task_id, error="task.json not found")
 
-    task_data = json.loads(task_json_path.read_text(encoding="utf-8"))
+    task_data = json.loads(task_json_path.read_text(encoding="utf-8-sig"))
     deliverables_for_task = _deliverables_for_task(task_data)
 
     instruction = task_data.get("instructions", "")

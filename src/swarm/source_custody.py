@@ -144,10 +144,18 @@ def _valid_document_names(blackboard: Blackboard) -> set[str]:
     names = set()
     for doc in blackboard.documents:
         for raw in (doc.name, doc.id):
-            normalized = _normalize_doc_name(raw)
-            if normalized:
-                names.add(normalized)
+            names.update(_document_name_aliases(raw))
     return names
+
+
+def _document_name_aliases(raw: str | None) -> set[str]:
+    normalized = _normalize_doc_name(raw)
+    if not normalized:
+        return set()
+    aliases = {normalized}
+    if normalized.endswith(".txt") and len(normalized) > 4:
+        aliases.add(normalized[:-4])
+    return aliases
 
 
 def _invalid_source_documents(entry: Entry, valid_docs: set[str]) -> list[str]:

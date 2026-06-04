@@ -41,6 +41,30 @@ def test_source_custody_quarantines_fake_source_documents(tmp_path):
     assert written["summary"]["invalid_documents"] == {"Incident Report Q3": 1}
 
 
+def test_source_custody_accepts_text_wrapped_source_file_alias(tmp_path):
+    blackboard = Blackboard(
+        task_instruction="Review TypeScript routing.",
+        output_dir=str(tmp_path),
+        documents=[DocumentStatus(id="d1", name="chat-service.ts.txt")],
+        entries=[
+            Entry(
+                id="e1",
+                type="analysis",
+                content="chat-service.ts routes Special Agent memory answers.",
+                source=EntrySource(
+                    document="chat-service.ts",
+                    evidence="memory_answer",
+                ),
+            ),
+        ],
+    )
+
+    report = enforce_source_custody(blackboard, "test")
+
+    assert blackboard.entries[0].status == "active"
+    assert report["summary"]["entries_quarantined"] == 0
+
+
 def test_source_custody_cascades_to_dependent_cross_cutting_entries(tmp_path):
     blackboard = Blackboard(
         task_instruction="Analyze incidents.",
