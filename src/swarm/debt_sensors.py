@@ -641,6 +641,7 @@ def debt_sensor_items_to_gap_entries(
     blackboard: Blackboard,
 ) -> list[Entry]:
     entries = []
+    reserved_ids = _entry_ids(blackboard)
     for item in items:
         if item.get("status") != "actionable_gap":
             continue
@@ -659,7 +660,7 @@ def debt_sensor_items_to_gap_entries(
             "authority": "cite_authority",
         }.get(item.get("type"), "analyze")
         entries.append(Entry(
-            id=gen_entry_id(),
+            id=_unique_entry_id(blackboard, reserved_ids),
             type="gap",
             content=f"{item['type']} debt: {item['reason']}",
             created_by=WorkerRecord("debt_sensor", item.get("subtype", ""), blackboard.iteration),
@@ -684,6 +685,7 @@ def execute_authority_debt_items(
     updated_items = [dict(item) for item in items]
     total_tokens = 0
     entries: list[Entry] = []
+    reserved_ids = _entry_ids(blackboard)
     limit = int(os.getenv("SWARM_AUTHORITY_DEBT_EXECUTION_LIMIT", "8"))
     executed = 0
 
@@ -700,7 +702,9 @@ def execute_authority_debt_items(
 
         payload, tokens = _run_authority_worker(blackboard, caller, item, parents)
         total_tokens += tokens
-        entry = _entry_from_authority_payload(blackboard, item, payload, parents)
+        entry = _entry_from_authority_payload(
+            blackboard, item, payload, parents, reserved_ids,
+        )
         if entry is None:
             item["status"] = "execution_failed"
             item["execution_error"] = "worker_returned_no_valid_authority_analysis"
@@ -778,6 +782,7 @@ def _entry_from_authority_payload(
     item: dict,
     payload: dict,
     parents: list[Entry],
+    reserved_ids: set[str] | None = None,
 ) -> Entry | None:
     if not isinstance(payload, dict) or payload.get("status") != "computed":
         return None
@@ -792,7 +797,7 @@ def _entry_from_authority_payload(
         content = f"{content}\nAuthority/evidence anchor: {citation}"
     parent_ids = [entry.id for entry in parents]
     return Entry(
-        id=gen_entry_id(),
+        id=_unique_entry_id(blackboard, reserved_ids),
         type="analysis",
         content=content,
         source=_combined_source(parents, str(payload.get("evidence", "")).strip()),
@@ -824,6 +829,7 @@ def execute_severity_debt_items(
     updated_items = [dict(item) for item in items]
     total_tokens = 0
     entries: list[Entry] = []
+    reserved_ids = _entry_ids(blackboard)
     limit = int(os.getenv("SWARM_SEVERITY_DEBT_EXECUTION_LIMIT", "8"))
     executed = 0
 
@@ -840,7 +846,9 @@ def execute_severity_debt_items(
 
         payload, tokens = _run_severity_worker(blackboard, caller, item, parents)
         total_tokens += tokens
-        entry = _entry_from_severity_payload(blackboard, item, payload, parents)
+        entry = _entry_from_severity_payload(
+            blackboard, item, payload, parents, reserved_ids,
+        )
         if entry is None:
             item["status"] = "execution_failed"
             item["execution_error"] = "worker_returned_no_valid_severity_analysis"
@@ -918,6 +926,7 @@ def _entry_from_severity_payload(
     item: dict,
     payload: dict,
     parents: list[Entry],
+    reserved_ids: set[str] | None = None,
 ) -> Entry | None:
     if not isinstance(payload, dict) or payload.get("status") != "computed":
         return None
@@ -930,7 +939,7 @@ def _entry_from_severity_payload(
         content = f"{content}\nRecommended action: {recommendation.strip()}"
     parent_ids = [entry.id for entry in parents]
     return Entry(
-        id=gen_entry_id(),
+        id=_unique_entry_id(blackboard, reserved_ids),
         type="analysis",
         content=content,
         source=_combined_source(parents, str(payload.get("evidence", "")).strip()),
@@ -963,6 +972,7 @@ def execute_source_object_debt_items(
     updated_items = [dict(item) for item in items]
     total_tokens = 0
     entries: list[Entry] = []
+    reserved_ids = _entry_ids(blackboard)
     limit = int(os.getenv("SWARM_SOURCE_OBJECT_DEBT_EXECUTION_LIMIT", "6"))
     executed = 0
 
@@ -984,7 +994,9 @@ def execute_source_object_debt_items(
 
         payload, tokens = _run_source_object_worker(blackboard, caller, item, excerpts)
         total_tokens += tokens
-        created = _entries_from_source_object_payload(blackboard, item, payload)
+        created = _entries_from_source_object_payload(
+            blackboard, item, payload, reserved_ids,
+        )
         if not created:
             item["status"] = "execution_failed"
             item["execution_error"] = "worker_returned_no_valid_findings"
@@ -1066,6 +1078,7 @@ def _entries_from_source_object_payload(
     blackboard: Blackboard,
     item: dict,
     payload: dict,
+    reserved_ids: set[str] | None = None,
 ) -> list[Entry]:
     if not isinstance(payload, dict) or payload.get("status") != "found":
         return []
@@ -1084,7 +1097,7 @@ def _entries_from_source_object_payload(
         if entry_type not in {"observation", "analysis", "calculation"}:
             entry_type = "observation"
         entries.append(Entry(
-            id=gen_entry_id(),
+            id=_unique_entry_id(blackboard, reserved_ids),
             type=entry_type,
             content=content,
             source=EntrySource(
@@ -1121,6 +1134,7 @@ def execute_relation_debt_items(
     updated_items = [dict(item) for item in items]
     total_tokens = 0
     entries: list[Entry] = []
+    reserved_ids = _entry_ids(blackboard)
     limit = int(os.getenv("SWARM_RELATION_DEBT_EXECUTION_LIMIT", "8"))
     executed = 0
 
@@ -1137,7 +1151,9 @@ def execute_relation_debt_items(
 
         payload, tokens = _run_relation_worker(blackboard, caller, item, parents)
         total_tokens += tokens
-        entry = _entry_from_relation_payload(blackboard, item, payload, parents)
+        entry = _entry_from_relation_payload(
+            blackboard, item, payload, parents, reserved_ids,
+        )
         if entry is None:
             item["status"] = "execution_failed"
             item["execution_error"] = "worker_returned_no_valid_relation_analysis"
@@ -1214,6 +1230,7 @@ def _entry_from_relation_payload(
     item: dict,
     payload: dict,
     parents: list[Entry],
+    reserved_ids: set[str] | None = None,
 ) -> Entry | None:
     if not isinstance(payload, dict) or payload.get("status") != "computed":
         return None
@@ -1225,7 +1242,7 @@ def _entry_from_relation_payload(
         payload.get("relation_type", "")
     ).strip()
     return Entry(
-        id=gen_entry_id(),
+        id=_unique_entry_id(blackboard, reserved_ids),
         type="analysis",
         content=content,
         source=_combined_source(parents, str(payload.get("evidence", "")).strip()),
@@ -1380,6 +1397,24 @@ def _target_documents(blackboard: Blackboard, item: dict):
         elif name_l in parent_docs:
             matches.append(doc)
     return matches[: int(os.getenv("SWARM_SOURCE_OBJECT_TARGET_DOC_LIMIT", "3"))]
+
+
+def _entry_ids(blackboard: Blackboard) -> set[str]:
+    return {entry.id for entry in blackboard.entries if entry.id}
+
+
+def _unique_entry_id(
+    blackboard: Blackboard,
+    reserved_ids: set[str] | None = None,
+) -> str:
+    if reserved_ids is None:
+        reserved_ids = _entry_ids(blackboard)
+    for _ in range(10_000):
+        entry_id = gen_entry_id()
+        if entry_id not in reserved_ids and blackboard.find_entry(entry_id) is None:
+            reserved_ids.add(entry_id)
+            return entry_id
+    raise RuntimeError("could not allocate unique debt sensor entry id")
 
 
 def _source_object_excerpts(documents) -> list[dict]:

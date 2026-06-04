@@ -11,7 +11,13 @@ from src.swarm.debt_sensors import (
     normalize_debt_sensor_items,
     run_debt_sensors,
 )
-from src.swarm.models import DocumentStatus, Entry, EntrySource, ModelResult
+from src.swarm.models import (
+    DocumentStatus,
+    Entry,
+    EntrySource,
+    ModelResult,
+    reset_id_counters,
+)
 from src.swarm.section_index import build_section_index
 
 
@@ -70,6 +76,27 @@ def test_debt_sensor_items_materialize_gap_entries():
     assert entries[0].type == "gap"
     assert "missing_work:compare" in entries[0].tags
     assert entries[0].supports_entries == ["e1", "e2"]
+
+
+def test_debt_sensor_gap_entries_do_not_reuse_existing_ids():
+    reset_id_counters()
+    blackboard = Blackboard(
+        task_instruction="Compare documents.",
+        entries=[Entry(id="e1", type="analysis", content="Existing entry.")],
+    )
+    items = normalize_debt_sensor_items([{
+        "type": "severity",
+        "subtype": "risk_without_severity",
+        "reason": "Assign severity to the documented continuity risk.",
+        "parent_entry_ids": ["e1"],
+        "confidence": 0.9,
+    }])
+
+    entries = debt_sensor_items_to_gap_entries(items, blackboard)
+
+    assert len(entries) == 1
+    assert entries[0].id == "e2"
+    assert entries[0].id != "e1"
 
 
 def test_coordinate_debt_sensor_items_defers_unselected_actionable_items(tmp_path, monkeypatch):
@@ -207,6 +234,48 @@ def test_execute_relation_debt_items_creates_analysis_entry(tmp_path, monkeypatc
     assert "debt_type:relation" in entry.tags
     assert "lifecycle:transformed" in entry.tags
     assert entry.source.document == "agreement.docx; amendment.docx"
+
+
+def test_execute_relation_debt_items_do_not_reuse_existing_ids(tmp_path, monkeypatch):
+    reset_id_counters()
+    monkeypatch.setenv("SWARM_RELATION_DEBT_EXECUTE", "1")
+    blackboard = Blackboard(
+        task_instruction="Compare payment terms.",
+        output_dir=str(tmp_path),
+        entries=[
+            Entry(
+                id="e1",
+                type="analysis",
+                content="Agreement says payment is due June 1.",
+                source=EntrySource(document="agreement.docx", section="1", evidence="June 1"),
+            ),
+            Entry(
+                id="e2",
+                type="analysis",
+                content="Amendment says payment is due July 1.",
+                source=EntrySource(document="amendment.docx", section="2", evidence="July 1"),
+            ),
+        ],
+    )
+    items = normalize_debt_sensor_items([{
+        "type": "relation",
+        "subtype": "date_alignment",
+        "reason": "Compare the June 1 and July 1 payment dates.",
+        "parent_entry_ids": ["e1", "e2"],
+        "confidence": 0.9,
+    }])
+    caller = SequenceCaller([json.dumps({
+        "status": "computed",
+        "content": "The amendment changes the payment deadline from June 1 to July 1.",
+        "relation_type": "date_alignment",
+        "evidence": "agreement June 1; amendment July 1",
+        "confidence": 0.88,
+    })])
+
+    report, _tokens = execute_relation_debt_items(blackboard, caller, items)
+
+    assert report["entries"][0].id == "e3"
+    assert {entry.id for entry in blackboard.entries} == {"e1", "e2"}
 
 
 def test_execute_relation_debt_requires_two_source_documents():
@@ -470,6 +539,61 @@ def test_execute_source_object_debt_items_rereads_target_document(tmp_path, monk
     assert report["entries"][0].source.document == "schedule.md"
     assert "SOURCE EXCERPTS" in caller.prompts[0]
     assert "Row 2: Beta LLC owes $20." in caller.prompts[0]
+
+
+def test_source_object_debt_entries_are_unique_within_payload(tmp_path, monkeypatch):
+    reset_id_counters()
+    monkeypatch.setenv("SWARM_SOURCE_OBJECT_DEBT_EXECUTE", "1")
+    text = "# Schedule A\nRow 1: Alpha LLC owes $10.\nRow 2: Beta LLC owes $20."
+    blackboard = Blackboard(
+        task_instruction="Extract all schedule rows.",
+        output_dir=str(tmp_path),
+        entries=[Entry(id="e1", type="analysis", content="Existing entry.")],
+        documents=[
+            DocumentStatus(
+                id="d1",
+                name="schedule.md",
+                headings=["Schedule A"],
+                sections_unread=["Schedule A"],
+                section_index=build_section_index(text),
+                text=text,
+            )
+        ],
+    )
+    items = normalize_debt_sensor_items([{
+        "type": "source_object",
+        "subtype": "missing_population",
+        "reason": "Need all rows from Schedule A.",
+        "target_documents": ["schedule.md"],
+        "confidence": 0.86,
+    }])
+    caller = SequenceCaller([json.dumps({
+        "status": "found",
+        "findings": [
+            {
+                "type": "observation",
+                "content": "Schedule A row 1 states Alpha LLC owes $10.",
+                "source_document": "schedule.md",
+                "source_section": "Schedule A",
+                "evidence": "Row 1: Alpha LLC owes $10.",
+                "confidence": 0.92,
+            },
+            {
+                "type": "observation",
+                "content": "Schedule A row 2 states Beta LLC owes $20.",
+                "source_document": "schedule.md",
+                "source_section": "Schedule A",
+                "evidence": "Row 2: Beta LLC owes $20.",
+                "confidence": 0.92,
+            },
+        ],
+    })])
+
+    report, _tokens = execute_source_object_debt_items(blackboard, caller, items)
+
+    assert [entry.id for entry in report["entries"]] == ["e2", "e3"]
+    assert len({entry.id for entry in report["entries"]}) == 2
+    assert all(entry.id != "e1" for entry in report["entries"])
 
 
 def test_execute_source_object_debt_items_requires_source_text():
