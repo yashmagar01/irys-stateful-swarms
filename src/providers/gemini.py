@@ -81,7 +81,21 @@ class GeminiCaller:
                 raise RuntimeError(f"Gemini call timed out after {attempt + 1} attempts: {e}") from e
             except Exception as e:
                 msg = str(e).lower()
-                if any(k in msg for k in ("rate", "429", "503", "502", "500", "quota", "resource")):
+                if any(
+                    k in msg
+                    for k in (
+                        "rate",
+                        "429",
+                        "504",
+                        "503",
+                        "502",
+                        "500",
+                        "quota",
+                        "resource",
+                        "deadline",
+                        "timeout",
+                    )
+                ):
                     wait = min(60, 5 * (2 ** attempt))
                     time.sleep(wait)
                     last_err = e
