@@ -1,0 +1,12 @@
+{
+  "title": "Datadog Strategic Priority Analysis (2020-2026)",
+  "instructions": "Analyze how Datadog's strategic priorities have shifted over the last 5-7 years based on these annual 10-K filings. Specifically address: (1) How has the company's product strategy evolved — what new product areas have they entered and which have they emphasized or de-emphasized? (2) How has their go-to-market strategy changed — shifts in customer segments, pricing, land-and-expand dynamics, or geographic focus? (3) What risks has the company highlighted as most significant, and how have those risk disclosures changed over time? (4) How has their competitive positioning narrative evolved — who do they see as competitors and how do they differentiate? (5) What does the financial trajectory (revenue growth, margins, R&D spend as % of revenue) reveal about where management is investing for the future? Produce a comprehensive investment memo analyzing these strategic shifts with specific evidence from the filings.",
+  "work_type": "analyze",
+  "deliverables": [
+    {
+      "type": "memo",
+      "file_name": "datadog-strategy-memo.md",
+      "description": "Investment memo analyzing Datadog's strategic priority shifts over 2020-2026"
+    }
+  ]
+}

@@ -303,6 +303,7 @@ This is what makes stateful swarms fundamentally different from stateless approa
 | [`extract-transaction-entity-details/`](examples/extract-transaction-entity-details/) | Sanctions | 80/85 | Near-miss: entities found, specifics missed |
 | [`extract-lien-and-debt-information/`](examples/extract-lien-and-debt-information/) | Banking/UCC | 54/59 | Near-miss: facts extracted, cross-references missed |
 | [`compare-merger-remedies/`](examples/compare-merger-remedies/) | Antitrust | 56/61 | Near-miss: complex multi-jurisdiction comparison |
+| [`datadog-strategic-analysis/`](examples/datadog-strategic-analysis/) | Finance/SEC | N/A | Domain-agnostic proof: 7 10-K filings, 12,657-word investment memo ([comparison](examples/datadog-strategic-analysis/COMPARISON.md)) |
 
 Browse any task's `swarm/blackboard_iter_*.json` files to trace the full reasoning evolution. The complete outputs for all 1,251 tasks are available in the [GitHub Releases](../../releases).
 
@@ -375,6 +376,8 @@ A production stateful swarm combines coordination (irys-stateful-swarms) with im
 ## Beyond legal: the stateful swarm paradigm is domain-agnostic
 
 irys-stateful-swarms was validated on the Harvey LAB benchmark, but the underlying paradigm — task decomposition, persistent blackboard state-building, multi-agent coordination with typed provenance — is not legal-specific. Any domain where professionals build understanding over time through repeated analysis of complex documents is a domain where stateful swarms outperform stateless approaches: financial due diligence, regulatory compliance, medical research synthesis, insurance underwriting, patent analysis, investigative journalism.
+
+**We've already proven this.** With zero code changes, we pointed irys-stateful-swarms at 7 Datadog 10-K annual filings (FY2019–FY2025) and asked for a strategic priority analysis. The system produced a 12,657-word investment memo — tracing product strategy evolution, go-to-market transformation, competitive positioning shifts, financial trajectory, and risk factor changes across 7 years of SEC filings. The same blackboard architecture, the same model routing, the same swarm coordination. We ran an equivalent task through Claude Code (Opus) simultaneously — it failed with context window thrashing after 7 minutes, unable to hold the filings in memory. The full comparison is in [`examples/datadog-strategic-analysis/COMPARISON.md`](examples/datadog-strategic-analysis/COMPARISON.md).
 
 We're actively adapting the system to run across multiple benchmarks spanning different fields of knowledge work. The swarm framework is being generalized with benchmark adapters so we can evaluate against diverse task types and domains.
 
