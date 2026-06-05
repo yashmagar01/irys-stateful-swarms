@@ -31,7 +31,7 @@ On a per-task cost basis, irys-stateful-swarms is roughly **39x cheaper** than t
 
 ### It's the architecture, not the model
 
-Harvey's published LAB results include per-model breakdowns. Gemini models — the same model family irys-stateful-swarms uses — scored **0% strict all-pass** in Harvey's evaluation. The same models that produce zero successful tasks when used in a conventional single-pass pipeline achieve **17.75% strict all-pass** when coordinated through a stateful swarm.
+Harvey's published LAB results include per-model breakdowns across multiple agentic systems. Gemini models — the same model family irys-stateful-swarms uses — scored **0% strict all-pass** across Harvey's agentic evaluations. The same models that produce zero successful tasks in other agentic architectures achieve **17.75% strict all-pass** when coordinated through a stateful swarm.
 
 This is the point we want to make by open-sourcing with cheap models as the default: **the performance comes from the architecture, not from model intelligence.** Swarm coordination, structured state-building, typed provenance tracking, signal-driven gap identification, and multi-iteration convergence — these are engineering contributions that make inexpensive models perform far beyond their individual capability. You don't need a $15/M-token frontier model to do professional document analysis. You need a system that knows how to build and maintain analytical state.
 

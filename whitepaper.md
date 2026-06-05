@@ -168,7 +168,7 @@ The system is strongest on generative tasks (drafting, analysis) where partial s
 
 These results deserve scrutiny because of the models that produced them. The system defaults to **Gemini 3.1 Flash Lite** ($0.25/M input tokens) for extraction workers and **Gemini 3.5 Flash** ($1.50/M input tokens) for planning, analysis, and synthesis. These are among the cheapest models available from any provider.
 
-Harvey's published LAB results include per-model breakdowns showing that Gemini models — the same model family used here — achieved **0% strict all-pass** when used in a conventional single-pass pipeline. The same models that produce zero successful tasks individually achieve 17.75% strict all-pass when coordinated through a stateful swarm.
+Harvey's published LAB results include per-model breakdowns across multiple agentic systems. Gemini models — the same model family used here — achieved **0% strict all-pass** across Harvey's agentic evaluations. The same models that produce zero successful tasks in other agentic architectures achieve 17.75% strict all-pass when coordinated through a stateful swarm.
 
 This gap between individual model capability and coordinated system performance is the central empirical finding of this work. It demonstrates that the performance comes from the architecture — swarm coordination, structured state-building, typed provenance tracking, signal-driven gap identification, and multi-iteration convergence — not from model intelligence. Expensive frontier models are not required. The engineering of how models are coordinated and how their outputs are structured, accumulated, and reconciled matters more than the capability of any individual model.
 
