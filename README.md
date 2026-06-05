@@ -432,6 +432,55 @@ python -m src.cli run-manifest <manifest.json> --output-dir results/
 python -m src.cli score <results_dir> --bench-root /path/to/harvey-labs
 ```
 
+## Contributing
+
+Contributions welcome! Areas of interest:
+- New worker strategies (extraction patterns, cross-document reasoning, gap detection)
+- Alternative blackboard schemas and entry types
+- Benchmark adapters for non-legal domains
+- Performance optimizations (token efficiency, parallelism, model routing)
+- New document format support
+- Visualization and debugging tools for blackboard evolution
+
+The point of open sourcing is to push the boundaries of what stateful swarms can do. Don't be scared to explore unconventional ideas.
+
+### Open Research Questions
+
+These are the hard problems we're actively working on. If you make progress on any of them, we want to hear about it.
+
+1. **Cross-document entity resolution without LLM calls.** The blackboard contains near-duplicate entities ("Zenith Petrochem" vs "Zenith Petrochemical") that workers extract but don't reconcile. Can deterministic string similarity, edit distance, or lightweight embedding comparisons close this gap without burning tokens?
+
+2. **Optimal convergence detection.** The supervisor currently runs a fixed number of iterations with a gap-based convergence check. Is there a better signal for "the blackboard has stabilized" — information-theoretic, graph-structural, or confidence-distribution-based?
+
+3. **Blackboard compression for synthesis.** The synthesis phase receives thousands of entries but context windows are finite. What's the best strategy for selecting, ranking, or clustering entries to maximize information density in the synthesis prompt without losing critical details?
+
+4. **Multi-benchmark generalization.** We've proven domain transfer on SEC filings. What breaks when you run the system on medical research papers, patent filings, or insurance underwriting documents? Where does the architecture need domain-specific adaptation vs. where does it generalize cleanly?
+
+5. **Stateful follow-up cost measurement.** The 1,000x multi-turn cost reduction is a theoretical projection. Can someone design an experiment that measures actual token savings across a sequence of related queries on the same document set, comparing stateful (blackboard persists) vs. stateless (rebuild from scratch)?
+
+### Monthly Bounty Program ($2,000/month)
+
+[Iqidis](https://iqidis.ai) sponsors a monthly bounty pool for the top 10 contributors:
+
+| Rank | Bounty |
+|------|--------|
+| 1st  | $500   |
+| 2nd  | $350   |
+| 3rd  | $275   |
+| 4th  | $200   |
+| 5th  | $175   |
+| 6th  | $150   |
+| 7th  | $125   |
+| 8th  | $100   |
+| 9th  | $75    |
+| 10th | $50    |
+
+**Additional perks:**
+- All Top 10 contributors listed in this README
+- Active contributors offered interviews at [Iqidis](https://iqidis.ai) and access to our network of **1.5M+ members** including engineers, managers, and builders from Google, Nvidia, OpenAI, Anthropic, Meta AI, and other top AI organizations
+
+Bounties given out monthly on the 15th.
+
 ## Sources
 
 - Harvey LAB repository: <https://github.com/harveyai/harvey-labs>
