@@ -456,7 +456,6 @@ These are the hard problems we're actively working on. If you make progress on a
 
 4. **Multi-benchmark generalization.** We've proven domain transfer on SEC filings. What breaks when you run the system on medical research papers, patent filings, or insurance underwriting documents? Where does the architecture need domain-specific adaptation vs. where does it generalize cleanly?
 
-5. **Stateful follow-up cost measurement.** The 1,000x multi-turn cost reduction is a theoretical projection. Can someone design an experiment that measures actual token savings across a sequence of related queries on the same document set, comparing stateful (blackboard persists) vs. stateless (rebuild from scratch)?
 
 ### Monthly Bounty Program ($2,000/month)
 
