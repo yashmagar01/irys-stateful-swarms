@@ -13,7 +13,7 @@ from .runner import RunResult, run_single_task
 
 
 def main():
-    parser = argparse.ArgumentParser(description="ant-irys: swarm document analysis")
+    parser = argparse.ArgumentParser(description="irys-stateful-swarms: stateful swarm document analysis")
     sub = parser.add_subparsers(dest="command")
 
     # Single task

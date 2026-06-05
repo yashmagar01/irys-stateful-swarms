@@ -1,5 +1,5 @@
 [project]
-name = "ant-irys"
+name = "irys-stateful-swarms"
 version = "0.1.0"
 description = "Swarm-based document analysis system for legal benchmarks."
 requires-python = ">=3.12,<3.14"
@@ -21,4 +21,4 @@ dependencies = [
 ]
 
 [project.scripts]
-ant-irys = "src.cli:main"
+irys-stateful-swarms = "src.cli:main"

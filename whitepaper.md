@@ -9,7 +9,7 @@
 
 We present a swarm-based architecture for long-context document analysis that coordinates multiple AI agents through a shared, evolving blackboard. Unlike monolithic single-prompt approaches, the system decomposes tasks into planning, extraction, analysis, and synthesis phases — each producing structured, source-grounded state that can be inspected, debugged, and extended. We evaluate on the full 1,251-task Harvey Legal Agent Benchmark (LAB), achieving 83.74% pooled criteria pass rate and 17.75% strict all-pass at $1.30 per task. We argue that the primary value of swarm coordination is not raw performance but three properties that monolithic systems cannot provide: full auditability of the reasoning process, predictable cost scaling, and the foundation for persistent cross-session learning that reduces marginal cost over time. We open-source the complete system, all benchmark outputs, and five annotated reasoning traces under the MIT license.
 
-**Repository:** https://github.com/dl1683/ant-irys
+**Repository:** https://github.com/dl1683/irys-stateful-swarms
 
 ---
 
@@ -356,7 +356,7 @@ The complete system is open-source under the MIT license — use it however you 
 We believe that stateful multi-agent coordination represents an important direction for professional AI systems. We invite collaborators interested in extending this work to additional benchmarks, new problem domains, or production deployment.
 
 **Contact:** devansh@iqidis.ai
-**Repository:** https://github.com/dl1683/ant-irys
+**Repository:** https://github.com/dl1683/irys-stateful-swarms
 **License:** MIT — use however you want, including commercially.
 
 ---
