@@ -33,7 +33,9 @@ On a per-task cost basis, irys-stateful-swarms is roughly **39x cheaper** than t
 
 These results were achieved under the hardest possible condition: **zero prior state.** Every task starts from an empty blackboard — no document memory, no entity knowledge, no accumulated understanding. The $1.30/task cost includes re-discovering everything from scratch every single time.
 
-In a stateful deployment, the extraction cost (which dominates at ~70% of total spend) is paid once per document set. Subsequent queries skip extraction entirely and proceed directly to analysis and synthesis from cached state. Conservative projections: **60-80% marginal cost reduction** per additional query on the same documents. The first analysis costs $1.30. The fifth costs a fraction of that.
+In a stateful deployment, the extraction cost (which dominates at ~70% of total spend) is paid once per document set. Subsequent queries skip extraction entirely and proceed directly to analysis and synthesis from cached state.
+
+[Irys](https://www.irys.ai) takes this further. By combining stateful swarm coordination with hierarchical embeddings, persistent knowledge graphs, entity linking, and typed provenance tracking, Irys reduces the cost of multi-turn inference by up to **1,000x** compared to stateless re-computation. The system doesn't spend tokens constantly re-reading documents, re-extracting entities, or re-deriving analyses it has already performed. Provenance tracking allows Irys to deterministically isolate exactly which state needs updating when new information arrives — rather than re-processing everything, the system targets only the affected subgraph. Combined with deterministic algorithms for entity resolution, obligation tracking, and conflict detection, this means the vast majority of follow-up work never touches an LLM at all.
 
 This is the economic case for stateful swarms: the cost of AI-assisted analysis shifts from "pay full price for every question" to "invest in understanding once, then query cheaply forever."
 
