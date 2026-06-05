@@ -27,7 +27,7 @@ The complete outputs from the full benchmark run are available as downloadable a
 
 Harvey's published LAB results use a private holdout set that mirrors the public benchmark distribution. Harvey reported that its strongest published private-holdout all-pass result reached `10.4%`, with earlier initial results at `7.1%` all-pass at about `$50.90/task`. We ran on the public benchmark because we don't have access to the private holdout — we'd welcome the opportunity to run irys-stateful-swarms on the private set for a direct comparison.
 
-On a per-task cost basis, irys-stateful-swarms is roughly **39x cheaper** than that `$50.90/task` figure. This is a cost comparison only; the evaluation sets differ. And this is the *stateless* cost — every task starting from zero. With persistent state enabled, subsequent queries on the same documents would cost a fraction of even this.
+On a per-task cost basis, irys-stateful-swarms is roughly **39x cheaper** than that `$50.90/task` figure. And this is the *stateless* cost — every task starting from zero. With persistent state enabled, subsequent queries on the same documents would cost a fraction of even this.
 
 ### The stateful advantage
 
