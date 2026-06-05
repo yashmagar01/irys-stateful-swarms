@@ -295,21 +295,35 @@ A persistent swarm would retain its blackboard state across sessions. The practi
 
 **Background maintenance.** A persistent system can perform background reconciliation: checking whether new documents contradict existing state, updating entity relationships as new information arrives, and flagging stale entries that may need re-extraction.
 
-### 6.4 Cost Projections
+### 6.4 Deterministic Operations on Typed State
 
-The cost structure of the current system is dominated by extraction. With persistent state, subsequent queries on the same document set would skip extraction entirely and proceed directly to analysis and synthesis from cached state.
+A critical property of the blackboard is that much of the analytical work performed on persistent state does not require model invocations at all. The typed, provenance-tracked entry structure enables deterministic algorithms that operate directly on the state graph:
 
-Conservative estimates based on the observed cost breakdown suggest that for matters with 5+ queries against the same document set, persistent state would reduce marginal cost by 60-80% per additional query. The first analysis would cost roughly $1.30. The fifth analysis of the same documents would cost a fraction of that — the extraction has already been done.
+**Confidence propagation.** When a new entry supports or contradicts an existing entry, confidence scores update deterministically based on the relationship type, source diversity, and corroboration count. No model call is needed — the provenance metadata carries enough structure for arithmetic updates.
 
-This changes the economic model of AI-assisted document analysis from "pay full price for every question" to "invest in understanding a document set once, then query cheaply forever." For practices that work on recurring document types (credit agreements, compliance filings, standard contracts), the amortized cost per insight drops dramatically over time.
+**Contradiction detection.** When entries with conflicting content are added, the system automatically creates contradiction entries, opens critical-priority signals, penalizes confidence on both sides, and propagates the penalty to downstream entries that depend on the conflicted ones. This entire cascade is deterministic.
 
-### 6.5 Learning Through State, Not Weights
+**Supersession tracking.** When new information supersedes an older entry, the superseded entry is marked inactive and any signals it had addressed are reopened for re-evaluation. The system maintains a complete version history without model involvement.
+
+**Entity resolution and obligation tracking.** Cross-referencing entities across entries, tracking which obligations have been satisfied, and identifying gaps in coverage are all operations on typed structured data. These are graph traversals and set operations, not natural language tasks.
+
+The implication for cost is significant: in a stateful deployment, the majority of follow-up work — querying existing state, resolving entities, checking obligation coverage, detecting conflicts with new information — never touches an LLM. Only genuinely new cognitive work (reading a new document, performing novel cross-document analysis, synthesizing a new deliverable) requires model calls.
+
+### 6.5 Cost Projections
+
+The cost structure of the open-source benchmark system is dominated by extraction — lightweight worker calls constituting ~70% of total model spend. With persistent state, subsequent queries on the same document set skip extraction entirely and proceed directly to analysis and synthesis from cached state.
+
+[Irys](https://www.irys.ai), our production platform, takes this further. By combining stateful swarm coordination with hierarchical embeddings, persistent knowledge graphs, entity linking, and the deterministic state operations described above, Irys reduces the cost of multi-turn inference by up to **1,000x** compared to stateless re-computation. The system doesn't spend tokens constantly re-reading documents, re-extracting entities, or re-deriving analyses it has already performed. Typed provenance tracking allows the system to deterministically isolate exactly which state needs updating when new information arrives — rather than re-processing everything, it targets only the affected subgraph. Combined with deterministic algorithms for entity resolution, obligation tracking, and conflict detection, the vast majority of follow-up work never touches an LLM at all.
+
+For practices that work on recurring document types (credit agreements, compliance filings, standard contracts), the amortized cost per insight drops by orders of magnitude over time. This changes the economic model of AI-assisted document analysis from "pay full price for every question" to "invest in understanding a document set once, then query cheaply forever."
+
+### 6.6 Learning Through State, Not Weights
 
 It is important to distinguish persistent state from fine-tuning. The model weights remain unchanged. The system becomes more effective over time not because it has been retrained but because it has accumulated more structured context. This preserves the auditability property: every piece of accumulated knowledge is traceable to the specific document and extraction iteration that produced it.
 
 This also preserves model flexibility. When a better model becomes available, the system can swap it in without retraining — the persistent state is model-independent. The blackboard entries are structured data, not model-specific representations. A blackboard produced by one model can be queried, analyzed, and extended by a different model.
 
-### 6.6 Evaluation Isolation
+### 6.7 Evaluation Isolation
 
 Persistent state creates a tension with benchmark evaluation. If the system retains knowledge from previous benchmark tasks, its performance on subsequent tasks is no longer a clean measurement of its capability. This is why we deliberately strip all persistence for benchmark runs.
 

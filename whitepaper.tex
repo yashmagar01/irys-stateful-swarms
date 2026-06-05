@@ -332,11 +332,27 @@ In a production deployment, the system operates within the context of ongoing ma
 
 A persistent swarm would retain its blackboard state across sessions. The 2,400 entries produced during the credit agreement analysis would persist. When a follow-up question arrives, the system would query existing state rather than re-reading the entire document set. When a new amendment arrives, the system would reconcile it against the existing entity graph and flag changes.
 
+\subsection{Deterministic Operations on Typed State}
+
+A critical property of the blackboard is that much of the analytical work performed on persistent state does not require model invocations at all. The typed, provenance-tracked entry structure enables deterministic algorithms that operate directly on the state graph:
+
+\textbf{Confidence propagation.} When a new entry supports or contradicts an existing entry, confidence scores update deterministically based on the relationship type, source diversity, and corroboration count. No model call is needed — the provenance metadata carries enough structure for arithmetic updates.
+
+\textbf{Contradiction detection.} When entries with conflicting content are added, the system automatically creates contradiction entries, opens critical-priority signals, penalizes confidence on both sides, and propagates the penalty to downstream entries that depend on the conflicted ones. This entire cascade is deterministic.
+
+\textbf{Supersession tracking.} When new information supersedes an older entry, the superseded entry is marked inactive and any signals it had addressed are reopened for re-evaluation. The system maintains a complete version history without model involvement.
+
+\textbf{Entity resolution and obligation tracking.} Cross-referencing entities across entries, tracking which obligations have been satisfied, and identifying gaps in coverage are all operations on typed structured data — graph traversals and set operations, not natural language tasks.
+
+The implication for cost is significant: in a stateful deployment, the majority of follow-up work — querying existing state, resolving entities, checking obligation coverage, detecting conflicts with new information — never touches an LLM. Only genuinely new cognitive work (reading a new document, performing novel cross-document analysis, synthesizing a new deliverable) requires model calls.
+
 \subsection{Cost Implications}
 
-The cost structure of the current system is dominated by extraction — lightweight worker calls that constitute the majority of model invocations. With persistent state, subsequent queries on the same document set would skip extraction entirely and proceed directly to analysis and synthesis from cached state.
+The cost structure of the open-source benchmark system is dominated by extraction — lightweight worker calls constituting roughly 70\% of total model spend. With persistent state, subsequent queries on the same document set skip extraction entirely and proceed directly to analysis and synthesis from cached state.
 
-Conservative estimates suggest that for matters with 5+ queries against the same document set, persistent state would reduce marginal cost by 60--80\% per additional query. The first analysis costs roughly \$1.30; the fifth analysis of the same documents would cost a fraction of that.
+\href{https://www.irys.ai}{Irys}, our production platform, takes this further. By combining stateful swarm coordination with hierarchical embeddings, persistent knowledge graphs, entity linking, and the deterministic state operations described above, Irys reduces the cost of multi-turn inference by up to \textbf{1,000x} compared to stateless re-computation. The system does not spend tokens constantly re-reading documents, re-extracting entities, or re-deriving analyses it has already performed. Typed provenance tracking allows the system to deterministically isolate exactly which state needs updating when new information arrives — rather than re-processing everything, it targets only the affected subgraph. Combined with deterministic algorithms for entity resolution, obligation tracking, and conflict detection, the vast majority of follow-up work never touches an LLM at all.
+
+For practices that work on recurring document types (credit agreements, compliance filings, standard contracts), the amortized cost per insight drops by orders of magnitude over time. This changes the economic model of AI-assisted document analysis from ``pay full price for every question'' to ``invest in understanding a document set once, then query cheaply forever.''
 
 \subsection{Learning Across Sessions}
 
