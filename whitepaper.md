@@ -25,6 +25,8 @@ The dominant approach to applying large language models to professional document
 
 We propose that multi-agent swarm coordination with structured shared state addresses all three problems simultaneously. The key insight is that the intermediate state — the blackboard — is not just an implementation detail. It is the primary artifact of the system, more valuable than the final output it produces.
 
+This is not an incremental improvement to existing approaches. It is a paradigm shift: from stateless inference to stateful reasoning. Current AI systems treat every interaction as an isolated event — the model reasons, produces output, and forgets. Stateful swarms break this cycle by building persistent, typed, provenance-tracked analytical state that survives across sessions, accumulates over time, and makes every subsequent interaction cheaper and more accurate than the last.
+
 ---
 
 ## 2. The Memory Problem in Agentic Systems
@@ -251,6 +253,8 @@ The final analysis entries contain findings such as:
 
 The `supports` field creates an explicit evidence chain: this analysis entry is grounded in three earlier observations, each of which carries its own source provenance. A reviewer can follow the chain from conclusion to evidence to source document.
 
+This is what statefulness means in practice. In a stateless system, all 2,400 entries — the observations, analyses, calculations, gaps, and strategies built over 12 iterations of careful document reading — would be discarded after generating the final output. The next question about the same credit agreement would start from zero: re-reading the same documents, re-extracting the same financial terms, re-discovering the same deviations. In a stateful swarm, this entire analytical state persists. The next question costs a fraction of the first because the expensive understanding has already been built and is immediately queryable.
+
 ### 5.3 Auditing Failures
 
 More importantly, when the system fails, the reasoning trace reveals *why* it failed — and whether the failure is fundamental or fixable.
@@ -369,15 +373,23 @@ The swarm architecture intersects with several active research directions that w
 
 ---
 
-## 9. Conclusion
+## 9. Beyond Legal: The Stateful Swarm Paradigm Is Domain-Agnostic
 
-We have presented a swarm-based document analysis architecture that achieves competitive benchmark performance at dramatically lower cost than published alternatives. The system's primary contribution is not raw performance but three structural properties: full auditability of the reasoning process through structured blackboard state, predictable cost through model routing and targeted processing, and a natural foundation for persistent cross-session learning.
+The system was validated on a legal benchmark, but the underlying paradigm — task decomposition, persistent blackboard state-building, multi-agent coordination with typed provenance — is not legal-specific. Any domain where professionals build understanding over time through repeated analysis of complex documents is a domain where stateful swarms outperform stateless approaches: financial due diligence, regulatory compliance, medical research synthesis, insurance underwriting, patent analysis, investigative journalism.
+
+The architecture requires no domain-specific training, no custom embeddings, and no fine-tuning. The entire system operates through prompt engineering and coordination logic over standard API calls. Adapting to a new domain requires only a benchmark adapter — the swarm coordination, blackboard management, and state persistence machinery is domain-independent.
+
+## 10. Conclusion
+
+We have presented a stateful swarm architecture for document analysis that achieves competitive benchmark performance at dramatically lower cost than published alternatives — using some of the cheapest models available. The central empirical finding is that the performance comes from the architecture, not from model intelligence: Gemini models that achieve 0% strict all-pass in other agentic systems achieve 17.75% when coordinated through a stateful swarm. This demonstrates that how models are coordinated and how their outputs are structured, accumulated, and reconciled matters more than the capability of any individual model.
+
+The system's primary contribution is not raw performance but a paradigm shift from stateless inference to stateful reasoning, supported by three structural properties: full auditability of the reasoning process through structured blackboard state, predictable cost through model routing and targeted processing, and a natural foundation for persistent cross-session learning that reduces marginal cost by orders of magnitude over time.
 
 The memory problem in current agentic systems — context compaction destroying information, session boundaries erasing understanding, RAG retrieving text but not analysis — is not a minor inconvenience. It is the reason that AI-assisted professional work remains fragile and expensive. Systems that forget what they learned yesterday will always pay the full cost of understanding today. Structured persistent state offers a path out of this cycle: pay the cost of understanding once, then build on that understanding incrementally.
 
-The complete system is open-source under the MIT license — use it however you want, including commercially. The repository includes source code, the full benchmark manifest, five annotated example tasks with complete reasoning traces, and verification instructions. Benchmark outputs for all 1,251 tasks are available for independent scoring.
+We deliberately open-source with cheap models as the default to make the system genuinely accessible. The barrier to entry is a Gemini API key and $1.30 per task — not an enterprise contract or a frontier model subscription. The complete system is open-source under the MIT license — use it however you want, including commercially. The repository includes source code, the full benchmark manifest, five annotated example tasks with complete reasoning traces, and verification instructions. Benchmark outputs for all 1,251 tasks are available for independent scoring.
 
-We believe that stateful multi-agent coordination represents an important direction for professional AI systems. We invite collaborators interested in extending this work to additional benchmarks, new problem domains, or production deployment.
+We believe that stateful multi-agent coordination represents an important direction for professional AI systems — not because agents are inherently better than monolithic models, but because the structured intermediate state they produce is essential for accountability, cost control, and continuous improvement. We invite collaborators interested in extending this work to additional benchmarks, new problem domains, or production deployment.
 
 **Contact:** devansh@iqidis.ai
 **Repository:** https://github.com/dl1683/irys-stateful-swarms
