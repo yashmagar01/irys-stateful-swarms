@@ -164,7 +164,17 @@ Performance varies significantly by task type:
 
 The system is strongest on generative tasks (drafting, analysis) where partial state can still produce useful output, and weakest on exhaustive recall tasks (extraction, identification) that require complete enumeration of specific facts. This asymmetry is informative: it reveals that the primary bottleneck is state completeness, not synthesis quality.
 
-### 4.3 Cost Analysis
+### 4.3 Architecture Over Model Intelligence
+
+These results deserve scrutiny because of the models that produced them. The system defaults to **Gemini 3.1 Flash Lite** ($0.25/M input tokens) for extraction workers and **Gemini 3.5 Flash** ($1.50/M input tokens) for planning, analysis, and synthesis. These are among the cheapest models available from any provider.
+
+Harvey's published LAB results include per-model breakdowns showing that Gemini models — the same model family used here — achieved **0% strict all-pass** when used in a conventional single-pass pipeline. The same models that produce zero successful tasks individually achieve 17.75% strict all-pass when coordinated through a stateful swarm.
+
+This gap between individual model capability and coordinated system performance is the central empirical finding of this work. It demonstrates that the performance comes from the architecture — swarm coordination, structured state-building, typed provenance tracking, signal-driven gap identification, and multi-iteration convergence — not from model intelligence. Expensive frontier models are not required. The engineering of how models are coordinated and how their outputs are structured, accumulated, and reconciled matters more than the capability of any individual model.
+
+We deliberately open-source with cheap models as the default to make this point concrete and to make the system genuinely accessible. Anyone with a Gemini API key can run a complete professional document analysis task for $1.30.
+
+### 4.4 Cost Analysis
 
 The $1.30 per task average represents a 39x reduction compared to Harvey's published $50.90 figure. This reduction comes from three sources:
 
@@ -174,7 +184,7 @@ The $1.30 per task average represents a 39x reduction compared to Harvey's publi
 
 3. **Targeted follow-up.** Rather than re-processing entire documents when information is missing, the convergence check dispatches focused workers to specific sections, avoiding redundant processing.
 
-### 4.4 What the Cost Structure Reveals
+### 4.5 What the Cost Structure Reveals
 
 The cost breakdown by model tier is instructive. Approximately 70% of total token spend goes to lightweight extraction workers. These workers perform the bulk of document reading — the labor-intensive work of converting raw text into structured findings. The remaining 30% goes to mid-tier models for planning, analysis, convergence checking, and synthesis — the "thinking" work that requires genuine reasoning.
 

@@ -8,7 +8,7 @@ This is not an incremental improvement to existing approaches. It is a paradigm 
 
 ## Benchmark Results
 
-irys-stateful-swarms completed the full public [Harvey Legal Agent Benchmark (LAB)](https://github.com/harveyai/harvey-labs) — 1,251 tasks across 24 legal practice areas. To ensure fair evaluation, every task starts from an empty blackboard with zero prior state — the hardest possible condition for a stateful system, and the only honest way to benchmark.
+irys-stateful-swarms completed the full public [Harvey Legal Agent Benchmark (LAB)](https://github.com/harveyai/harvey-labs) — 1,251 tasks across 24 legal practice areas — using **Gemini 3.1 Flash Lite** ($0.25/M input tokens) for extraction and **Gemini 3.5 Flash** ($1.50/M input tokens) for synthesis. These are among the cheapest models available. To ensure fair evaluation, every task starts from an empty blackboard with zero prior state — the hardest possible condition for a stateful system, and the only honest way to benchmark.
 
 | Metric | Result |
 |---|---|
@@ -28,6 +28,14 @@ The complete outputs from the full benchmark run are available as downloadable a
 Harvey's published LAB results use a private holdout set that mirrors the public benchmark distribution. Harvey reported that its strongest published private-holdout all-pass result reached `10.4%`, with earlier initial results at `7.1%` all-pass at about `$50.90/task`. We ran on the public benchmark because we don't have access to the private holdout — we'd welcome the opportunity to run irys-stateful-swarms on the private set for a direct comparison.
 
 On a per-task cost basis, irys-stateful-swarms is roughly **39x cheaper** than that `$50.90/task` figure. And this is the *stateless* cost — every task starting from zero. With persistent state enabled, subsequent queries on the same documents would cost a fraction of even this.
+
+### It's the architecture, not the model
+
+Harvey's published LAB results include per-model breakdowns. Gemini models — the same model family irys-stateful-swarms uses — scored **0% strict all-pass** in Harvey's evaluation. The same models that produce zero successful tasks when used in a conventional single-pass pipeline achieve **17.75% strict all-pass** when coordinated through a stateful swarm.
+
+This is the point we want to make by open-sourcing with cheap models as the default: **the performance comes from the architecture, not from model intelligence.** Swarm coordination, structured state-building, typed provenance tracking, signal-driven gap identification, and multi-iteration convergence — these are engineering contributions that make inexpensive models perform far beyond their individual capability. You don't need a $15/M-token frontier model to do professional document analysis. You need a system that knows how to build and maintain analytical state.
+
+This also makes the system genuinely accessible. Anyone with a Gemini API key and $1.30 can run a complete legal analysis task. The barrier to entry is an afternoon and a credit card, not an enterprise contract.
 
 ### The stateful advantage
 
