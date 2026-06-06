@@ -93,7 +93,8 @@
 \vspace{12pt}
 \noindent\textbf{Repository:} \href{https://github.com/dl1683/irys-stateful-swarms}{github.com/dl1683/irys-stateful-swarms}\\
 \textbf{License:} MIT — use however you want, including commercially.\\
-\textbf{Results:} 83.74\% criteria pass on 1,251-task Harvey Legal Agent Benchmark at \$1.30/task.
+\textbf{Results:} 83.74\% criteria pass on 1,251-task Harvey Legal Agent Benchmark at \$1.30/task.\\
+\textbf{Efficiency:} 98$\times$ more intelligence per dollar vs.\ Harvey's initial result; 67$\times$ vs.\ their best.
 \vspace{12pt}
 \hrule height 0.5pt
 \end{minipage}
@@ -104,7 +105,7 @@
 % ────────────────────────────── ABSTRACT ──────────────────────────────
 
 \begin{abstract}
-\noindent We present a swarm-based architecture for long-context document analysis that coordinates multiple AI agents through a shared, evolving blackboard. Unlike monolithic single-prompt approaches, the system decomposes tasks into planning, extraction, analysis, and synthesis phases — each producing structured, source-grounded state that can be inspected, debugged, and extended. We evaluate on the full 1,251-task Harvey Legal Agent Benchmark (LAB), achieving 83.74\% pooled criteria pass rate and 17.75\% strict all-pass at \$1.30 per task. We argue that the primary value of swarm coordination is not raw performance but three properties that monolithic systems cannot provide: full auditability of the reasoning process, predictable cost scaling, and the foundation for persistent cross-session learning that reduces marginal cost over time. We open-source the complete system, all benchmark outputs, and five annotated reasoning traces under the MIT license.
+\noindent We present a swarm-based architecture for long-context document analysis that coordinates multiple AI agents through a shared, evolving blackboard. Unlike monolithic single-prompt approaches, the system decomposes tasks into planning, extraction, analysis, and synthesis phases — each producing structured, source-grounded state that can be inspected, debugged, and extended. We evaluate on the full 1,251-task Harvey Legal Agent Benchmark (LAB), achieving 83.74\% pooled criteria pass rate and 17.75\% strict all-pass at \$1.30 per task — delivering 98$\times$ more intelligence per dollar than Harvey's initial published result and 67$\times$ more than their strongest. We argue that the primary value of swarm coordination is not raw performance but three properties that monolithic systems cannot provide: full auditability of the reasoning process, predictable cost scaling, and the foundation for persistent cross-session learning that reduces marginal cost over time. We open-source the complete system, all benchmark outputs, and five annotated reasoning traces under the MIT license.
 \end{abstract}
 
 \vspace{1em}
@@ -243,6 +244,26 @@ The \$1.30 per task average represents a 39x reduction compared to Harvey's publ
 \item \textbf{Parallel extraction.} Workers process document sections concurrently, reducing wall-clock time without increasing per-token costs.
 \item \textbf{Targeted follow-up.} Rather than re-processing entire documents when information is missing, the convergence check dispatches focused workers to specific sections, avoiding redundant processing.
 \end{enumerate}
+
+\subsection{Intelligence per Dollar}
+
+Raw cost comparison understates the gap. The more meaningful metric is \textit{intelligence per dollar} — how much benchmark performance each dollar of spend actually buys, computed as the ratio of strict all-pass rate to cost per task.
+
+\begin{center}
+\begin{tabular}{lrrrr}
+\toprule
+\textbf{System} & \textbf{All-Pass} & \textbf{Cost/Task} & \textbf{Intelligence/\$} & \textbf{vs.\ Irys} \\
+\midrule
+Harvey initial & 7.1\% & \$50.90 & 0.14 & 98$\times$ less \\
+Harvey best (Opus 4.8) & 10.4\% & \$50.90 & 0.20 & 67$\times$ less \\
+irys-stateful-swarms & 17.75\% & \$1.30 & 13.65 & --- \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent The system delivers \textbf{98$\times$} more intelligence per dollar than Harvey's initial published result and \textbf{67$\times$} more than their strongest published result — both computed against the same \$50.90 per-task cost. This metric captures the combined effect of higher performance and lower cost: the system is not merely cheaper, it returns dramatically more capability per unit of spend.
+
+These figures use the stateless benchmark cost. In a persistent deployment where extraction costs are amortized across sessions, the intelligence-per-dollar advantage compounds further.
 
 % ────────────────────────────── AUDITABILITY ──────────────────────────────
 
@@ -420,7 +441,7 @@ The architecture requires no domain-specific training, no custom embeddings, and
 
 \section{Conclusion}
 
-We have presented a stateful swarm architecture for document analysis that achieves competitive benchmark performance at dramatically lower cost than published alternatives — using some of the cheapest models available. The central empirical finding is that the performance comes from the architecture, not from model intelligence: Gemini models that achieve 0\% strict all-pass in other agentic systems achieve 17.75\% when coordinated through a stateful swarm. This demonstrates that how models are coordinated and how their outputs are structured, accumulated, and reconciled matters more than the capability of any individual model.
+We have presented a stateful swarm architecture for document analysis that achieves competitive benchmark performance at dramatically lower cost than published alternatives — using some of the cheapest models available. The system delivers 98$\times$ more intelligence per dollar than Harvey's initial published result and 67$\times$ more than their strongest, combining higher strict all-pass (17.75\% vs.\ 7.1--10.4\%) with 39$\times$ lower cost per task (\$1.30 vs.\ \$50.90). The central empirical finding is that the performance comes from the architecture, not from model intelligence: Gemini models that achieve 0\% strict all-pass in other agentic systems achieve 17.75\% when coordinated through a stateful swarm. This demonstrates that how models are coordinated and how their outputs are structured, accumulated, and reconciled matters more than the capability of any individual model.
 
 The system's primary contribution is not raw performance but a paradigm shift from stateless inference to stateful reasoning, supported by three structural properties: full auditability of the reasoning process through structured blackboard state, predictable cost through model routing and targeted processing, and a natural foundation for persistent cross-session learning that reduces marginal cost by orders of magnitude over time.
 

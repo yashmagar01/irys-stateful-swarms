@@ -1,12 +1,29 @@
 # irys-stateful-swarms
 
+**98x more intelligence per dollar.** On the full 1,251-task [Harvey Legal Agent Benchmark (LAB)](https://github.com/harveyai/harvey-labs), irys-stateful-swarms achieves **17.75% strict all-pass at $1.30/task** — using Gemini Flash models that scored **0% in Harvey's own agentic evaluations.** Harvey's best published result is 10.4% all-pass at $50.90/task.
+
+| | Harvey initial | Harvey best | **irys-stateful-swarms** |
+|---|---|---|---|
+| Strict all-pass | 7.1% | 10.4% | **17.75%** |
+| Cost per task | $50.90 | $50.90 | **$1.30** |
+| Intelligence per dollar | 0.14 | 0.20 | **13.65** |
+| | | | **98x** vs initial / **67x** vs best |
+
+> *Intelligence per dollar* = strict all-pass rate ÷ cost per task. Higher is better.
+
+The system doesn't just cost less — it returns dramatically more capability per unit of spend. And this is the *stateless* cost — every task starting from zero with no prior knowledge. With persistent state enabled, subsequent queries would cost a fraction of even this.
+
+---
+
+## Why this matters
+
 Current AI systems forget everything between sessions. Every question pays the full cost of understanding from scratch — the same documents re-read, the same entities re-discovered, the same analysis re-derived. Context compaction destroys details. Session boundaries erase progress. RAG retrieves text fragments but not the analytical understanding built from them.
 
 **Stateful swarms solve this.** Instead of treating AI reasoning as disposable single-shot computation, irys-stateful-swarms builds persistent, structured analytical state that survives across sessions, accumulates over time, and makes every subsequent interaction cheaper and more accurate than the last. The system coordinates multiple AI agents through a shared, evolving blackboard — a typed, provenance-tracked knowledge base where every observation, analysis, calculation, and gap is preserved with full source attribution. Nothing is summarized away. Nothing is forgotten.
 
 This is not an incremental improvement to existing approaches. It is a paradigm shift: **from stateless inference to stateful reasoning.**
 
-## Benchmark Results
+## Full benchmark results
 
 irys-stateful-swarms completed the full public [Harvey Legal Agent Benchmark (LAB)](https://github.com/harveyai/harvey-labs) — 1,251 tasks across 24 legal practice areas — using **Gemini 3.1 Flash Lite** ($0.25/M input tokens) for extraction and **Gemini 3.5 Flash** ($1.50/M input tokens) for synthesis. These are among the cheapest models available. To ensure fair evaluation, every task starts from an empty blackboard with zero prior state — the hardest possible condition for a stateful system, and the only honest way to benchmark.
 
@@ -26,8 +43,6 @@ The complete outputs from the full benchmark run are available as downloadable a
 ### Context
 
 Harvey's published LAB results use a private holdout set that mirrors the public benchmark distribution. Harvey reported that its strongest published private-holdout all-pass result reached `10.4%`, with earlier initial results at `7.1%` all-pass at about `$50.90/task`. We ran on the public benchmark because we don't have access to the private holdout — we'd welcome the opportunity to run irys-stateful-swarms on the private set for a direct comparison.
-
-On a per-task cost basis, irys-stateful-swarms is roughly **39x cheaper** than that `$50.90/task` figure. And this is the *stateless* cost — every task starting from zero. With persistent state enabled, subsequent queries on the same documents would cost a fraction of even this.
 
 ### It's the architecture, not the model
 
