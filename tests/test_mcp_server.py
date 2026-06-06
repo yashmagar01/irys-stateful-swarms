@@ -450,3 +450,73 @@ def test_full_workflow(sample_doc):
     packet = json.loads(irys_synthesis_packet(bb_id))
     assert len(packet["must_include_entries"]) == 1
     assert "$10M" in packet["must_include_entries"][0]["content"]
+
+
+# ── ID Collision Regression ───────────────────────────────────────────
+
+
+def test_ids_advance_after_reload(clean_mcp_state):
+    """After reload from disk, new entries must not reuse loaded IDs."""
+    from src import mcp_server
+    from src.mcp_server import irys_create_blackboard, irys_add_entries, irys_get_state
+    from src.swarm.models import reset_id_counters
+
+    reset_id_counters()
+    bb = json.loads(irys_create_blackboard("id test"))
+    bb_id = bb["blackboard_id"]
+    entries = json.dumps([
+        {"type": "observation", "content": "First"},
+        {"type": "observation", "content": "Second"},
+    ])
+    r1 = json.loads(irys_add_entries(bb_id, entries))
+    ids_before = {e["id"] for e in r1["created_entries"]}
+
+    mcp_server._blackboards.clear()
+    reset_id_counters()
+
+    r2 = json.loads(irys_add_entries(bb_id, json.dumps([
+        {"type": "observation", "content": "After reload"},
+    ])))
+    ids_after = {e["id"] for e in r2["created_entries"]}
+    assert not ids_before & ids_after, f"ID collision: {ids_before & ids_after}"
+
+
+# ── Malformed Entry Validation ────────────────────────────────────────
+
+
+def test_add_entries_non_dict_element():
+    from src.mcp_server import irys_add_entries
+    bb_id = _create_bb()
+    result = json.loads(irys_add_entries(bb_id, '["bad"]'))
+    assert "error" in result
+
+
+def test_add_entries_invalid_confidence():
+    from src.mcp_server import irys_add_entries
+    bb_id = _create_bb()
+    entries = json.dumps([{"type": "observation", "content": "test", "confidence": "high"}])
+    result = json.loads(irys_add_entries(bb_id, entries))
+    assert result["created_entries"][0]["confidence"] == 0.7
+
+
+def test_add_entries_clamps_confidence():
+    from src.mcp_server import irys_add_entries
+    bb_id = _create_bb()
+    entries = json.dumps([{"type": "observation", "content": "test", "confidence": 5.0}])
+    result = json.loads(irys_add_entries(bb_id, entries))
+    assert result["created_entries"][0]["confidence"] == 1.0
+
+
+def test_add_entries_unknown_type_defaults():
+    from src.mcp_server import irys_add_entries
+    bb_id = _create_bb()
+    entries = json.dumps([{"type": "unknown_type", "content": "test"}])
+    result = json.loads(irys_add_entries(bb_id, entries))
+    assert result["created_entries"][0]["type"] == "observation"
+
+
+def test_search_empty_query(sample_doc):
+    from src.mcp_server import irys_create_blackboard, irys_search_documents
+    bb = json.loads(irys_create_blackboard("test", str(sample_doc)))
+    result = json.loads(irys_search_documents(bb["blackboard_id"], ""))
+    assert result["total"] == 0

@@ -33,12 +33,14 @@ mcp = FastMCP(
 _STORE_ROOT = Path(tempfile.gettempdir()) / "irys-mcp"
 _blackboards: dict[str, Any] = {}
 _locks: dict[str, threading.Lock] = {}
+_locks_guard = threading.Lock()
 
 
 def _get_lock(bb_id: str) -> threading.Lock:
-    if bb_id not in _locks:
-        _locks[bb_id] = threading.Lock()
-    return _locks[bb_id]
+    with _locks_guard:
+        if bb_id not in _locks:
+            _locks[bb_id] = threading.Lock()
+        return _locks[bb_id]
 
 
 def _state_dir(bb_id: str) -> Path:
@@ -63,11 +65,16 @@ def _save_state(bb_id: str, bb: Any) -> None:
     tmp.write_text(json.dumps(state, indent=2, default=str), encoding="utf-8")
     tmp.replace(d / "state.json")
 
-    doc_dir = d / "documents"
-    for ds in bb.documents:
+
+def _save_doc_texts(bb_id: str, docs: list) -> None:
+    """Write document text files once at ingestion time (not on every save)."""
+    doc_dir = _state_dir(bb_id) / "documents"
+    for ds in docs:
         if ds.text:
             doc_dir.mkdir(exist_ok=True)
-            (doc_dir / f"{ds.id}.txt").write_text(ds.text, encoding="utf-8")
+            path = doc_dir / f"{ds.id}.txt"
+            if not path.exists():
+                path.write_text(ds.text, encoding="utf-8")
 
 
 def _load_state(bb_id: str) -> Any:
@@ -161,7 +168,37 @@ def _load_state(bb_id: str) -> Any:
         bb._index_entry(e)
     bb._mcp_metadata = data.get("metadata", {})
     _blackboards[bb_id] = bb
+
+    _advance_id_counters(entries, signals)
+
     return bb
+
+
+def _advance_id_counters(entries: list, signals: list) -> None:
+    """Advance global ID counters past any IDs loaded from disk."""
+    from .swarm.models import _id_lock, _entry_counter, _signal_counter
+    import src.swarm.models as _models
+
+    max_e = 0
+    for e in entries:
+        if e.id and e.id.startswith("e"):
+            try:
+                max_e = max(max_e, int(e.id[1:]))
+            except ValueError:
+                pass
+    max_s = 0
+    for s in signals:
+        if s.id and s.id.startswith("s"):
+            try:
+                max_s = max(max_s, int(s.id[1:]))
+            except ValueError:
+                pass
+
+    with _id_lock:
+        if max_e > _models._entry_counter:
+            _models._entry_counter = max_e
+        if max_s > _models._signal_counter:
+            _models._signal_counter = max_s
 
 
 def _bb_summary(bb: Any) -> dict:
@@ -301,6 +338,7 @@ def irys_create_blackboard(
             pass
     bb._mcp_metadata = meta  # type: ignore[attr-defined]
     _blackboards[bb_id] = bb
+    _save_doc_texts(bb_id, docs)
     _save_state(bb_id, bb)
 
     return json.dumps({
@@ -335,53 +373,53 @@ def irys_get_context(
         except FileNotFoundError:
             return json.dumps({"error": f"Blackboard not found: {blackboard_id}"})
 
-    target_doc_ids = doc_ids.split(",") if doc_ids else None
-    target_signal_ids = signal_ids.split(",") if signal_ids else None
+        target_doc_ids = doc_ids.split(",") if doc_ids else None
+        target_signal_ids = signal_ids.split(",") if signal_ids else None
 
-    if target_doc_ids:
-        target_docs = [d for d in bb.documents if d.id in target_doc_ids]
-    else:
-        unread = [d for d in bb.documents if d.read_status != "fully_read"]
-        target_docs = unread if unread else bb.documents[:3]
+        if target_doc_ids:
+            target_docs = [d for d in bb.documents if d.id in target_doc_ids]
+        else:
+            unread = [d for d in bb.documents if d.read_status != "fully_read"]
+            target_docs = unread if unread else bb.documents[:3]
 
-    doc_sections = []
-    chars_used = 0
-    for ds in target_docs:
-        if chars_used >= max_chars:
-            break
-        remaining = max_chars - chars_used
-        text = ds.text[:remaining] if ds.text else ""
-        doc_sections.append({
-            "doc_id": ds.id,
-            "name": ds.name,
-            "text": text,
-            "truncated": len(ds.text) > remaining if ds.text else False,
-            "headings": ds.headings,
-            "read_status": ds.read_status,
+        doc_sections = []
+        chars_used = 0
+        for ds in target_docs:
+            if chars_used >= max_chars:
+                break
+            remaining = max_chars - chars_used
+            text = ds.text[:remaining] if ds.text else ""
+            doc_sections.append({
+                "doc_id": ds.id,
+                "name": ds.name,
+                "text": text,
+                "truncated": len(ds.text) > remaining if ds.text else False,
+                "headings": ds.headings,
+                "read_status": ds.read_status,
+            })
+            chars_used += len(text)
+
+        open_sigs = [s for s in bb.signals if s.status == "open"]
+        if target_signal_ids:
+            open_sigs = [s for s in open_sigs if s.id in target_signal_ids]
+
+        active = [e for e in bb.entries if e.status == "active"]
+        relevant = active[-50:]
+
+        return json.dumps({
+            "blackboard_id": blackboard_id,
+            "task_instruction": bb.task_instruction,
+            "iteration": bb.iteration,
+            "summary": _bb_summary(bb),
+            "open_signals": [_signal_dict(s) for s in open_sigs],
+            "recent_entries": [_entry_dict(e) for e in relevant],
+            "document_sections": doc_sections,
+            "write_contract": {
+                "entry_types": ["observation", "analysis", "calculation", "strategy", "gap"],
+                "signal_types": ["question", "convergence_gap", "contradiction_resolution", "source_gap"],
+                "signal_priorities": ["low", "medium", "high", "critical"],
+            },
         })
-        chars_used += len(text)
-
-    open_sigs = [s for s in bb.signals if s.status == "open"]
-    if target_signal_ids:
-        open_sigs = [s for s in open_sigs if s.id in target_signal_ids]
-
-    active = [e for e in bb.entries if e.status == "active"]
-    relevant = active[-50:]
-
-    return json.dumps({
-        "blackboard_id": blackboard_id,
-        "task_instruction": bb.task_instruction,
-        "iteration": bb.iteration,
-        "summary": _bb_summary(bb),
-        "open_signals": [_signal_dict(s) for s in open_sigs],
-        "recent_entries": [_entry_dict(e) for e in relevant],
-        "document_sections": doc_sections,
-        "write_contract": {
-            "entry_types": ["observation", "analysis", "calculation", "strategy", "gap"],
-            "signal_types": ["question", "convergence_gap", "contradiction_resolution", "source_gap"],
-            "signal_priorities": ["low", "medium", "high", "critical"],
-        },
-    })
 
 
 @mcp.tool()
@@ -428,37 +466,54 @@ def irys_add_entries(
         if not isinstance(raw_entries, list):
             return json.dumps({"error": "entries must be a JSON array"})
 
+        _VALID_TYPES = {"observation", "analysis", "calculation", "strategy", "gap"}
+
         new_entries = []
-        for ed in raw_entries:
+        for i, ed in enumerate(raw_entries):
+            if not isinstance(ed, dict):
+                return json.dumps({"error": f"Entry at index {i} must be an object, got {type(ed).__name__}"})
+            conf = ed.get("confidence", 0.7)
+            if not isinstance(conf, (int, float)):
+                conf = 0.7
+            conf = max(0.0, min(1.0, float(conf)))
+            entry_type = ed.get("type", "observation")
+            if entry_type not in _VALID_TYPES:
+                entry_type = "observation"
+
+            def _str_list(val: Any) -> list[str]:
+                if not isinstance(val, list):
+                    return []
+                return [str(x) for x in val if isinstance(x, str)]
+
             src = None
-            if ed.get("source"):
+            if isinstance(ed.get("source"), dict):
                 s = ed["source"]
                 src = EntrySource(
-                    document=s.get("document"),
-                    section=s.get("section"),
-                    evidence=s.get("evidence", ""),
+                    document=str(s.get("document", "") or ""),
+                    section=str(s.get("section", "") or ""),
+                    evidence=str(s.get("evidence", "") or ""),
                 )
             epist = None
-            if ed.get("epistemic"):
+            if isinstance(ed.get("epistemic"), dict):
                 ep = ed["epistemic"]
                 epist = EpistemicStatus(
-                    classification=ep.get("classification", "inference"),
-                    source_credibility=ep.get("source_credibility", "unknown"),
-                    motivation=ep.get("motivation", ""),
+                    classification=str(ep.get("classification", "inference")),
+                    source_credibility=str(ep.get("source_credibility", "unknown")),
+                    motivation=str(ep.get("motivation", "")),
                 )
             new_entries.append(Entry(
                 id=gen_entry_id(),
-                type=ed.get("type", "observation"),
-                content=ed.get("content", ""),
+                type=entry_type,
+                content=str(ed.get("content", "")),
                 source=src, epistemic=epist,
                 created_by=WorkerRecord(worker_id, worker_description, bb.iteration),
-                confidence=ed.get("confidence", 0.7),
-                tags=ed.get("tags", []),
-                opens_questions=ed.get("opens_questions", []),
-                supports_entries=ed.get("supports_entries", []),
-                contradicts_entries=ed.get("contradicts_entries", []),
-                supersedes_entries=ed.get("supersedes_entries", []),
-                addresses_signals=ed.get("addresses_signals", []),
+                confidence=conf,
+                tags=_str_list(ed.get("tags", [])),
+                opens_questions=_str_list(ed.get("opens_questions", [])),
+                supports_entries=_str_list(ed.get("supports_entries", [])),
+                contradicts_entries=_str_list(ed.get("contradicts_entries", [])),
+                supersedes_entries=_str_list(ed.get("supersedes_entries", [])),
+                addresses_signals=_str_list(ed.get("addresses_signals", [])),
             ))
 
         signals_before = len(bb.signals)
@@ -540,20 +595,20 @@ def irys_get_state(
         except FileNotFoundError:
             return json.dumps({"error": f"Blackboard not found: {blackboard_id}"})
 
-    statuses = set(entry_status.split(","))
-    sig_statuses = set(signal_status.split(","))
+        statuses = set(entry_status.split(","))
+        sig_statuses = set(signal_status.split(","))
 
-    filtered_entries = [e for e in bb.entries if e.status in statuses][:max_entries]
-    filtered_signals = [s for s in bb.signals if s.status in sig_statuses]
+        filtered_entries = [e for e in bb.entries if e.status in statuses][:max_entries]
+        filtered_signals = [s for s in bb.signals if s.status in sig_statuses]
 
-    return json.dumps({
-        "blackboard_id": blackboard_id,
-        "task_instruction": bb.task_instruction,
-        "summary": _bb_summary(bb),
-        "entries": [_entry_dict(e) for e in filtered_entries],
-        "signals": [_signal_dict(s) for s in filtered_signals],
-        "documents": [_doc_status_dict(d) for d in bb.documents],
-    })
+        return json.dumps({
+            "blackboard_id": blackboard_id,
+            "task_instruction": bb.task_instruction,
+            "summary": _bb_summary(bb),
+            "entries": [_entry_dict(e) for e in filtered_entries],
+            "signals": [_signal_dict(s) for s in filtered_signals],
+            "documents": [_doc_status_dict(d) for d in bb.documents],
+        })
 
 
 @mcp.tool()
@@ -623,19 +678,24 @@ def irys_search_documents(
         except FileNotFoundError:
             return json.dumps({"error": f"Blackboard not found: {blackboard_id}"})
 
-    results = []
-    pattern = re.compile(re.escape(query), re.IGNORECASE)
-    for doc in bb.documents:
-        for m in pattern.finditer(doc.text):
+        if not query or not query.strip():
+            return json.dumps({"query": query, "results": [], "total": 0})
+
+        results = []
+        pattern = re.compile(re.escape(query), re.IGNORECASE)
+        for doc in bb.documents:
             if len(results) >= max_results:
                 break
-            start = max(0, m.start() - context_chars // 2)
-            end = min(len(doc.text), m.end() + context_chars // 2)
-            results.append({
-                "doc_id": doc.id, "name": doc.name,
-                "start_char": start, "end_char": end,
-                "snippet": doc.text[start:end],
-            })
+            for m in pattern.finditer(doc.text):
+                if len(results) >= max_results:
+                    break
+                start = max(0, m.start() - context_chars // 2)
+                end = min(len(doc.text), m.end() + context_chars // 2)
+                results.append({
+                    "doc_id": doc.id, "name": doc.name,
+                    "start_char": start, "end_char": end,
+                    "snippet": doc.text[start:end],
+                })
 
     return json.dumps({"query": query, "results": results, "total": len(results)})
 
@@ -692,31 +752,31 @@ def irys_convergence_report(blackboard_id: str) -> str:
         except FileNotFoundError:
             return json.dumps({"error": f"Blackboard not found: {blackboard_id}"})
 
-    open_sigs = [s for s in bb.signals if s.status == "open"]
-    critical = [s for s in open_sigs if s.priority == "critical"]
-    high = [s for s in open_sigs if s.priority == "high"]
-    disputed = [e for e in bb.entries if e.status == "disputed"]
-    unread = [d for d in bb.documents if d.read_status == "unread"]
-    partial = [d for d in bb.documents if d.read_status == "partially_read"]
+        open_sigs = [s for s in bb.signals if s.status == "open"]
+        critical = [s for s in open_sigs if s.priority == "critical"]
+        high = [s for s in open_sigs if s.priority == "high"]
+        disputed = [e for e in bb.entries if e.status == "disputed"]
+        unread = [d for d in bb.documents if d.read_status == "unread"]
+        partial = [d for d in bb.documents if d.read_status == "partially_read"]
 
-    blockers = []
-    if critical:
-        blockers.append(f"{len(critical)} critical signal(s) unresolved")
-    if disputed:
-        blockers.append(f"{len(disputed)} disputed entry/entries")
-    if unread:
-        blockers.append(f"{len(unread)} document(s) completely unread")
+        blockers = []
+        if critical:
+            blockers.append(f"{len(critical)} critical signal(s) unresolved")
+        if disputed:
+            blockers.append(f"{len(disputed)} disputed entry/entries")
+        if unread:
+            blockers.append(f"{len(unread)} document(s) completely unread")
 
-    return json.dumps({
-        "converged": len(blockers) == 0,
-        "blockers": blockers,
-        "critical_signals": [_signal_dict(s) for s in critical],
-        "high_signals": [_signal_dict(s) for s in high],
-        "disputed_entries": [_entry_dict(e) for e in disputed],
-        "unread_documents": [_doc_status_dict(d) for d in unread],
-        "partially_read_documents": [_doc_status_dict(d) for d in partial],
-        "summary": _bb_summary(bb),
-    })
+        return json.dumps({
+            "converged": len(blockers) == 0,
+            "blockers": blockers,
+            "critical_signals": [_signal_dict(s) for s in critical],
+            "high_signals": [_signal_dict(s) for s in high],
+            "disputed_entries": [_entry_dict(e) for e in disputed],
+            "unread_documents": [_doc_status_dict(d) for d in unread],
+            "partially_read_documents": [_doc_status_dict(d) for d in partial],
+            "summary": _bb_summary(bb),
+        })
 
 
 @mcp.tool()
@@ -732,19 +792,19 @@ def irys_synthesis_packet(blackboard_id: str) -> str:
         except FileNotFoundError:
             return json.dumps({"error": f"Blackboard not found: {blackboard_id}"})
 
-    active = [e for e in bb.entries if e.status == "active"]
-    high_conf = [e for e in active if e.confidence >= 0.6]
-    disputed = [e for e in bb.entries if e.status == "disputed"]
-    open_sigs = [s for s in bb.signals if s.status == "open"]
+        active = [e for e in bb.entries if e.status == "active"]
+        high_conf = [e for e in active if e.confidence >= 0.6]
+        disputed = [e for e in bb.entries if e.status == "disputed"]
+        open_sigs = [s for s in bb.signals if s.status == "open"]
 
-    return json.dumps({
-        "task_instruction": bb.task_instruction,
-        "must_include_entries": [_entry_dict(e) for e in high_conf],
-        "disputed_entries": [_entry_dict(e) for e in disputed],
-        "open_signals": [_signal_dict(s) for s in open_sigs],
-        "documents": [{"name": d.name, "read_status": d.read_status} for d in bb.documents],
-        "summary": _bb_summary(bb),
-    })
+        return json.dumps({
+            "task_instruction": bb.task_instruction,
+            "must_include_entries": [_entry_dict(e) for e in high_conf],
+            "disputed_entries": [_entry_dict(e) for e in disputed],
+            "open_signals": [_signal_dict(s) for s in open_sigs],
+            "documents": [{"name": d.name, "read_status": d.read_status} for d in bb.documents],
+            "summary": _bb_summary(bb),
+        })
 
 
 @mcp.tool()
@@ -764,7 +824,8 @@ def irys_save_snapshot(blackboard_id: str, label: str = "") -> str:
         d = _state_dir(blackboard_id) / "snapshots"
         d.mkdir(exist_ok=True)
         ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-        suffix = f"_{label}" if label else ""
+        safe_label = re.sub(r"[^\w\-]", "_", label)[:50] if label else ""
+        suffix = f"_{safe_label}" if safe_label else ""
         path = d / f"{ts}{suffix}.json"
         state = json.loads((_state_dir(blackboard_id) / "state.json").read_text(encoding="utf-8"))
         path.write_text(json.dumps(state, indent=2, default=str), encoding="utf-8")
