@@ -13,11 +13,35 @@ from .runner import RunResult, run_single_task
 
 
 def main():
-    parser = argparse.ArgumentParser(description="irys-stateful-swarms: stateful swarm document analysis")
+    parser = argparse.ArgumentParser(
+        description="irys — stateful swarm document analysis",
+        prog="irys",
+    )
     sub = parser.add_subparsers(dest="command")
 
+    # Ask — simple query interface
+    ask_p = sub.add_parser(
+        "ask",
+        help="Ask a question about documents (simplest interface)",
+    )
+    ask_p.add_argument("question", type=str, help="Your question or instruction")
+    ask_p.add_argument(
+        "--docs", "-d", type=Path, required=True,
+        help="Path to document(s) — file or directory",
+    )
+    ask_p.add_argument(
+        "--output", "-o", type=Path, default=None,
+        help="Output directory (default: ./irys-output/)",
+    )
+    ask_p.add_argument("--format", "-f", choices=["text", "docx", "json"],
+                       default="text", help="Output format (default: text)")
+    ask_p.add_argument("--worker-model", default=None)
+    ask_p.add_argument("--synthesis-model", default=None)
+    ask_p.add_argument("--verbose", "-v", action="store_true",
+                       help="Show progress details")
+
     # Single task
-    run_p = sub.add_parser("run", help="Run a single task")
+    run_p = sub.add_parser("run", help="Run a single task from a task directory")
     run_p.add_argument("task_dir", type=Path, help="Path to task directory")
     run_p.add_argument("--output", "-o", type=Path, default=Path("results"),
                        help="Output directory")
@@ -76,7 +100,9 @@ def main():
         parser.print_help()
         sys.exit(1)
 
-    if args.command == "run":
+    if args.command == "ask":
+        _cmd_ask(args)
+    elif args.command == "run":
         _cmd_run(args)
     elif args.command == "batch":
         _cmd_batch(args)
@@ -90,6 +116,97 @@ def main():
         _cmd_summarize_derived_work(args)
     elif args.command == "summarize-lifecycle":
         _cmd_summarize_lifecycle(args)
+
+
+def _cmd_ask(args):
+    from .ingestion import ingest_file, ingest_directory, SUPPORTED_EXTENSIONS
+    from .providers.gemini import GeminiCaller
+    from .swarm import run_swarm
+    from .swarm.models import Task
+
+    docs_path = args.docs.resolve()
+    if not docs_path.exists():
+        print(f"Error: {docs_path} does not exist")
+        sys.exit(1)
+
+    if docs_path.is_file():
+        if docs_path.suffix.lower() not in SUPPORTED_EXTENSIONS:
+            print(f"Error: unsupported file type {docs_path.suffix}")
+            print(f"Supported: {', '.join(sorted(SUPPORTED_EXTENSIONS))}")
+            sys.exit(1)
+        documents = [ingest_file(docs_path)]
+    else:
+        documents = ingest_directory(docs_path)
+
+    if not documents:
+        print(f"Error: no supported documents found in {docs_path}")
+        print(f"Supported: {', '.join(sorted(SUPPORTED_EXTENSIONS))}")
+        sys.exit(1)
+
+    print(f"Loaded {len(documents)} document(s)")
+    for doc in documents:
+        print(f"  {doc.name} ({doc.size_bytes:,} bytes)")
+
+    w_model = args.worker_model or os.getenv("SWARM_WORKER_MODEL", "gemini-3.1-flash-lite")
+    s_model = args.synthesis_model or os.getenv("SWARM_SYNTHESIS_MODEL", "gemini-3.5-flash")
+    r_model = os.getenv("SWARM_REVIEWER_MODEL", "gemini-3.5-flash")
+
+    worker_caller = GeminiCaller(model=w_model)
+    synth_caller = GeminiCaller(model=s_model) if s_model != w_model else worker_caller
+    reviewer_caller = GeminiCaller(model=r_model) if r_model else None
+
+    out_dir = args.output or Path("irys-output")
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    task = Task(
+        instruction=args.question,
+        documents=documents,
+        metadata={"source": "cli-ask", "question": args.question},
+        output_dir=str(out_dir),
+    )
+
+    print(f"\nAnalyzing: {args.question}")
+    print("Working...\n")
+
+    t0 = time.time()
+    try:
+        deliverable, blackboard = run_swarm(
+            task, worker_caller,
+            synthesis_caller=synth_caller,
+            reviewer_caller=reviewer_caller,
+        )
+    except Exception as e:
+        print(f"Error: {e}")
+        sys.exit(1)
+
+    elapsed = time.time() - t0
+    content = deliverable if isinstance(deliverable, str) else "\n\n".join(deliverable.values())
+
+    if args.format == "text":
+        print("=" * 60)
+        print(content)
+        print("=" * 60)
+        out_file = out_dir / "answer.md"
+        out_file.write_text(content, encoding="utf-8")
+        print(f"\nSaved to {out_file}")
+    elif args.format == "docx":
+        out_file = out_dir / "answer.docx"
+        from .runner import _write_docx
+        _write_docx(out_file, content)
+        print(f"Saved to {out_file}")
+    elif args.format == "json":
+        out_file = out_dir / "answer.json"
+        result_data = {
+            "question": args.question,
+            "answer": content,
+            "documents": [d.name for d in documents],
+            "tokens_used": blackboard.total_tokens_used,
+            "wall_clock_seconds": elapsed,
+        }
+        out_file.write_text(json.dumps(result_data, indent=2), encoding="utf-8")
+        print(f"Saved to {out_file}")
+
+    print(f"\n{blackboard.total_tokens_used:,} tokens, {elapsed:.1f}s")
 
 
 def _cmd_run(args):
