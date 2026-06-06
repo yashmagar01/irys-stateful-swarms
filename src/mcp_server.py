@@ -21,16 +21,17 @@ from typing import Any
 from mcp.server.fastmcp import FastMCP
 
 mcp = FastMCP(
-    "irys",
+    "irys-state",
     instructions=(
         "Stateful document analysis framework. Use irys_create_blackboard to start, "
         "irys_get_context to get source text and state, irys_add_entries to record "
         "findings with provenance. The blackboard automatically tracks signals, "
-        "contradictions, and convergence. No API keys needed for core tools."
+        "contradictions, and convergence. No API keys needed — you provide the "
+        "intelligence, irys-state provides structured state management."
     ),
 )
 
-_STORE_ROOT = Path(tempfile.gettempdir()) / "irys-mcp"
+_STORE_ROOT = Path(tempfile.gettempdir()) / "irys-state"
 _blackboards: dict[str, Any] = {}
 _locks: dict[str, threading.Lock] = {}
 _locks_guard = threading.Lock()

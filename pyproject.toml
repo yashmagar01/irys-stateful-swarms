@@ -25,4 +25,4 @@ dependencies = [
 [project.scripts]
 irys = "src.cli:main"
 irys-stateful-swarms = "src.cli:main"
-irys-mcp = "src.mcp_server:main"
+irys-state = "src.mcp_server:main"

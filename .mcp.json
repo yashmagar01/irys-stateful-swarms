@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "irys-state": {
+      "type": "stdio",
+      "command": "python",
+      "args": ["-m", "src.mcp_server"],
+      "env": {
+        "PYTHONPATH": "${CLAUDE_PROJECT_DIR:-.}"
+      }
+    }
+  }
+}
