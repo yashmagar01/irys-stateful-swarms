@@ -37,6 +37,8 @@ def main():
                        default="text", help="Output format (default: text)")
     ask_p.add_argument("--worker-model", default=None)
     ask_p.add_argument("--synthesis-model", default=None)
+    ask_p.add_argument("--no-reviewer", action="store_true",
+                       help="Skip reviewer model (faster, cheaper)")
     ask_p.add_argument("--verbose", "-v", action="store_true",
                        help="Show progress details")
 
@@ -119,28 +121,40 @@ def main():
 
 
 def _cmd_ask(args):
+    from datetime import datetime
     from .ingestion import ingest_file, ingest_directory, SUPPORTED_EXTENSIONS
     from .providers.gemini import GeminiCaller
     from .swarm import run_swarm
     from .swarm.models import Task
 
+    # API key preflight
+    if not (os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")):
+        print("Error: no API key found.", file=sys.stderr)
+        print("Set GEMINI_API_KEY or GOOGLE_API_KEY:", file=sys.stderr)
+        print("  export GEMINI_API_KEY=your-key-here", file=sys.stderr)
+        sys.exit(1)
+
     docs_path = args.docs.resolve()
     if not docs_path.exists():
-        print(f"Error: {docs_path} does not exist")
+        print(f"Error: {docs_path} does not exist", file=sys.stderr)
         sys.exit(1)
 
     if docs_path.is_file():
         if docs_path.suffix.lower() not in SUPPORTED_EXTENSIONS:
-            print(f"Error: unsupported file type {docs_path.suffix}")
-            print(f"Supported: {', '.join(sorted(SUPPORTED_EXTENSIONS))}")
+            print(f"Error: unsupported file type {docs_path.suffix}", file=sys.stderr)
+            print(f"Supported: {', '.join(sorted(SUPPORTED_EXTENSIONS))}", file=sys.stderr)
             sys.exit(1)
-        documents = [ingest_file(docs_path)]
+        try:
+            documents = [ingest_file(docs_path)]
+        except Exception as e:
+            print(f"Error reading {docs_path.name}: {e}", file=sys.stderr)
+            sys.exit(1)
     else:
         documents = ingest_directory(docs_path)
 
     if not documents:
-        print(f"Error: no supported documents found in {docs_path}")
-        print(f"Supported: {', '.join(sorted(SUPPORTED_EXTENSIONS))}")
+        print(f"Error: no supported documents found in {docs_path}", file=sys.stderr)
+        print(f"Supported: {', '.join(sorted(SUPPORTED_EXTENSIONS))}", file=sys.stderr)
         sys.exit(1)
 
     print(f"Loaded {len(documents)} document(s)")
@@ -149,11 +163,17 @@ def _cmd_ask(args):
 
     w_model = args.worker_model or os.getenv("SWARM_WORKER_MODEL", "gemini-3.1-flash-lite")
     s_model = args.synthesis_model or os.getenv("SWARM_SYNTHESIS_MODEL", "gemini-3.5-flash")
-    r_model = os.getenv("SWARM_REVIEWER_MODEL", "gemini-3.5-flash")
 
     worker_caller = GeminiCaller(model=w_model)
     synth_caller = GeminiCaller(model=s_model) if s_model != w_model else worker_caller
-    reviewer_caller = GeminiCaller(model=r_model) if r_model else None
+
+    reviewer_caller = None
+    if not args.no_reviewer:
+        r_model = os.getenv("SWARM_REVIEWER_MODEL", "gemini-3.5-flash")
+        if r_model:
+            reviewer_caller = GeminiCaller(model=r_model)
+            if args.verbose:
+                print(f"  Reviewer model: {r_model}")
 
     out_dir = args.output or Path("irys-output")
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -166,6 +186,10 @@ def _cmd_ask(args):
     )
 
     print(f"\nAnalyzing: {args.question}")
+    if args.verbose:
+        print(f"  Worker model: {w_model}")
+        print(f"  Synthesis model: {s_model}")
+        print(f"  Output dir: {out_dir}")
     print("Working...\n")
 
     t0 = time.time()
@@ -175,27 +199,37 @@ def _cmd_ask(args):
             synthesis_caller=synth_caller,
             reviewer_caller=reviewer_caller,
         )
+    except KeyboardInterrupt:
+        print("\nInterrupted.", file=sys.stderr)
+        sys.exit(130)
     except Exception as e:
-        print(f"Error: {e}")
+        err_msg = str(e).lower()
+        if "api_key" in err_msg or "authenticate" in err_msg or "403" in err_msg:
+            print(f"Authentication error: {e}", file=sys.stderr)
+            print("Check your GEMINI_API_KEY or GOOGLE_API_KEY.", file=sys.stderr)
+        elif "quota" in err_msg or "429" in err_msg or "rate" in err_msg:
+            print(f"Rate limit / quota error: {e}", file=sys.stderr)
+        else:
+            print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
 
     elapsed = time.time() - t0
     content = deliverable if isinstance(deliverable, str) else "\n\n".join(deliverable.values())
 
+    # Timestamped output to avoid overwriting previous results
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    ext_map = {"text": "md", "docx": "docx", "json": "json"}
+    out_file = out_dir / f"answer_{timestamp}.{ext_map[args.format]}"
+
     if args.format == "text":
         print("=" * 60)
         print(content)
         print("=" * 60)
-        out_file = out_dir / "answer.md"
         out_file.write_text(content, encoding="utf-8")
-        print(f"\nSaved to {out_file}")
     elif args.format == "docx":
-        out_file = out_dir / "answer.docx"
         from .runner import _write_docx
         _write_docx(out_file, content)
-        print(f"Saved to {out_file}")
     elif args.format == "json":
-        out_file = out_dir / "answer.json"
         result_data = {
             "question": args.question,
             "answer": content,
@@ -204,9 +238,9 @@ def _cmd_ask(args):
             "wall_clock_seconds": elapsed,
         }
         out_file.write_text(json.dumps(result_data, indent=2), encoding="utf-8")
-        print(f"Saved to {out_file}")
 
-    print(f"\n{blackboard.total_tokens_used:,} tokens, {elapsed:.1f}s")
+    print(f"\nSaved to {out_file}")
+    print(f"{blackboard.total_tokens_used:,} tokens, {elapsed:.1f}s")
 
 
 def _cmd_run(args):
