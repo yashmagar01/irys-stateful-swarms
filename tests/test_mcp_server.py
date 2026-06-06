@@ -48,6 +48,7 @@ def test_server_registers_all_tools():
     from src.mcp_server import mcp
     tools = list(mcp._tool_manager._tools.keys())
     expected = [
+        "irys_start_analysis",
         "irys_create_blackboard", "irys_get_context", "irys_add_entries",
         "irys_add_signal", "irys_get_state", "irys_get_document_text",
         "irys_search_documents", "irys_set_iteration", "irys_convergence_report",
@@ -520,3 +521,89 @@ def test_search_empty_query(sample_doc):
     bb = json.loads(irys_create_blackboard("test", str(sample_doc)))
     result = json.loads(irys_search_documents(bb["blackboard_id"], ""))
     assert result["total"] == 0
+
+
+# ── Bootstrap Tool ───────────────────────────────────────────────────
+
+
+def test_start_analysis_returns_context_and_next_steps(sample_doc):
+    from src.mcp_server import irys_start_analysis
+    result = json.loads(irys_start_analysis("Analyze revenue", str(sample_doc)))
+    assert "blackboard_id" in result
+    assert result["task_instruction"] == "Analyze revenue"
+    assert len(result["documents"]) == 1
+    assert "initial_context" in result
+    assert "document_sections" in result["initial_context"]
+    assert len(result["next_steps"]) >= 5
+    assert "entry_template" in result
+    assert result["entry_template"]["type"] == "observation"
+
+
+def test_start_analysis_with_directory(sample_dir):
+    from src.mcp_server import irys_start_analysis
+    result = json.loads(irys_start_analysis("Compare docs", str(sample_dir)))
+    assert len(result["documents"]) == 2
+    ctx = result["initial_context"]
+    assert len(ctx["document_sections"]) >= 1
+
+
+def test_start_analysis_no_docs():
+    from src.mcp_server import irys_start_analysis
+    result = json.loads(irys_start_analysis("General analysis"))
+    assert "blackboard_id" in result
+    assert result["documents"] == []
+
+
+def test_start_analysis_bad_path():
+    from src.mcp_server import irys_start_analysis
+    result = json.loads(irys_start_analysis("test", "/nonexistent/path"))
+    assert "error" in result
+
+
+def test_start_analysis_context_has_write_contract(sample_doc):
+    from src.mcp_server import irys_start_analysis
+    result = json.loads(irys_start_analysis("test", str(sample_doc)))
+    wc = result["initial_context"]["write_contract"]
+    assert "observation" in wc["entry_types"]
+    assert "gap" in wc["entry_types"]
+    assert "question" in wc["signal_types"]
+
+
+# ── MCP Prompts ──────────────────────────────────────────────────────
+
+
+def test_prompts_registered():
+    from src.mcp_server import mcp
+    prompts = list(mcp._prompt_manager._prompts.keys())
+    assert "analyze-documents" in prompts
+    assert "resume-blackboard" in prompts
+
+
+def test_prompt_analyze_documents():
+    from src.mcp_server import prompt_analyze_documents
+    result = prompt_analyze_documents("Find all obligations", "/tmp/docs")
+    assert "Find all obligations" in result
+    assert "/tmp/docs" in result
+    assert "irys_start_analysis" in result
+    assert "irys_convergence_report" in result
+
+
+def test_prompt_resume_blackboard():
+    from src.mcp_server import prompt_resume_blackboard
+    result = prompt_resume_blackboard("abc123")
+    assert "abc123" in result
+    assert "irys_get_state" in result
+    assert "irys_synthesis_packet" in result
+
+
+# ── Server Instructions ──────────────────────────────────────────────
+
+
+def test_instructions_contain_workflow():
+    from src.mcp_server import _INSTRUCTIONS
+    assert "irys_start_analysis" in _INSTRUCTIONS
+    assert "irys_add_entries" in _INSTRUCTIONS
+    assert "irys_convergence_report" in _INSTRUCTIONS
+    assert "irys_synthesis_packet" in _INSTRUCTIONS
+    assert "observation" in _INSTRUCTIONS
+    assert "source-grounded" in _INSTRUCTIONS

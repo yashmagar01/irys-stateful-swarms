@@ -38,6 +38,9 @@ htmlcov/
 # Claude Code
 .claude/
 
+# Codex review artifacts
+codex_*.md
+
 # Environment
 .env
 .env.local

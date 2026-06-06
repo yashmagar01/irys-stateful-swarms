@@ -20,16 +20,47 @@ from typing import Any
 
 from mcp.server.fastmcp import FastMCP
 
-mcp = FastMCP(
-    "irys-state",
-    instructions=(
-        "Stateful document analysis framework. Use irys_create_blackboard to start, "
-        "irys_get_context to get source text and state, irys_add_entries to record "
-        "findings with provenance. The blackboard automatically tracks signals, "
-        "contradictions, and convergence. No API keys needed — you provide the "
-        "intelligence, irys-state provides structured state management."
-    ),
-)
+_INSTRUCTIONS = """\
+irys-state is a stateful blackboard for serious document analysis. Use it whenever \
+the user asks you to analyze, compare, summarize, audit, extract obligations from, \
+answer questions about, or synthesize across one or more documents — especially when \
+accuracy, provenance, contradiction tracking, or multi-step analysis matters.
+
+Default workflow:
+1. Call irys_start_analysis with the task and docs_path. This creates a blackboard \
+and returns initial context so you can begin immediately.
+2. Read the returned document_sections, recent_entries, open_signals, and \
+write_contract. These are your working context.
+3. Read documents in passes. For large files, use irys_get_document_text with \
+mark_read=true, and irys_search_documents for targeted follow-up.
+4. After each reading or reasoning pass, call irys_add_entries. Record concise \
+typed entries with source provenance:
+   - observation: source-grounded fact
+   - analysis: interpretation or conclusion
+   - calculation: derived numeric/logical work
+   - strategy: analysis plan or framing
+   - gap: missing evidence, uncertainty, or unresolved work
+5. Every entry that depends on a document should include source \
+{document, section, evidence}. Use supports_entries, contradicts_entries, \
+opens_questions, and addresses_signals to connect the analysis graph.
+6. If you discover missing sources, unresolved contradictions, or required \
+follow-up, add signals with irys_add_signal or opens_questions on entries.
+7. Before final synthesis, call irys_convergence_report. Do not present a final \
+answer as complete while critical blockers, disputed entries, or unread required \
+documents remain.
+8. When convergence is acceptable, call irys_synthesis_packet and base the final \
+answer on must_include_entries, disputed_entries, open_signals, and document \
+read status.
+9. Use irys_save_snapshot at major milestones: after initial reading, after \
+resolving major gaps, and before final synthesis.
+10. Use irys_get_state to inspect accumulated evidence or resume an existing \
+blackboard.
+
+Do not treat irys-state as a storage API to use after the answer is written. \
+Use it during analysis so the final answer is assembled from recorded, \
+source-grounded state."""
+
+mcp = FastMCP("irys-state", instructions=_INSTRUCTIONS)
 
 _STORE_ROOT = Path(tempfile.gettempdir()) / "irys-state"
 _blackboards: dict[str, Any] = {}
@@ -274,6 +305,67 @@ def _doc_status_dict(ds: Any) -> dict:
         "sections_read": ds.sections_read,
         "sections_unread": ds.sections_unread,
     }
+
+
+# ── Bootstrap ────────────────────────────────────────────────────────
+
+
+@mcp.tool()
+def irys_start_analysis(
+    task_instruction: str,
+    docs_path: str | None = None,
+    metadata: str | None = None,
+    max_chars: int = 24000,
+) -> str:
+    """Start the recommended irys document-analysis workflow.
+
+    Creates a blackboard, ingests documents, and returns initial context
+    with explicit next-step guidance. Use this as the FIRST call for any
+    document analysis task.
+
+    Args:
+        task_instruction: The user's analysis question or deliverable request.
+        docs_path: Path to a file or directory of documents to ingest.
+        metadata: Optional JSON metadata string.
+        max_chars: Initial context character budget (default: 24000).
+    """
+    create_result = json.loads(irys_create_blackboard(task_instruction, docs_path, metadata))
+    if "error" in create_result:
+        return json.dumps(create_result)
+
+    bb_id = create_result["blackboard_id"]
+    context_result = json.loads(irys_get_context(bb_id, max_chars=max_chars))
+
+    return json.dumps({
+        "blackboard_id": bb_id,
+        "task_instruction": task_instruction,
+        "documents": create_result.get("documents", []),
+        "initial_context": context_result,
+        "next_steps": [
+            "Read the document_sections in initial_context. Identify source-grounded observations.",
+            "Call irys_add_entries with typed entries (observation, analysis, gap, etc.) and source provenance.",
+            "Use opens_questions on entries for unresolved issues — they become signals automatically.",
+            "Call irys_get_document_text(mark_read=true) for remaining or truncated documents.",
+            "Call irys_search_documents for targeted evidence lookup.",
+            "Call irys_convergence_report before final synthesis — resolve critical blockers first.",
+            "Call irys_synthesis_packet to assemble the final answer from blackboard state.",
+        ],
+        "entry_template": {
+            "type": "observation",
+            "content": "Concise source-grounded finding.",
+            "source": {
+                "document": "doc_id from documents list",
+                "section": "section heading or location",
+                "evidence": "short quote or source locator",
+            },
+            "confidence": 0.8,
+            "tags": [],
+            "opens_questions": [],
+            "supports_entries": [],
+            "contradicts_entries": [],
+            "addresses_signals": [],
+        },
+    })
 
 
 # ── Phase 1: Core Tools ──────────────────────────────────────────────
@@ -861,6 +953,47 @@ def irys_supported_formats() -> str:
     """List document formats supported by irys for ingestion."""
     from .ingestion import SUPPORTED_EXTENSIONS
     return json.dumps({"formats": sorted(SUPPORTED_EXTENSIONS)})
+
+
+# ── MCP Prompts (user-discoverable workflow templates) ───────────────
+
+
+@mcp.prompt(
+    name="analyze-documents",
+    title="Irys Document Analysis",
+    description="Analyze documents with source-grounded provenance tracking and convergence.",
+)
+def prompt_analyze_documents(task: str, docs_path: str = "") -> str:
+    return (
+        f"Use irys-state for this document analysis.\n\n"
+        f"Task:\n{task}\n\n"
+        f"Documents path:\n{docs_path or '(none — create empty blackboard)'}\n\n"
+        "Workflow:\n"
+        "1. Call irys_start_analysis with the task and docs_path above.\n"
+        "2. Read the initial_context returned.\n"
+        "3. Add source-grounded entries with irys_add_entries after each reading pass.\n"
+        "4. Resolve open signals with more reading and irys_search_documents.\n"
+        "5. Check irys_convergence_report — resolve blockers before finalizing.\n"
+        "6. Call irys_synthesis_packet and write the final answer from blackboard state."
+    )
+
+
+@mcp.prompt(
+    name="resume-blackboard",
+    title="Irys Resume Blackboard",
+    description="Resume work on an existing irys-state blackboard.",
+)
+def prompt_resume_blackboard(blackboard_id: str) -> str:
+    return (
+        f"Resume irys-state blackboard {blackboard_id}.\n\n"
+        "Workflow:\n"
+        "1. Call irys_get_state to see accumulated entries and signals.\n"
+        "2. Call irys_get_context to get document text and open work.\n"
+        "3. Address open signals and unread/partial documents.\n"
+        "4. Add entries that resolve signals (use addresses_signals field).\n"
+        "5. Call irys_convergence_report to check completion.\n"
+        "6. Call irys_synthesis_packet when ready for the final answer."
+    )
 
 
 def main():
