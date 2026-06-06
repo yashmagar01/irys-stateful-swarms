@@ -154,6 +154,53 @@ The survival trace (`src/swarm/survival_trace.py`) already does this partially �
 
 ## 7. Debt Sensors: The Lens System
 
+**Critical implementation detail:** All debt sensors are env-gated and **default OFF**. They run **after** convergence, supervisor review, and state repair — NOT inside the main swarm loop. This means sensor-derived entries never re-enter convergence or supervisor review before synthesis. This is a known architectural risk (see Section 11a).
+
+### Environment Flag Matrix
+
+| Flag | Default | Effect |
+|------|---------|--------|
+| `SWARM_ENABLE_RELATION_DEBT` | off | Detect cross-document relation gaps |
+| `SWARM_ENABLE_SOURCE_OBJECT_DEBT` | off | Detect missing entities/populations |
+| `SWARM_ENABLE_SEVERITY_DEBT` | off | Detect issues without risk assessment |
+| `SWARM_ENABLE_AUTHORITY_DEBT` | off | Detect claims without source citation |
+| `SWARM_DEBT_SENSORS_DETECT_ONLY` | off | Detect but don't materialize entries |
+| `SWARM_RELATION_DEBT_EXECUTE` | off | Execute relation debt repair workers |
+| `SWARM_SOURCE_OBJECT_DEBT_EXECUTE` | off | Execute source-object re-extraction |
+| `SWARM_SEVERITY_DEBT_EXECUTE` | off | Execute severity assessment workers |
+| `SWARM_AUTHORITY_DEBT_EXECUTE` | off | Execute authority citation workers |
+| `SWARM_ENABLE_LENS_COORDINATOR` | off | Prioritize across lenses under budget |
+| `SWARM_ENABLE_BLACKBOARD_MAINTENANCE` | off | Run blackboard consolidation pass |
+| `SWARM_ENABLE_CALCULATION_DEBT` | off | Detect calculation debt |
+| `SWARM_ENABLE_SOURCE_CLAIM_VERIFICATION` | off | Verify source claims in output |
+
+### Phase Ordering (actual execution order in `run_swarm`)
+
+```
+1. Initialize blackboard
+2. Structural profiling (per document)
+3. Seed task decomposition (reviewer model)
+4. Initial parallel reading (worker model)
+5. Extraction depth check
+6. Signal prioritization
+7. Swarm loop (orchestrator → workers → convergence check, up to max_iterations)
+8. Direct analysis (reviewer model)
+9. Supervisor review (up to 2 rounds, with gap-filling iterations)
+10. State conversion review
+11. Plan coverage review + state repair
+12. Source custody enforcement
+13. [Optional] Blackboard maintenance
+14. [Optional] Debt sensors (detect + optional execution)
+15. [Optional] Calculation debt detection
+16. Build synthesis obligations
+17. Curate entries → combine with obligations
+18. Artifact commitment binding
+19. Synthesize deliverables
+20. [Optional] Source claim verification
+```
+
+Steps 12-15 add state AFTER convergence. This is the late-lifecycle mutation risk.
+
 The debt sensor system (`src/swarm/debt_sensors.py`) is the current implementation of what the design calls "lenses." Each sensor detects a specific failure mode:
 
 | Sensor | What It Detects | Subtype Examples |
@@ -242,6 +289,34 @@ The current curation system (`src/swarm/curation.py`) selects "must-include" ite
 
 ---
 
+## 11a. Late-Lifecycle Mutation Risk
+
+**Codex audit finding:** Debt sensors and calculation debt can add meaningful state after convergence, but there is no second convergence pass over those additions. This means:
+- A sensor could add a critical finding that contradicts the convergence decision
+- New entries from sensor execution influence synthesis but were never reviewed
+- The system's "approved" state is stale by the time synthesis runs
+
+**Open design question:** Should sensor-derived entries re-enter convergence? Options:
+1. **Post-sensor convergence gate**: Add a lightweight re-check after all sensors complete
+2. **Accept the risk**: Document that late-stage additions are advisory, not convergence-checked
+3. **Move sensors into the loop**: Run sensors inside the main swarm loop, not after convergence
+
+Currently option 2 is in effect by default. Phase 1 should explicitly decide.
+
+## 11b. Confidence Semantics
+
+**Codex audit finding:** Confidence values are model-supplied heuristics, not calibrated probabilities. The blackboard mechanically boosts confidence on support (+0.02-0.05) and penalizes on contradiction (-0.12). The debt sensor threshold (`confidence >= 0.7 → actionable`) treats this as a meaningful signal, but it has no calibration backing.
+
+**What confidence actually means in this system:**
+- 0.9: Model-assigned "directly quoted from source"
+- 0.7: Model-assigned "inferred from source"
+- Mechanically modified by support/contradiction propagation
+- NOT: "there is a 70% probability this is correct"
+
+Do not make claims about system reliability based on confidence scores until calibration data exists.
+
+---
+
 ## 11. Damping Mechanisms
 
 Without damping, the control loop oscillates: debt sensor finds gaps → workers create entries → new entries create new gaps → infinite loop.
@@ -280,13 +355,36 @@ The survival trace system (`src/swarm/survival_trace.py`) already tracks whether
 
 **Goal:** Demonstrate that debt sensors can reliably detect the failure modes that cause benchmark failures.
 
-**Method:**
-1. Run 10 tasks through the current system
-2. For each failed criterion, classify using the custody-break taxonomy (Section 8)
-3. Check whether the debt sensors detected the corresponding gap
-4. Measure sensor precision (false positive rate) and recall (false negative rate)
+**Implementation checklist:**
 
-**Success criteria:** Sensors detect ≥70% of custody breaks that cause criterion failures.
+1. **Select 10 tasks** from existing results where scoring data exists
+   - Files: `results/<task_id>/scores.json` (has `criteria_results`)
+   - Pick tasks with mixed pass/fail criteria for diagnostic signal
+
+2. **Set env flags for all sensors:**
+   ```
+   SWARM_ENABLE_RELATION_DEBT=1
+   SWARM_ENABLE_SOURCE_OBJECT_DEBT=1
+   SWARM_ENABLE_SEVERITY_DEBT=1
+   SWARM_ENABLE_AUTHORITY_DEBT=1
+   SWARM_DEBT_SENSORS_DETECT_ONLY=1
+   ```
+
+3. **Run the 10 tasks:** `irys batch <manifest> -j 10`
+
+4. **For each task, classify failures:**
+   - Read `results/<task_id>/scores.json` → failed criteria
+   - Read `results/<task_id>/swarm/debt_sensors.json` → detected debts
+   - Manually classify each failed criterion using custody-break taxonomy (Section 8)
+   - Record: `{criterion, custody_break_type, sensor_detected: bool, sensor_id}`
+
+5. **Output artifact:** `experiments/phase0_sensor_audit.json`
+   - Contains per-task, per-criterion classifications
+   - Summary: precision (what % of sensor detections correspond to real failures) and recall (what % of failures had a sensor detection)
+
+6. **Kill/promote gate:** Sensor recall ≥ 70% of custody breaks → promote to Phase 1. Below 50% → redesign sensors before proceeding.
+
+7. **Test fixtures:** Add `tests/test_phase0_audit.py` that validates the audit report schema and checks that all 10 tasks have classifications.
 
 ### Phase 1: Operational Gap Enforcement
 
@@ -359,23 +457,23 @@ These are load-bearing constraints, not preferences:
 
 ---
 
-## 15. Confidence Ratings
+## 15. Design Maturity Assessment
 
-Based on Tesla process + 3 Codex review rounds + adversarial audit:
+Based on Tesla process + 3 Codex review rounds + adversarial audit. Codex correctly noted that these are subjective assessments, not calibrated metrics.
 
-| Component | Confidence | Status |
-|-----------|-----------|--------|
-| Control-system architecture | 9/10 | Strong theoretical basis + partially implemented |
-| Blackboard as shared state | 9/10 | Implemented and working |
-| Three-tier cascade | 8/10 | Implemented, pricing validated |
-| Debt sensors as lenses | 7/10 | Implemented but sensor epistemology unproven |
-| Commitment contracts | 7/10 | Partially implemented (obligations + survival trace) |
-| Task-world construction | 6/10 | Seed plan exists, revisability not yet implemented |
-| Operational gap enforcement | 6/10 | Conceptually clear, not yet implemented |
-| Damping mechanisms | 7/10 | Budget governor exists, finer damping needed |
-| Custody-break taxonomy | 8/10 | Empirically derived from 1251-task benchmark |
-| Object permanence | 5/10 | Not implemented, clear need from introspection |
-| Convergence as proof | 6/10 | Adversarial check exists, evidence-based convergence not yet |
+| Component | Maturity | Evidence |
+|-----------|----------|----------|
+| Control-system architecture | Designed, partially implemented | `run_swarm` loop exists, but late-lifecycle stages break the control model |
+| Blackboard as shared state | Implemented, tested | 133 tests pass, used in 1251-task benchmark |
+| Three-tier cascade | Implemented | Runner wires worker/synthesis/reviewer callers |
+| Debt sensors as lenses | Implemented, unvalidated | Sensors exist but precision/recall unknown (Phase 0 will measure) |
+| Commitment contracts | Partially implemented | Obligations + survival trace exist, gap-blocking enforcement doesn't |
+| Task-world construction | Seed plan only | `seed.py` generates framework, no evidence-driven revision |
+| Operational gap enforcement | Not implemented | Design is clear, no code yet |
+| Damping mechanisms | Budget governor only | Budget cap exists, no action cooldowns or marginal-value thresholds |
+| Custody-break taxonomy | Empirically derived | From 1251-task Cycle23 benchmark analysis |
+| Object permanence | Not implemented | Identified by introspection, no code |
+| Convergence as proof | Adversarial check only | LLM-based check exists, not evidence-based |
 
 ---
 
