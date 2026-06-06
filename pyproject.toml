@@ -21,4 +21,5 @@ dependencies = [
 ]
 
 [project.scripts]
+irys = "src.cli:main"
 irys-stateful-swarms = "src.cli:main"
