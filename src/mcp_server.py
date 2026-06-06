@@ -336,6 +336,19 @@ def irys_start_analysis(
     bb_id = create_result["blackboard_id"]
     context_result = json.loads(irys_get_context(bb_id, max_chars=max_chars))
 
+    # Mark documents returned in context as read so convergence doesn't block
+    with _get_lock(bb_id):
+        bb = _load_state(bb_id)
+        for ds in context_result.get("document_sections", []):
+            doc = next((d for d in bb.documents if d.id == ds["doc_id"]), None)
+            if doc and doc.section_index:
+                end_char = len(ds.get("text", ""))
+                for sec in doc.section_index.sections:
+                    if sec.start_char < end_char:
+                        doc.mark_section_read(sec.name)
+        _save_state(bb_id, bb)
+    context_result["summary"] = _bb_summary(bb)
+
     return json.dumps({
         "blackboard_id": bb_id,
         "task_instruction": task_instruction,

@@ -569,6 +569,15 @@ def test_start_analysis_context_has_write_contract(sample_doc):
     assert "question" in wc["signal_types"]
 
 
+def test_start_analysis_marks_returned_docs_as_read(sample_doc):
+    from src.mcp_server import irys_start_analysis, irys_convergence_report
+    result = json.loads(irys_start_analysis("test", str(sample_doc)))
+    bb_id = result["blackboard_id"]
+    conv = json.loads(irys_convergence_report(bb_id))
+    unread_names = [d["name"] for d in conv.get("unread_documents", [])]
+    assert "report.txt" not in unread_names
+
+
 # ── MCP Prompts ──────────────────────────────────────────────────────
 
 
