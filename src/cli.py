@@ -73,7 +73,12 @@ def main():
     score_p = sub.add_parser("score", help="Score a batch run")
     score_p.add_argument("results_dir", type=Path, help="Results directory")
     score_p.add_argument("--bench-root", type=Path, default=None)
-    score_p.add_argument("--judge-model", default="gemini-3.1-flash-lite")
+    score_p.add_argument("--manifest", type=Path, default=None,
+                         help="Manifest JSON (overrides persisted manifest)")
+    score_p.add_argument("--scorer", default=None,
+                         help="Force scorer type: harvey, llm_judge, file_check, "
+                              "or agent_bench:<name> (default: auto)")
+    score_p.add_argument("--judge-model", default="openai/o3")
     score_p.add_argument("--concurrency", "-j", type=int, default=20,
                          help="Criteria parallelism per task")
     score_p.add_argument("--task-concurrency", type=int, default=5,
@@ -97,6 +102,10 @@ def main():
     )
     lifecycle_p.add_argument("results_dir", type=Path, help="Results directory")
 
+    # Benchmark suite
+    from .bench import add_bench_subparser
+    add_bench_subparser(sub)
+
     args = parser.parse_args()
     if not args.command:
         parser.print_help()
@@ -118,6 +127,9 @@ def main():
         _cmd_summarize_derived_work(args)
     elif args.command == "summarize-lifecycle":
         _cmd_summarize_lifecycle(args)
+    elif args.command == "bench":
+        from .bench import cmd_bench
+        cmd_bench(args)
 
 
 def _cmd_ask(args):
@@ -259,18 +271,30 @@ def _cmd_run(args):
 
 def _cmd_batch(args):
     manifest = json.loads(args.manifest.read_text(encoding="utf-8-sig"))
-    bench_root = Path(manifest.get("bench_root", ""))
-    tasks = manifest.get("tasks", [])
 
+    from .scoring import TaskResolver
+    resolver = TaskResolver(manifest)
+
+    tasks = manifest.get("tasks", [])
     print(f"Batch: {len(tasks)} tasks, concurrency {args.concurrency}")
 
     valid = []
     for t in tasks:
-        task_dir = bench_root / "tasks" / t["task_id"]
-        if not (task_dir / "task.json").exists():
+        try:
+            resolved = resolver.resolve(t)
+        except ValueError as e:
+            print(f"  SKIP (resolve error): {t['task_id']} — {e}")
+            continue
+        if not (resolved.task_dir / "task.json").exists():
             print(f"  SKIP (missing): {t['task_id']}")
             continue
-        valid.append((t["task_id"], task_dir))
+        valid.append((t["task_id"], resolved.task_dir))
+
+    args.output.mkdir(parents=True, exist_ok=True)
+    manifest_snapshot = args.output / "manifest.json"
+    manifest_snapshot.write_text(
+        json.dumps(manifest, indent=2), encoding="utf-8",
+    )
 
     print(f"Valid: {len(valid)}/{len(tasks)}")
     if not valid:
@@ -398,25 +422,21 @@ def _cmd_manifest(args):
 
 
 def _cmd_score(args):
-    bench_root_env = os.getenv("HARVEY_BENCH_ROOT")
-    if args.bench_root:
-        bench_root = args.bench_root
-    elif bench_root_env:
-        bench_root = Path(bench_root_env)
-    else:
-        print("Error: HARVEY_BENCH_ROOT environment variable or --bench-root argument required")
-        sys.exit(1)
-    sys.path.insert(0, str(bench_root))
+    from .scoring import (
+        load_manifest_for_scoring, TaskResolver, create_scorer,
+    )
 
     try:
-        from evaluation.judge import Judge
-        from evaluation.scoring import score_rubric
-    except ImportError as e:
-        print(f"Cannot import Harvey LAB evaluation: {e}")
-        print("Make sure HARVEY_BENCH_ROOT points to the harvey-labs directory")
+        manifest = load_manifest_for_scoring(
+            results_dir=args.results_dir,
+            manifest_override=args.manifest,
+            bench_root_override=args.bench_root,
+        )
+    except RuntimeError as e:
+        print(f"Error: {e}")
         sys.exit(1)
 
-    judge = Judge(model=args.judge_model)
+    resolver = TaskResolver(manifest)
 
     run_dirs = []
     for root, dirs, files in os.walk(args.results_dir):
@@ -428,39 +448,65 @@ def _cmd_score(args):
                 if not scores_path.exists():
                     run_dirs.append(root_path)
 
-    print(f"Scoring {len(run_dirs)} tasks with {args.judge_model}")
+    print(f"Scoring {len(run_dirs)} tasks with scorer={args.scorer or 'auto'}")
+
+    import threading
+    scorer_cache: dict[str, object] = {}
+    scorer_lock = threading.Lock()
+
+    def _get_scorer(scorer_name: str):
+        with scorer_lock:
+            if scorer_name not in scorer_cache:
+                bench_root = None
+                for src in resolver.sources.values():
+                    if src.type == "harvey_lab":
+                        bench_root = src.root
+                        break
+                scorer_cache[scorer_name] = create_scorer(
+                    scorer_name, bench_root=bench_root, judge_model=args.judge_model,
+                )
+            return scorer_cache[scorer_name]
 
     def _score_one(run_dir):
         task_id = _extract_task_id(run_dir, args.results_dir)
-        task_json_path = bench_root / "tasks" / task_id / "task.json"
-        if not task_json_path.exists():
-            return task_id, None, f"no task.json"
+
+        if args.scorer:
+            scorer_name = args.scorer
+        else:
+            try:
+                resolved = resolver.resolve({"task_id": task_id})
+                scorer_name = resolved.scorer_name
+            except ValueError:
+                scorer_name = "harvey"
+
+        task_json_path = None
+        try:
+            resolved = resolver.resolve({"task_id": task_id})
+            task_json_path = resolved.task_dir / "task.json"
+        except ValueError:
+            pass
+
+        if not task_json_path or not task_json_path.exists():
+            return task_id, None, "no task.json"
 
         task_data = json.loads(task_json_path.read_text(encoding="utf-8-sig"))
-        criteria = task_data.get("criteria", [])
-        task_desc = task_data.get("title", task_id)
 
         try:
-            result = score_rubric(
-                criteria=criteria,
-                run_dir=run_dir,
-                judge=judge,
-                task_desc=task_desc,
-                parallel=args.concurrency,
+            scorer = _get_scorer(scorer_name)
+            result = scorer.score_task(
+                task_data, run_dir, concurrency=args.concurrency,
             )
             scores = {
                 "score": result.score,
                 "max_score": result.max_score,
-                "all_pass": result.score == result.max_score,
-                "n_criteria": len(criteria),
-                "n_passed": sum(
-                    1 for cr in result.criteria_results
-                    if cr.get("verdict") == "pass"
-                ),
+                "all_pass": result.all_pass,
+                "n_criteria": result.n_criteria,
+                "n_passed": result.n_passed,
                 "criteria_results": result.criteria_results,
                 "run_id": task_id,
                 "task": task_id,
-                "judge_model": args.judge_model,
+                "scorer_type": result.scorer_type,
+                "judge_model": result.judge_model,
             }
             (run_dir / "scores.json").write_text(
                 json.dumps(scores, indent=2, default=str), encoding="utf-8",
