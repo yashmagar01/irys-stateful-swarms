@@ -18,7 +18,10 @@ dependencies = [
     "pandas>=2.0.0",
     # Testing
     "pytest>=8.0.0",
+    # MCP server
+    "mcp>=1.0.0",
 ]
 
 [project.scripts]
 irys-stateful-swarms = "src.cli:main"
+irys-mcp = "src.mcp_server:main"
