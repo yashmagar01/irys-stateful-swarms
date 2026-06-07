@@ -60,7 +60,7 @@ BENCHMARK_TIERS: list[BenchmarkSpec] = [
         sota="66.2% (Opus 4.8); single-call <5%",
     ),
     BenchmarkSpec(
-        "gaia", "validation", "primary", "multi_step_tool_use",
+        "gaia", "validation", "experimental", "multi_step_tool_use",
         sota="74.6% (HAL agent); bare model ~45%",
     ),
     BenchmarkSpec(

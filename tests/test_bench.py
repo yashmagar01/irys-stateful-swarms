@@ -33,7 +33,7 @@ def test_primary_benchmarks_are_agentic():
     names = [s.name for s in primary]
     assert "harvey_lab" in names
     assert "officeqa_pro" in names
-    assert "gaia" in names
+    assert "ama_bench" in names
 
 
 def test_primary_benchmarks_have_sota():
