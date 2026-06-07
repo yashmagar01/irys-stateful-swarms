@@ -146,8 +146,13 @@ def _record_aggregate_usage(result) -> None:
 def compose_worker_prompt(task_description: str, context_entries: list[Entry],
                           document_sections: list[tuple[str, str]],
                           task_instruction: str,
-                          assigned_signals: list[tuple[str, str, str]] | None = None) -> str:
+                          assigned_signals: list[tuple[str, str, str]] | None = None,
+                          web_search_results: str | None = None) -> str:
     parts = [task_description, f"\nOVERALL TASK: {task_instruction}"]
+
+    if web_search_results:
+        parts.append("\nWEB SEARCH RESULTS:")
+        parts.append(web_search_results)
 
     if context_entries:
         parts.append("\nRELEVANT PRIOR FINDINGS:")
@@ -351,9 +356,19 @@ def execute_workers_parallel(worker_tasks: list[dict], blackboard: Blackboard,
                         sections_read.append((doc_name, sec_name))
                     break
 
+        web_results = None
+        raw_queries = task.get("search_queries", [])
+        if raw_queries:
+            from .web_search import run_web_searches, web_search_enabled
+            if web_search_enabled():
+                if isinstance(raw_queries, str):
+                    raw_queries = [raw_queries]
+                web_results = run_web_searches(raw_queries)
+
         prompt = compose_worker_prompt(
             task["description"], context_entries,
             doc_sections, blackboard.task_instruction, assigned_signals,
+            web_search_results=web_results,
         )
         # Route analytical workers to smarter model if available
         expected_type = task.get("expected_output_type", "observation")

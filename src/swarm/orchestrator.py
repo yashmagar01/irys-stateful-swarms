@@ -30,7 +30,8 @@ Create 1-5 workers. For each:
 {{"description": "specific task — be precise about what to extract or analyze", "reads_from_blackboard": ["e1"],
   "reads_from_documents": [{{"document": "name", "sections": ["Sec 4"]}}],
   "expected_output_type": "observation|analysis|calculation|strategy",
-  "priority": "critical|high|medium", "addresses_signals": ["s2"]}}
+  "priority": "critical|high|medium", "addresses_signals": ["s2"],
+  "search_queries": ["optional web search queries — use when facts need external verification"]}}
 
 Return: {{"workers": [...]}}
 OR: {{"action": "converge", "reasoning": "why", "remaining_gaps": [...]}}
@@ -113,6 +114,18 @@ def run_orchestrator(blackboard: Blackboard, caller: ModelCaller,
         budget_pct=summary["budget_used_pct"], signals=sigs,
         recent=recent, disputed=disputed,
     )
+
+    from .web_search import web_search_enabled
+    if web_search_enabled():
+        prompt += """
+WEB SEARCH AVAILABLE: You can add "search_queries": ["query1", "query2"] to any worker.
+Use this to:
+- Verify case law citations, statutes, and regulations
+- Look up current facts, dates, events, or entity information
+- Find definitions of technical terms or industry standards
+- Cross-check numerical claims against public sources
+- Answer questions that require knowledge beyond the provided documents
+Workers with search_queries will have web results injected into their context."""
     if override:
         prompt += f"\n\nIMPORTANT: {override}"
 
