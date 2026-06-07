@@ -147,6 +147,21 @@ def run_swarm(task: Task, caller: ModelCaller, *,
                 ))
         blackboard.save_snapshot("seed")
 
+    # Phase 3b: If no documents but web search is enabled, add a research signal
+    from .web_search import web_search_enabled
+    if not blackboard.documents and web_search_enabled():
+        from .models import Signal, gen_signal_id
+        blackboard.add_signal(Signal(
+            id=gen_signal_id(), type="question",
+            content=(
+                "No source documents provided. Use web search to find "
+                "information needed to answer the task. Break the question "
+                "into specific search queries."
+            ),
+            origin_entry="bootstrap", priority="critical",
+            status="open", iteration_created=0,
+        ))
+
     # Phase 4: Initial reading (parallel per section)
     entries, tokens = _execute_initial_reading(blackboard, task, caller, seed_plan)
     blackboard.add_entries_batch(entries)
