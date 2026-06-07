@@ -1,8 +1,22 @@
 """Agent-bench bridge for irys stateful swarms.
 
-Implements AgentBackend so the irys swarm can be evaluated against all
-agent-bench benchmarks. Also defines benchmark tiers and provides a CLI
-entry point for running benchmark suites.
+Implements AgentBackend so the irys swarm can be evaluated against
+agentic benchmarks that test multi-step reasoning, tool use, and
+complex document analysis — capabilities where a swarm architecture
+actually differentiates from a single LLM call.
+
+Benchmark strategy (2026-06):
+  PRIMARY tier: Harvey LAB, OfficeQA Pro, GAIA — these are THE
+  priority. They test iterative document analysis, cross-document
+  numerical reasoning, and multi-step tool-using agent capability.
+  A single-call model cannot score well on these; our swarm should.
+
+  EXPERIMENTAL tier: ARC-AGI-3 — interactive reasoning, separate
+  evaluation harness.
+
+  Single-call QA benchmarks (HotpotQA, FinanceBench, CUAD, etc.)
+  were dropped — they test model quality, not architecture value.
+  Good scores on those prove Gemini is good, not that our swarm is.
 """
 
 from __future__ import annotations
@@ -26,45 +40,38 @@ from typing import Any
 class BenchmarkSpec:
     name: str
     split: str
-    tier: str  # "core" | "product" | "guardrail" | "experimental"
+    tier: str  # "primary" | "experimental"
     category: str
+    sota: str = ""
 
 
 BENCHMARK_TIERS: list[BenchmarkSpec] = [
-    # --- CORE: Legal & contract extraction (highest priority) ---
-    BenchmarkSpec("cuad", "train", "core", "legal"),
-    BenchmarkSpec("legalbench", "train", "core", "legal"),
-    BenchmarkSpec("contractnli", "train", "core", "legal"),
-    BenchmarkSpec("maud", "train", "core", "legal"),
+    # --- PRIMARY: Agentic benchmarks that test swarm architecture value ---
+    # These are the #1 priority. A single LLM call cannot score well on
+    # these; our swarm's iterative analysis, blackboard state, and
+    # multi-pass extraction should meaningfully outperform.
 
-    # --- PRODUCT-ADJACENT: Document analysis strengths ---
-    BenchmarkSpec("docfinqa", "train", "product", "financial"),
-    BenchmarkSpec("financebench", "train", "product", "financial"),
-    BenchmarkSpec("facts_grounding", "public", "product", "grounding"),
-    BenchmarkSpec("l_citeeval", "test", "product", "citation"),
-    BenchmarkSpec("longbench_v2", "train", "product", "long_context"),
-    BenchmarkSpec("hotpotqa", "train", "product", "multi_hop"),
-    BenchmarkSpec("musique", "train", "product", "multi_hop"),
-    BenchmarkSpec("multihop_rag", "test", "product", "multi_hop"),
-    BenchmarkSpec("nolima", "test", "product", "retrieval"),
+    BenchmarkSpec(
+        "harvey_lab", "tasks", "primary", "legal_document_analysis",
+        sota="7.1% (Opus 4.7, single-model)",
+    ),
+    BenchmarkSpec(
+        "officeqa_pro", "test", "primary", "cross_document_numerical",
+        sota="66.2% (Opus 4.8); single-call <5%",
+    ),
+    BenchmarkSpec(
+        "gaia", "validation", "primary", "multi_step_tool_use",
+        sota="74.6% (HAL agent); bare model ~45%",
+    ),
+    BenchmarkSpec(
+        "ama_bench", "test", "primary", "agent_memory",
+        sota="57.2% (AMA-Agent w/ causality graph)",
+    ),
 
-    # --- PROMOTED from guardrail (strong doc analysis fit) ---
-    BenchmarkSpec("qasa", "test", "product", "paper_qa"),
-    BenchmarkSpec("longhealth", "flat", "product", "clinical"),
-
-    # --- GUARDRAIL: Periodic generalization checks ---
-    BenchmarkSpec("mrcr", "2needle", "guardrail", "conversation"),
-    BenchmarkSpec("counting_stars", "test", "guardrail", "citation"),
-    BenchmarkSpec("loong", "test", "guardrail", "long_context"),
-    BenchmarkSpec("fanoutqa", "dev", "guardrail", "lookup"),
-    BenchmarkSpec("nocha", "test", "guardrail", "narrative"),
-    BenchmarkSpec("locomo", "test", "guardrail", "conversation"),
-    BenchmarkSpec("qmsum", "test", "guardrail", "summarization"),
-    BenchmarkSpec("repoqa", "test", "guardrail", "code"),
-    BenchmarkSpec("long_code_arena", "test", "guardrail", "code"),
-
-    # --- EXPERIMENTAL: Novel evaluation ---
-    BenchmarkSpec("arc_agi_3", "test", "experimental", "interactive_reasoning"),
+    # --- EXPERIMENTAL: Requires separate evaluation harness ---
+    BenchmarkSpec(
+        "arc_agi_3", "test", "experimental", "interactive_reasoning",
+    ),
 ]
 
 
@@ -331,6 +338,8 @@ async def run_benchmark_suite(
         bench_results = results_dir / spec.name
         bench_results.mkdir(parents=True, exist_ok=True)
 
+        completed_list = bench_results / "completed.jsonl"
+
         try:
             summary = await run_benchmark(
                 benchmark=spec.name,
@@ -340,6 +349,7 @@ async def run_benchmark_suite(
                 results_dir=bench_results,
                 limit=limit,
                 concurrency=concurrency,
+                completed_list_path=completed_list,
             )
             summaries[spec.name] = {
                 "benchmark": spec.name,
@@ -382,7 +392,7 @@ def add_bench_subparser(sub):
     )
     bench_p.add_argument(
         "--tier", nargs="*", default=None,
-        choices=["core", "product", "guardrail", "experimental"],
+        choices=["primary", "experimental"],
         help="Benchmark tiers to run (default: all)",
     )
     bench_p.add_argument(
@@ -427,10 +437,10 @@ def cmd_bench(args):
             tiers=args.tier,
             names=args.benchmark,
         )
-        print(f"{'Name':<20} {'Split':<10} {'Tier':<12} {'Category'}")
-        print("-" * 60)
+        print(f"{'Name':<20} {'Split':<10} {'Tier':<12} {'Category':<28} {'SOTA'}")
+        print("-" * 100)
         for s in specs:
-            print(f"{s.name:<20} {s.split:<10} {s.tier:<12} {s.category}")
+            print(f"{s.name:<20} {s.split:<10} {s.tier:<12} {s.category:<28} {s.sota}")
         print(f"\nTotal: {len(specs)} benchmarks")
         return
 

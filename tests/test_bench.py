@@ -1,4 +1,9 @@
-"""Tests for the agent-bench bridge and benchmark tier configuration."""
+"""Tests for the agent-bench bridge and benchmark tier configuration.
+
+Updated 2026-06: Tiers restructured to prioritize agentic benchmarks
+that test swarm architecture value (Harvey LAB, OfficeQA Pro, GAIA,
+AMA-Bench). Single-call QA benchmarks dropped.
+"""
 
 from __future__ import annotations
 
@@ -16,26 +21,25 @@ from src.bench import (
 # Tier configuration
 # ---------------------------------------------------------------------------
 
-def test_all_tiers_present():
+def test_tiers_present():
     tiers = {s.tier for s in BENCHMARK_TIERS}
-    assert tiers == {"core", "product", "guardrail", "experimental"}
+    assert "primary" in tiers
+    assert "experimental" in tiers
 
 
-def test_core_benchmarks_are_legal():
-    core = get_benchmarks(tiers=["core"])
-    assert len(core) >= 4
-    for s in core:
-        assert s.category == "legal", f"{s.name} is core but not legal"
+def test_primary_benchmarks_are_agentic():
+    primary = get_benchmarks(tiers=["primary"])
+    assert len(primary) >= 3
+    names = [s.name for s in primary]
+    assert "harvey_lab" in names
+    assert "officeqa_pro" in names
+    assert "gaia" in names
 
 
-def test_product_benchmarks_count():
-    product = get_benchmarks(tiers=["product"])
-    assert len(product) >= 10
-
-
-def test_guardrail_benchmarks_count():
-    guardrail = get_benchmarks(tiers=["guardrail"])
-    assert len(guardrail) >= 5
+def test_primary_benchmarks_have_sota():
+    primary = get_benchmarks(tiers=["primary"])
+    for s in primary:
+        assert s.sota, f"{s.name} is primary but has no SOTA reference"
 
 
 def test_experimental_includes_arc_agi_3():
@@ -44,20 +48,28 @@ def test_experimental_includes_arc_agi_3():
     assert "arc_agi_3" in names
 
 
+def test_ama_bench_in_primary():
+    primary = get_benchmarks(tiers=["primary"])
+    names = [s.name for s in primary]
+    assert "ama_bench" in names
+
+
+def test_no_single_call_qa_benchmarks():
+    """Single-call QA benchmarks were explicitly dropped."""
+    names = {s.name for s in BENCHMARK_TIERS}
+    dropped = {"hotpotqa", "financebench", "cuad", "legalbench", "musique",
+               "contractnli", "maud", "docfinqa"}
+    for d in dropped:
+        assert d not in names, f"{d} should have been dropped (single-call QA)"
+
+
 def test_total_benchmark_count():
-    assert len(BENCHMARK_TIERS) >= 25
+    assert len(BENCHMARK_TIERS) == 5
 
 
 def test_no_duplicate_benchmark_names():
     names = [s.name for s in BENCHMARK_TIERS]
-    assert len(names) == len(set(names)), f"Duplicates: {[n for n in names if names.count(n) > 1]}"
-
-
-def test_promoted_benchmarks_in_product():
-    product = get_benchmarks(tiers=["product"])
-    names = [s.name for s in product]
-    assert "qasa" in names, "QASA should be promoted to product tier"
-    assert "longhealth" in names, "LongHealth should be promoted to product tier"
+    assert len(names) == len(set(names))
 
 
 # ---------------------------------------------------------------------------
@@ -65,24 +77,23 @@ def test_promoted_benchmarks_in_product():
 # ---------------------------------------------------------------------------
 
 def test_filter_by_tier():
-    core = get_benchmarks(tiers=["core"])
-    for s in core:
-        assert s.tier == "core"
+    primary = get_benchmarks(tiers=["primary"])
+    for s in primary:
+        assert s.tier == "primary"
 
 
 def test_filter_by_category():
-    financial = get_benchmarks(categories=["financial"])
-    for s in financial:
-        assert s.category == "financial"
-    assert len(financial) >= 2
+    legal = get_benchmarks(categories=["legal_document_analysis"])
+    assert len(legal) == 1
+    assert legal[0].name == "harvey_lab"
 
 
 def test_filter_by_name():
-    result = get_benchmarks(names=["cuad", "hotpotqa"])
+    result = get_benchmarks(names=["gaia", "ama_bench"])
     assert len(result) == 2
     names = [s.name for s in result]
-    assert "cuad" in names
-    assert "hotpotqa" in names
+    assert "gaia" in names
+    assert "ama_bench" in names
 
 
 def test_filter_returns_empty_for_nonexistent():
@@ -103,7 +114,6 @@ def test_backend_has_required_attributes():
 
 
 def test_backend_protocol_compliance():
-    """IrysSwarmBackend must satisfy the AgentBackend protocol shape."""
     backend = IrysSwarmBackend()
     assert isinstance(backend.name, str)
     assert isinstance(backend.version, str)
@@ -116,11 +126,10 @@ def test_backend_protocol_compliance():
 # ---------------------------------------------------------------------------
 
 def test_agent_bench_scorer_integration():
-    """Verify AgentBenchScorer can be created for known benchmarks."""
     try:
         from src.bench import AgentBenchScorer
-        scorer = AgentBenchScorer("hotpotqa")
-        assert scorer._benchmark == "hotpotqa"
+        scorer = AgentBenchScorer("gaia")
+        assert scorer._benchmark == "gaia"
     except ImportError:
         pytest.skip("agent-bench not importable")
 
@@ -139,11 +148,10 @@ def test_agent_bench_scorer_unknown_raises():
 # ---------------------------------------------------------------------------
 
 def test_create_scorer_agent_bench_prefix():
-    """create_scorer('agent_bench:hotpotqa') should work."""
     try:
         from src.scoring import create_scorer
-        scorer = create_scorer("agent_bench:hotpotqa")
-        assert scorer._benchmark == "hotpotqa"
+        scorer = create_scorer("agent_bench:gaia")
+        assert scorer._benchmark == "gaia"
     except (ImportError, ValueError):
         pytest.skip("agent-bench not importable")
 
@@ -158,11 +166,12 @@ AGENT_BENCH_BENCHMARKS = {
     "mrcr", "counting_stars", "loong", "l_citeeval", "multihop_rag",
     "nocha", "locomo", "qasa", "qmsum", "longhealth", "repoqa",
     "long_code_arena", "financebench",
+    "gaia", "officeqa_pro", "ama_bench",
+    "harvey_lab", "harvey_lab_sample", "harvey_lab_full",
 }
 
 
 def test_all_non_experimental_benchmarks_exist_in_agent_bench():
-    """Every non-experimental benchmark must have an agent-bench adapter."""
     non_experimental = [s for s in BENCHMARK_TIERS if s.tier != "experimental"]
     for spec in non_experimental:
         assert spec.name in AGENT_BENCH_BENCHMARKS, (
