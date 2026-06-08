@@ -49357,75 +49357,261 @@ A single-call system with Opus 4.8 at $15/M input tokens will always be 10-60x m
 
 ---
 
-## 2008. EXECUTION PRINCIPLES
+## 2008. EXECUTION PRINCIPLES (Codex-Reviewed, v2)
 
-### 1. Phase 0 Before All Else
+### Corrections from Codex Review (2026-06-08)
 
-Enable existing features and fix bugs BEFORE writing new code. The system has 14+ disabled capabilities. We don't know their combined impact. Test first.
+Codex challenged several assertions in the original plan. Corrections incorporated:
 
-### 2. Measure Obsessively
+1. **"Good blackboards produce good outputs automatically" is FALSE.** Output policy, repair policy, and scorer alignment are first-class architecture. A good blackboard is necessary but not sufficient. Synthesis, verification, and output formatting are independent quality axes.
 
-Every enhancement gets a 48-task smoke test before full benchmark run. Track:
-- Per-criterion accuracy (not just binary pass)
-- Criteria fixed per task (the "fix N" metric)
-- Cost per task
-- Time per task
-- Failure mode breakdown
+2. **"Domain-agnostic" is ASSERTED, not demonstrated.** Legal doc synthesis, code patching, terminal control, browser navigation, and desktop GUI have different state/action spaces. The blackboard is the shared memory spine, but each domain needs its own action layer.
 
-### 3. One Change, One Measurement
+3. **Numbers were too optimistic.** Harvey 55-78% in 6 weeks requires near-perfect verifier accuracy, which is unproven. Revised to include confidence ranges and gate conditions.
 
-Scientific discipline. Don't bundle unrelated changes. Attribution matters.
+4. **Harness engineering is underweighted.** For SOTA claims, the benchmark harness (input loader, tool permissions, scoring runner, retry policy, artifact validator) IS part of the product.
 
-### 4. The Non-Sectioned Path Is Sacred
+5. **Missing: verifier calibration, confidence intervals, regression budget, per-benchmark cost ceilings.**
 
-Monolithic non-sectioned achieves 97.4%. Don't touch it. Don't break it. It's the proof that the architecture works.
+### Revised Principles
 
-### 5. General-Purpose From Day 1
+1. **Phase 0 before all else.** Enable existing features and fix bugs BEFORE writing new code. The system has 14+ disabled capabilities. We don't know their combined impact. Test first.
 
-Every enhancement should be domain-agnostic. Don't hardcode legal-specific logic. Build for any domain profile.
+2. **Measure obsessively with statistical rigor.** Every enhancement gets a 48-task smoke test. Track:
+   - Per-criterion accuracy with 95% confidence intervals
+   - Binary pass rate with bootstrapped CI
+   - Criteria fixed per task (fix-N metric)
+   - Cost per task (including retries and failed runs)
+   - Verifier precision AND recall (not just "items found")
+   - Non-sectioned regression (must stay above 95% binary)
 
-### 6. The Blackboard Is the Product
+3. **One change, one measurement.** Scientific discipline. Don't bundle. Per-feature ablation before all-features run.
 
-The final output (memo, code, analysis) is a secondary artifact. The blackboard — the structured analytical state — is the primary value. Design for blackboard quality, not output quality. Good blackboards produce good outputs automatically.
+4. **The non-sectioned path is sacred.** 97.4% binary pass. Don't touch it. Don't break it. Regression budget: 0pp.
+
+5. **Domain-specific action layers on shared blackboard spine.** The blackboard is memory and audit. Each benchmark domain (legal, financial, coding, research, tool-use) gets its own action policy, output renderer, and verification chain. "General-purpose" means the blackboard protocol is shared, not the prompts.
+
+6. **Harness engineering is first-class.** Each benchmark gets a minimal harness contract BEFORE any runs: input loader, tool permissions, scoring runner, retry policy, log schema, artifact validator. No SOTA claim without official or reproducible scorer.
 
 ---
 
-## 2009. TIMELINE SUMMARY
+## 2008a. ESCALATION GATES (5 Go/No-Go Decision Points)
 
-| Week | Focus | Harvey LAB | GAIA | OfficeQA | MCP-Atlas | SWE-bench Pro | Other |
-|---|---|---|---|---|---|---|---|
-| 1 | Enable features + bugs | 30-55% | — | — | — | — | — |
-| 2-3 | Enhanced sectioning | 42-65% | — | — | — | — | — |
-| 4-6 | Self-correction loop | 55-78% | — | 40-55% | — | — | Finance Agent 50%+ |
-| 7-8 | Tool use framework | — | — | — | — | — | Web search, code exec |
-| 9-10 | Domain profiles + MCP | — | — | — | 80-88% | — | Toolathlon 55-65% |
-| 11-12 | GAIA + SWE + Browse | — | 75-85% | 55-65% | — | 40-50% | BrowseComp 80-90% |
-| 13-14 | Curation consolidation | 70-85% | — | — | — | — | — |
-| 15-16 | Fine-tuned verifier | 80%+ | — | — | — | — | GDPval-AA entry |
-| 17-18 | Output templates | — | — | 70%+ | — | 50-60% | Terminal-Bench entry |
-| 19-20 | Persistent state | 80-90% | 85-92% | 70-80% | 88-93% | 55-65% | All benchmarks optimized |
+### Gate 1: Feature Interaction (End of Week 1)
 
-### Week 20 Scorecard (Target)
+**Trigger**: After all existing flags/bug fixes run on fixed 48-task Harvey smoke set.
 
-| Benchmark | Current SOTA | Who Holds It | Our Target | Status |
+**Success criteria (ALL must hold)**:
+- Binary pass improves by at least +8pp (from 17.75% to 25.75%+)
+- Per-criterion accuracy does NOT regress on non-sectioned tasks (stays 100%)
+- Cost stays under +35% ($1.76/task max)
+- No parse/runtime failure rate above 2%
+- At least 3 of the 14+ features show positive individual contribution
+
+**Failure protocol**: Bisect flags one at a time. Disable any feature with negative expected value. Run each feature alone, measure delta.
+
+**Fallback**: Keep only verifier fix, file repair rewrite, and source-claim detection. Proceed to Gate 2 with reduced feature set.
+
+### Gate 2: Sectioning Repair (End of Week 3)
+
+**Trigger**: After global outline, cross-section context, and rewrite repair land.
+
+**Success criteria (ALL must hold)**:
+- Sectioned task per-criterion rises by at least +7pp (from 79.5% to 86.5%+)
+- Binary pass on sectioned smoke tasks reaches at least 15% (from 0.7%)
+- Non-sectioned remains above 95% binary
+- Global outline recall: at least 90% of must_include items assigned to correct section
+- No cross-section contradictions above 1% rate
+
+**Failure protocol**: Inspect missing-item survival by section. Compare outline assignment vs final output. Measure which sections lose which items.
+
+**Fallback**: Lower SECTION_THRESHOLD (force more tasks into non-sectioned path). Prioritize curation consolidation BEFORE adding self-correction.
+
+### Gate 3: Correction Loop Convergence (End of Week 6)
+
+**Trigger**: After 3-5 verify/fix iterations are implemented and tested.
+
+**Success criteria (ALL must hold)**:
+- Each iteration shows positive marginal recovery (diminishing returns OK, but never negative)
+- Verifier false-positive rate below 10% (measured against judged criteria)
+- Cost per recovered criterion below $0.05
+- No output corruption (new content doesn't delete existing correct content)
+- Harvey binary pass reaches 40%+ on 48-task smoke
+
+**Failure protocol**: Freeze correction count at best marginal iteration. Recalibrate verifier. Measure verifier precision/recall on gold labels.
+
+**Fallback**: Use single post-synthesis shadow audit plus targeted section rewrite only (no loop).
+
+### Gate 4: Cross-Benchmark Viability (End of Week 12)
+
+**Trigger**: First honest runs on GAIA, MCP-Atlas, BrowseComp, Finance Agent v2.
+
+**Success criteria (at least 3 of 4 must hold)**:
+- At least 2 non-Harvey benchmarks exceed current SOTA
+- Finance Agent v2 exceeds 57.9% (current Gemini 3.5 Flash SOTA)
+- MCP-Atlas exceeds 83.6% (current AntiGravity SOTA)
+- Full harness logs, scoring reproducibility, and cost tracking for every benchmark
+
+**Failure protocol**: Split document-analysis roadmap from tool-orchestration/coding roadmap. Build benchmark-specific adapters while preserving blackboard as shared state.
+
+**Fallback**: Narrow SOTA claims to Harvey LAB + OfficeQA + BigLaw. Publish architecture ablations showing blackboard contribution. Do NOT claim "sweep everything" without evidence.
+
+### Gate 5: SOTA Claim Gate (Before Any Public Claim)
+
+**Trigger**: Before any "beat SOTA" public, strategic, or whitepaper claim.
+
+**Success criteria (ALL must hold)**:
+- Full benchmark run (not smoke sample) on official or reproducible scorer
+- 95% bootstrapped confidence interval for our score exceeds SOTA
+- Cost/task documented
+- Ablation study showing blackboard contribution (with vs without)
+- No hidden contamination (cross-session state, leaked rubrics, benchmark-specific tuning)
+- At least +2pp over current SOTA OR statistically significant lead (p < 0.05)
+
+**Failure protocol**: Downgrade claim to "competitive" or "domain-leading on X."
+
+**Fallback**: Publish narrow claims: Harvey cost/quality, OfficeQA if proven, architecture ablations.
+
+---
+
+## 2008b. TESTING PROTOCOL (Per-Phase)
+
+### Phase 0 (Feature Enable)
+
+1. Run `python -m pytest tests -q` — all existing tests must pass
+2. Per-feature ablation on 48-task smoke: each feature alone, measure binary pass delta
+3. All-features-enabled run on same 48 tasks
+4. Required measurements: per-criterion delta, binary delta, cost/task, output length, parse failures
+5. Non-sectioned regression check: re-run 10 non-sectioned tasks, must stay at 97%+ binary
+
+### Phase 1 (Enhanced Sectioning)
+
+1. Synthetic must-include survival tests: 50, 100, 500, 2000 items
+2. Verify outline assignment recall (what % of items land in correct section)
+3. Chunk prompt inclusion audit (are outline + context actually in every chunk prompt?)
+4. Final item survival rate (what % of must-include items appear in final output)
+5. Duplicate rate across sections
+6. Cross-section contradiction detection
+7. Threshold: +7pp per-criterion on sectioned Harvey sample, zero non-sectioned regression
+
+### Phase 2 (Self-Correction Loop)
+
+1. Gold missing-item fixtures: manually label 20 tasks with known missing items
+2. Measure verifier precision: of items flagged as missing, what % are actually missing?
+3. Measure verifier recall: of items actually missing, what % does the verifier catch?
+4. Correction yield per iteration (items recovered per iteration)
+5. Hallucinated additions rate (new content not supported by blackboard)
+6. Source-citation survival (does correction preserve existing correct citations?)
+7. Stop criteria must be empirical: stop when marginal yield < 1 item AND verifier precision confirmed
+
+### Phase 3 (Curation Consolidation)
+
+1. A/B test: old curation vs hierarchical on 24 identical tasks
+2. Required: item count reduction of at least 50%
+3. Scoring recall loss under 1pp (measured by criterion-level comparison)
+4. Binary pass must increase (fewer items + same recall = higher pass rate)
+
+### Cross-Benchmark (Phase B)
+
+1. Each benchmark gets a harness contract before ANY runs:
+   - Input loader, tool permissions, scoring runner, retry policy, log schema, artifact validator
+2. Minimum 30 tasks per benchmark for statistical significance (unless benchmark is smaller)
+3. Official scorer or reproduced scorer with validation against published baselines
+4. Cost and latency tracking per task
+
+---
+
+## 2008c. RISK REGISTER (Codex-Identified, Top 10)
+
+| # | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|---|
-| **Harvey LAB** | ~10.4% | Opus 4.8 / Harvey | **80-90%** | **DESTROY (8x better)** |
-| **OfficeQA Pro** | 66.2% | Opus 4.8 | **70-80%** | **BEAT** |
-| **Finance Agent v2** | 57.9% | Gemini 3.5 Flash | **65-72%** | **BEAT** |
-| **MCP-Atlas** | 83.6% | AntiGravity 2.0 | **88-93%** | **BEAT** |
-| **GAIA** | 91.4% scaffolded | Lemon Agent | **85-92%** | **COMPETITIVE** |
-| **Toolathlon** | 59.9% | Opus 4.8 | **65-72%** | **BEAT** |
-| **BrowseComp** | 90.1% | GPT-5.5 Pro | **90-95%** | **BEAT** |
-| **GDPval-AA** | 1,890 Elo | Opus 4.8 | **Top 3** | **COMPETITIVE** |
-| **SWE-bench Pro** | 77.8% | Mythos Preview | **55-65%** | Entering |
-| **Terminal-Bench 2.1** | 82.7% | GPT-5.5 | **60-72%** | Entering |
-| **BigLaw Bench** | 90.2% | Opus 4.6 | **92%+** | **BEAT** |
+| R1 | Phase A improvements do not compound | High | High | Ablate every feature; only keep positive EV changes |
+| R2 | Verifier false positives create fake convergence | High | High | Calibrate against judged criteria; track precision/recall |
+| R3 | Append/repair bloats outputs without satisfying criteria | High | Medium | Require item-to-output survival map |
+| R4 | Sectioning loses global coherence despite outline | Medium | High | Global outline + contradiction audit |
+| R5 | Curation consolidation drops scoring-critical atomic facts | Medium | High | Criterion recall tests before rollout |
+| R6 | Persistent state contaminates benchmarks | Medium | High | Immutable per-run state, provenance labels, cache audit |
+| R7 | Cost estimates are optimistic (retries, failed runs not counted) | High | Medium | Measure TOTAL cost at each gate including failures |
+| R8 | Tool-orchestration benchmarks need non-document architecture | Medium | High | Build domain-specific action layers on blackboard spine |
+| R9 | Benchmark SOTA numbers drift before we claim | High | Medium | Refresh leaderboards before each gate |
+| R10 | Hidden harness failures dominate real scores | Medium | High | Dry-run official scorers and artifact validators early |
 
-**We beat or match SOTA on 8 of 11 benchmarks.** SWE-bench Pro and Terminal-Bench are the only ones where we enter competitive but not leading — those are pure coding benchmarks with years of optimization by code-focused systems. Our persistent state and multi-file coordination advantages narrow the gap over time. GAIA depends on whether Lemon Agent's 91.4% holds or is scaffolding-specific.
+---
 
-### The Headline
+## 2008d. MISSING VARIABLES CHECKLIST
 
-**"Stateful swarms sweep agentic benchmarks: 80%+ Harvey LAB (8x better than anyone), SOTA on OfficeQA + MCP-Atlas + Finance Agent + Toolathlon + BrowseComp + BigLaw, competitive on GAIA and GDPval — all at $1.60/task. Architecture beats model. Every time."**
+Before execution begins, these must be resolved:
+
+- [ ] **Benchmark access**: Do we have dataset access and license rights for GAIA, MCP-Atlas, BrowseComp, Finance Agent v2, GDPval-AA, BigLaw Bench?
+- [ ] **Scorer availability**: Do we have official scoring scripts for each benchmark? Can we reproduce published baselines?
+- [ ] **Model routing map**: Which model for extraction, synthesis, verification, correction, coding, search, judge? Cost per model per call.
+- [ ] **Per-benchmark cost ceiling**: Maximum acceptable $/task for each benchmark.
+- [ ] **Per-benchmark latency ceiling**: Maximum acceptable seconds/task for each benchmark.
+- [ ] **Reproducibility protocol**: Seeds, task sampling order, retry policy, parallelism, cache invalidation rules.
+- [ ] **Regression budget**: How much Harvey/OfficeQA degradation (if any) is allowed while adding general agent tools? (Current answer: 0pp for non-sectioned.)
+- [ ] **Verifier calibration baseline**: Measured precision/recall for `_verify_completeness`, shadow_judge_audit, source claims. Currently unmeasured.
+- [ ] **Output rendering validation**: Benchmarks that grade files (.docx, .xlsx, patches, browser state) need artifact-level validation, not just text completeness.
+- [ ] **State contamination policy**: Persistent state can leak benchmark-specific answers. Rules: immutable per-run, no cross-task leakage, provenance labels required.
+- [ ] **Statistical confidence requirement**: Minimum detectable effect size, minimum sample size, CI width target.
+- [ ] **Failure taxonomy per benchmark**: 685 proven facts are Harvey-specific. Each new benchmark needs its own meditation pass.
+
+---
+
+## 2009. TIMELINE SUMMARY (Revised with Gates)
+
+| Week | Focus | Harvey LAB | OfficeQA | Finance | GATE |
+|---|---|---|---|---|---|
+| 1 | Enable features + bugs | 25-40% | — | — | **GATE 1** |
+| 2-3 | Enhanced sectioning | 35-55% | — | — | **GATE 2** |
+| 4-6 | Self-correction loop | 40-65% | 35-50% | — | **GATE 3** |
+| 7-8 | Tool use + harness eng | — | — | 50-60% | — |
+| 9-10 | MCP-Atlas + Toolathlon | — | — | — | — |
+| 11-12 | GAIA + BrowseComp | — | 50-60% | — | **GATE 4** |
+| 13-14 | Curation consolidation | 55-75% | — | — | — |
+| 15-16 | Fine-tuned verifier | 65-80% | — | — | — |
+| 17-18 | Output templates + GDPval | — | 65-75% | 60-68% | — |
+| 19-20 | Persistent state + polish | 70-85% | 68-78% | 63-72% | **GATE 5** |
+
+### P0 Benchmarks — Week 20 Scorecard
+
+| Benchmark | Current SOTA | Our Conservative Target | Our Optimistic Target | Beat SOTA? |
+|---|---|---|---|---|
+| **Harvey LAB** | ~10.4% | **70%** | **85%** | **YES (7-8x)** |
+| **OfficeQA Pro** | 66.2% | **68%** | **78%** | **YES (+2-12pp)** |
+| **Finance Agent v2** | 57.9% | **63%** | **72%** | **YES (+5-14pp)** |
+| **BigLaw Bench** | 90.2% | **91%** | **94%** | **YES (+1-4pp)** |
+
+### P1 Benchmarks — Week 20 Scorecard
+
+| Benchmark | Current SOTA | Our Conservative Target | Our Optimistic Target | Beat SOTA? |
+|---|---|---|---|---|
+| **GAIA** | 91.4% (scaffolded) | **82%** | **92%** | **BEAT if optimistic** |
+| **MCP-Atlas** | 83.6% | **85%** | **93%** | **YES (+1-10pp)** |
+| **Toolathlon** | 59.9% | **62%** | **72%** | **YES (+2-12pp)** |
+| **BrowseComp** | 90.1% | **88%** | **95%** | **BEAT if optimistic** |
+| **GDPval-AA** | 1,890 Elo | **Top 5** | **Top 3** | **BEAT if optimistic** |
+
+### P2 Benchmarks — Deferred (Post Gate 4)
+
+| Benchmark | Current SOTA | Approach | When |
+|---|---|---|---|
+| **SWE-bench Pro** | 77.8% | Dedicated coding agent layer on blackboard spine | After P0+P1 proven |
+| **WebArena** | ~71.6% | Browser action layer | After P0+P1 proven |
+| **OSWorld** | 88.3% | Desktop action layer | After P0+P1 proven |
+
+### P3 — Lowest Priority
+
+| Benchmark | Current SOTA | When |
+|---|---|---|
+| **Terminal-Bench 2.1** | 82.7% | Last. Only after P0+P1+P2 beaten. |
+
+### The Headline (Honest Version)
+
+**"Stateful swarms dominate analytical and tool-orchestration benchmarks: 70-85% Harvey LAB (7-8x better than anyone), beat SOTA on OfficeQA + Finance Agent + MCP-Atlas + Toolathlon + BigLaw, competitive on GAIA + BrowseComp + GDPval — all at $1.60/task. Architecture beats model on every task that requires persistent reasoning."**
+
+### The Headline (If Optimistic Targets Hit)
+
+**"Stateful swarms sweep 9 benchmarks: 85% Harvey LAB, SOTA on OfficeQA + Finance + MCP-Atlas + Toolathlon + BrowseComp + BigLaw + GAIA + GDPval — all at $1.60/task. Architecture beats model. Every time."**
 
 ---
 
