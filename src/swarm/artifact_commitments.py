@@ -235,6 +235,8 @@ def _native_form(filename: str, entry: Entry) -> str:
 
 
 def _artifact_function(filename: str, entry: Entry, native_form: str) -> str:
+    if native_form == "drafting_clause":
+        return "drafting_clause"
     debt_type = _debt_type(entry)
     if debt_type == "relation":
         return (
@@ -262,8 +264,6 @@ def _artifact_function(filename: str, entry: Entry, native_form: str) -> str:
         return "workbook_calculation" if entry.type == "calculation" else "workbook_finding"
     if native_form == "slide_bullet":
         return "slide_bullet"
-    if native_form == "drafting_clause":
-        return "drafting_clause"
     if native_form == "calculation_statement":
         return "memo_calculation"
     lower = filename.lower()
