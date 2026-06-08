@@ -1373,7 +1373,7 @@ def _append_missing_items_for_file(
     ]
     relevant_text = "\n".join(relevant_entries) if relevant_entries else "See missing items above."
 
-    draft_excerpt = draft[:80_000] if len(draft) > 80_000 else draft
+    draft_excerpt = _draft_excerpt_for_verification(draft, max_chars=80_000)
 
     prompt = f"""The draft for one output file is missing required items. Read the current draft to understand what is already written, then add ONLY what is missing. Do not duplicate existing content.
 
