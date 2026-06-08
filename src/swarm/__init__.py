@@ -144,7 +144,7 @@ def run_swarm(task: Task, caller: ModelCaller, *,
                     id=gen_entry_id(), type="strategy",
                     content=f"COMPLETENESS CRITERION: {criterion}",
                     created_by=WorkerRecord("seed_planner", "completeness_criteria", 0),
-                    confidence=0.9, status="reference",
+                    confidence=0.9, status="active",
                 ))
         blackboard.save_snapshot("seed")
 
