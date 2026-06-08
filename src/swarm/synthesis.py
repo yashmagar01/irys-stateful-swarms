@@ -29,6 +29,7 @@ SECTION_DRAFT_MAX_TOKENS = int(os.getenv("SWARM_SYNTHESIS_SECTION_MAX_TOKENS", "
 ASSIGNMENT_BATCH_SIZE = 50
 SECTION_EVIDENCE_CHARS = int(os.getenv("SWARM_SYNTHESIS_SECTION_EVIDENCE_CHARS", "24000"))
 SELECTED_ITEM_SUMMARY_CHARS = int(os.getenv("SWARM_SYNTHESIS_ITEM_SUMMARY_CHARS", "700"))
+CLEAN_ASSEMBLED_DELIVERABLE = os.getenv("SWARM_SYNTHESIS_CLEAN_DELIVERABLE", "1") == "1"
 
 
 def render_entry(e: Entry, max_content: int = 400) -> str:
@@ -1288,6 +1289,8 @@ def _strip_redundant_section_heading(text: str, section_name: str) -> str:
 
 
 def _clean_assembled_deliverable(text: str) -> str:
+    if not CLEAN_ASSEMBLED_DELIVERABLE:
+        return str(text or "").strip()
     lines = str(text or "").replace("\r\n", "\n").replace("\r", "\n").splitlines()
     cleaned: list[str] = []
     previous_nonblank = ""
