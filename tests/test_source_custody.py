@@ -2,7 +2,11 @@ import json
 
 from src.swarm.blackboard import Blackboard
 from src.swarm.models import DocumentStatus, Entry, EntrySource
-from src.swarm.source_custody import enforce_source_custody
+from src.swarm.source_custody import (
+    _document_name_aliases,
+    enforce_source_custody,
+    source_document_is_valid,
+)
 
 
 def test_source_custody_quarantines_fake_source_documents(tmp_path):
@@ -106,3 +110,88 @@ def test_source_custody_cascades_to_dependent_cross_cutting_entries(tmp_path):
     assert blackboard.find_entry("e3").status == "active"
     assert report["summary"]["reasons"]["invalid_source_document"] == 1
     assert report["summary"]["reasons"]["depends_on_invalid_source_state"] == 1
+
+
+def test_source_custody_accepts_user_prompt_as_synthetic_source(tmp_path):
+    blackboard = Blackboard(
+        task_instruction="Draft a proffer agreement.",
+        output_dir=str(tmp_path),
+        documents=[DocumentStatus(id="d1", name="template.docx")],
+        entries=[
+            Entry(
+                id="e1",
+                type="observation",
+                content="The agreement must include a carve-out.",
+                source=EntrySource(document="user_prompt", evidence="carve-out"),
+            ),
+            Entry(
+                id="e2",
+                type="analysis",
+                content="Based on e1, the carve-out should restrict disclosures.",
+                source=EntrySource(document="cross_cutting"),
+                supports_entries=["e1"],
+            ),
+        ],
+    )
+
+    report = enforce_source_custody(blackboard, "test")
+
+    assert blackboard.find_entry("e1").status == "active"
+    assert blackboard.find_entry("e2").status == "active"
+    assert report["summary"]["entries_quarantined"] == 0
+
+
+def test_source_custody_fuzzy_matches_document_names(tmp_path):
+    blackboard = Blackboard(
+        task_instruction="Analyze the PSA.",
+        output_dir=str(tmp_path),
+        documents=[
+            DocumentStatus(id="d1", name="purchase-and-sale-agreement.docx"),
+            DocumentStatus(id="d2", name="sec-inquiry-letter.docx"),
+        ],
+        entries=[
+            Entry(
+                id="e1",
+                type="observation",
+                content="The PSA contains a financing contingency.",
+                source=EntrySource(
+                    document="Purchase and Sale Agreement",
+                    evidence="financing contingency",
+                ),
+            ),
+            Entry(
+                id="e2",
+                type="observation",
+                content="The SEC inquiry covers revenue recognition.",
+                source=EntrySource(
+                    document="SEC Inquiry Letter",
+                    evidence="revenue recognition",
+                ),
+            ),
+        ],
+    )
+
+    report = enforce_source_custody(blackboard, "test")
+
+    assert blackboard.find_entry("e1").status == "active"
+    assert blackboard.find_entry("e2").status == "active"
+    assert report["summary"]["entries_quarantined"] == 0
+
+
+def test_document_name_aliases_strips_extensions_and_collapses():
+    aliases = _document_name_aliases("purchase-and-sale-agreement.docx")
+    assert "purchase-and-sale-agreement.docx" in aliases
+    assert "purchase-and-sale-agreement" in aliases
+    assert "purchaseandsaleagreement" in aliases
+
+    aliases2 = _document_name_aliases("Purchase and Sale Agreement")
+    assert "purchaseandsaleagreement" in aliases2
+    assert aliases & aliases2
+
+
+def test_source_document_is_valid_fuzzy():
+    valid = _document_name_aliases("sec-inquiry-letter.docx")
+    assert source_document_is_valid("SEC Inquiry Letter", valid)
+    assert source_document_is_valid("sec-inquiry-letter.docx", valid)
+    assert source_document_is_valid("sec_inquiry_letter", valid)
+    assert not source_document_is_valid("totally-unrelated.docx", valid)

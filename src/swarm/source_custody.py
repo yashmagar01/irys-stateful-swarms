@@ -9,7 +9,19 @@ from .models import Entry
 
 
 SOURCE_CUSTODY_STATUS = "source_quarantined"
-SYNTHETIC_SOURCE_NAMES = {"cross_cutting", "multiple", "multi_document"}
+SYNTHETIC_SOURCE_NAMES = {
+    "cross_cutting", "crosscutting", "cross cutting",
+    "multiple",
+    "multi_document", "multidocument", "multi document",
+    "user_prompt", "userprompt", "user prompt",
+    "task_instruction", "taskinstruction", "task instruction",
+    "instruction", "prompt", "task",
+}
+_KNOWN_EXTENSIONS = frozenset({
+    ".docx", ".xlsx", ".xls", ".csv", ".eml", ".pdf",
+    ".pptx", ".ppt", ".txt", ".json", ".html", ".htm",
+})
+_SEPARATOR_RE = re.compile(r"[-_\s]+")
 
 
 def enforce_source_custody(
@@ -127,14 +139,19 @@ def source_document_is_valid(
     *,
     allow_synthetic: bool = True,
 ) -> bool:
+    full_aliases = _document_name_aliases(document)
+    if full_aliases & valid_documents:
+        return True
+    if allow_synthetic and full_aliases & SYNTHETIC_SOURCE_NAMES:
+        return True
     parts = _source_document_parts(document)
     if not parts:
         return False
     return all(
-        _normalize_doc_name(part) in valid_documents
+        _document_name_aliases(part) & valid_documents
         or (
             allow_synthetic
-            and _normalize_doc_name(part) in SYNTHETIC_SOURCE_NAMES
+            and _document_name_aliases(part) & SYNTHETIC_SOURCE_NAMES
         )
         for part in parts
     )
@@ -153,20 +170,32 @@ def _document_name_aliases(raw: str | None) -> set[str]:
     if not normalized:
         return set()
     aliases = {normalized}
-    if normalized.endswith(".txt") and len(normalized) > 4:
-        aliases.add(normalized[:-4])
+    stem = normalized
+    for ext in _KNOWN_EXTENSIONS:
+        if stem.endswith(ext):
+            stem = stem[:-len(ext)]
+            break
+    if stem and stem != normalized:
+        aliases.add(stem)
+    for name in list(aliases):
+        collapsed = _SEPARATOR_RE.sub("", name)
+        if collapsed:
+            aliases.add(collapsed)
     return aliases
 
 
 def _invalid_source_documents(entry: Entry, valid_docs: set[str]) -> list[str]:
     if not entry.source or not entry.source.document:
         return []
+    full_aliases = _document_name_aliases(entry.source.document)
+    if full_aliases & valid_docs or full_aliases & SYNTHETIC_SOURCE_NAMES:
+        return []
     invalid = []
     for part in _source_document_parts(entry.source.document):
-        normalized = _normalize_doc_name(part)
-        if not normalized:
+        part_aliases = _document_name_aliases(part)
+        if not part_aliases:
             continue
-        if normalized in valid_docs or normalized in SYNTHETIC_SOURCE_NAMES:
+        if part_aliases & valid_docs or part_aliases & SYNTHETIC_SOURCE_NAMES:
             continue
         invalid.append(part)
     return invalid
@@ -197,10 +226,13 @@ def _mentioned_invalid_documents(entry: Entry, invalid_docs: set[str]) -> list[s
 def _has_valid_direct_source(entry: Entry, valid_docs: set[str]) -> bool:
     if not entry.source or not entry.source.document:
         return False
+    full_aliases = _document_name_aliases(entry.source.document)
+    if full_aliases & valid_docs:
+        return True
     parts = _source_document_parts(entry.source.document)
     if not parts:
         return False
-    return any(_normalize_doc_name(part) in valid_docs for part in parts)
+    return any(_document_name_aliases(part) & valid_docs for part in parts)
 
 
 def _quarantine_entry(entry: Entry) -> None:
