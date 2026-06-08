@@ -409,13 +409,8 @@ def _valid_source_documents(blackboard: Blackboard) -> set[str]:
 
 
 def _document_name_aliases(raw: str | None) -> set[str]:
-    value = str(raw or "").strip().lower()
-    if not value:
-        return set()
-    aliases = {value}
-    if value.endswith(".txt") and len(value) > 4:
-        aliases.add(value[:-4])
-    return aliases
+    from .source_custody import _document_name_aliases as _custody_aliases
+    return _custody_aliases(raw)
 
 
 def _deliverable_excerpt(text: str, max_chars: int = 140000) -> str:

@@ -4,6 +4,7 @@ from src.swarm.blackboard import Blackboard
 from src.swarm.models import DocumentStatus, Entry, EntrySource
 from src.swarm.source_custody import (
     _document_name_aliases,
+    _is_synthetic_source,
     enforce_source_custody,
     source_document_is_valid,
 )
@@ -195,3 +196,34 @@ def test_source_document_is_valid_fuzzy():
     assert source_document_is_valid("sec-inquiry-letter.docx", valid)
     assert source_document_is_valid("sec_inquiry_letter", valid)
     assert not source_document_is_valid("totally-unrelated.docx", valid)
+
+
+def test_synthetic_source_does_not_match_real_files():
+    assert _is_synthetic_source("user_prompt")
+    assert _is_synthetic_source("cross_cutting")
+    assert _is_synthetic_source("User Prompt")
+    assert not _is_synthetic_source("prompt.pdf")
+    assert not _is_synthetic_source("task.docx")
+    assert not _is_synthetic_source("user_prompt.docx")
+    assert not _is_synthetic_source("instruction.xlsx")
+
+
+def test_source_custody_quarantines_fake_file_named_like_synthetic(tmp_path):
+    blackboard = Blackboard(
+        task_instruction="Analyze docs.",
+        output_dir=str(tmp_path),
+        documents=[DocumentStatus(id="d1", name="real-doc.docx")],
+        entries=[
+            Entry(
+                id="e1",
+                type="observation",
+                content="Found something in a fake file.",
+                source=EntrySource(document="prompt.pdf", evidence="fake"),
+            ),
+        ],
+    )
+
+    report = enforce_source_custody(blackboard, "test")
+
+    assert blackboard.entries[0].status == "source_quarantined"
+    assert report["summary"]["entries_quarantined"] == 1

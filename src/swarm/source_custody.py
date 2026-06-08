@@ -15,7 +15,6 @@ SYNTHETIC_SOURCE_NAMES = {
     "multi_document", "multidocument", "multi document",
     "user_prompt", "userprompt", "user prompt",
     "task_instruction", "taskinstruction", "task instruction",
-    "instruction", "prompt", "task",
 }
 _KNOWN_EXTENSIONS = frozenset({
     ".docx", ".xlsx", ".xls", ".csv", ".eml", ".pdf",
@@ -142,17 +141,14 @@ def source_document_is_valid(
     full_aliases = _document_name_aliases(document)
     if full_aliases & valid_documents:
         return True
-    if allow_synthetic and full_aliases & SYNTHETIC_SOURCE_NAMES:
+    if allow_synthetic and _is_synthetic_source(document):
         return True
     parts = _source_document_parts(document)
     if not parts:
         return False
     return all(
         _document_name_aliases(part) & valid_documents
-        or (
-            allow_synthetic
-            and _document_name_aliases(part) & SYNTHETIC_SOURCE_NAMES
-        )
+        or (allow_synthetic and _is_synthetic_source(part))
         for part in parts
     )
 
@@ -184,18 +180,28 @@ def _document_name_aliases(raw: str | None) -> set[str]:
     return aliases
 
 
+def _is_synthetic_source(raw: str | None) -> bool:
+    normalized = _normalize_doc_name(raw)
+    if not normalized:
+        return False
+    if normalized in SYNTHETIC_SOURCE_NAMES:
+        return True
+    collapsed = _SEPARATOR_RE.sub("", normalized)
+    return collapsed in SYNTHETIC_SOURCE_NAMES
+
+
 def _invalid_source_documents(entry: Entry, valid_docs: set[str]) -> list[str]:
     if not entry.source or not entry.source.document:
         return []
     full_aliases = _document_name_aliases(entry.source.document)
-    if full_aliases & valid_docs or full_aliases & SYNTHETIC_SOURCE_NAMES:
+    if full_aliases & valid_docs or _is_synthetic_source(entry.source.document):
         return []
     invalid = []
     for part in _source_document_parts(entry.source.document):
         part_aliases = _document_name_aliases(part)
         if not part_aliases:
             continue
-        if part_aliases & valid_docs or part_aliases & SYNTHETIC_SOURCE_NAMES:
+        if part_aliases & valid_docs or _is_synthetic_source(part):
             continue
         invalid.append(part)
     return invalid
