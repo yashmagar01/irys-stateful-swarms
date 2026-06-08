@@ -176,7 +176,7 @@ def _source_document_parts(raw: str) -> list[str]:
     text = str(raw or "").strip()
     if not text:
         return []
-    parts = re.split(r"\s*(?:;|\||\band\b)\s*", text, flags=re.IGNORECASE)
+    parts = re.split(r"\s*(?:;|\||\band\b)\s*|\s*\+\s*|,\s+", text, flags=re.IGNORECASE)
     return [part.strip() for part in parts if part.strip()]
 
 

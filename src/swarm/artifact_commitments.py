@@ -205,6 +205,13 @@ def _target_file(entry: Entry, filenames: list[str]) -> str:
         for filename in filenames:
             if any(word in filename.lower() for word in ("redline", "markup", "rider")):
                 return filename
+    _DRAFTING_KEYWORDS = ("draft", "agreement", "contract", "indenture", "lpa")
+    _MEMO_OVERRIDE_WORDS = ("memo", "memorandum", "analysis", "issues", "notes", "summary", "report")
+    if not debt_type:
+        for filename in filenames:
+            lower = filename.lower()
+            if any(k in lower for k in _DRAFTING_KEYWORDS) and not any(m in lower for m in _MEMO_OVERRIDE_WORDS):
+                return filename
     for preferred in ("memo", "analysis", "report", "summary"):
         for filename in filenames:
             if preferred in filename.lower():
@@ -218,8 +225,10 @@ def _native_form(filename: str, entry: Entry) -> str:
         return "workbook_row"
     if lower.endswith(".pptx") or "deck" in lower:
         return "slide_bullet"
-    if any(word in lower for word in ("redline", "markup", "rider")):
-        return "drafting_clause"
+    _MEMO_OVERRIDES = ("memo", "memorandum", "analysis", "issues", "notes", "summary", "report")
+    if any(word in lower for word in ("redline", "markup", "rider", "draft", "agreement", "contract", "indenture", "lpa")):
+        if not any(m in lower for m in _MEMO_OVERRIDES):
+            return "drafting_clause"
     if entry.type == "calculation":
         return "calculation_statement"
     return "memo_statement"

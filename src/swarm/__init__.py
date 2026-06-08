@@ -101,7 +101,7 @@ def run_swarm(task: Task, caller: ModelCaller, *,
               max_iterations: int | None = None,
               min_iterations: int | None = None) -> tuple[str | dict[str, str], Blackboard]:
     budget = token_budget or int(os.getenv("SWARM_TOKEN_BUDGET", "3000000"))
-    max_iter = max_iterations or int(os.getenv("SWARM_MAX_ITERATIONS", "12"))
+    max_iter = max_iterations or int(os.getenv("SWARM_MAX_ITERATIONS", "15"))
     min_iter = min_iterations or int(os.getenv("SWARM_MIN_ITERATIONS", "2"))
     synth_caller = synthesis_caller or caller
     review_caller = reviewer_caller
@@ -144,7 +144,7 @@ def run_swarm(task: Task, caller: ModelCaller, *,
                     id=gen_entry_id(), type="strategy",
                     content=f"COMPLETENESS CRITERION: {criterion}",
                     created_by=WorkerRecord("seed_planner", "completeness_criteria", 0),
-                    confidence=0.9, status="active",
+                    confidence=0.9, status="reference",
                 ))
         blackboard.save_snapshot("seed")
 
