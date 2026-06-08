@@ -352,6 +352,7 @@ def run_swarm(task: Task, caller: ModelCaller, *,
         coverage_entries = coverage_report_to_entries(
             seed_plan, cov_report, blackboard.iteration,
             active_entries=active_now,
+            domain_lens=domain_lens,
         )
         blackboard.add_entries_batch(coverage_entries)
         blackboard.save_snapshot("post_state_conversion")

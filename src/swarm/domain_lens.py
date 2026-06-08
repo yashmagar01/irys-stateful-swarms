@@ -73,7 +73,12 @@ Return JSON:
   "negative_checks": ["check 1", "check 2"],
   "cross_doc_reconciliation": [{{"point": "what to reconcile", "documents": ["doc1", "doc2"]}}]}}"""
 
-    payload, tokens = call_model(caller, prompt, max_tokens=4096)
+    try:
+        payload, tokens = call_model(caller, prompt, max_tokens=4096)
+    except Exception:
+        return {}, 0
+    if not isinstance(payload, dict):
+        return {}, tokens
     return payload, tokens
 
 
@@ -90,7 +95,10 @@ def lens_to_entries(lens: dict, blackboard: Blackboard) -> list[Entry]:
             tags=["domain_lens", "issue_hypothesis"],
         ))
 
-    for auth in lens.get("legal_authorities", []):
+    authorities = lens.get("legal_authorities", [])
+    if not isinstance(authorities, list):
+        authorities = []
+    for auth in authorities:
         if not isinstance(auth, dict):
             continue
         name = str(auth.get("authority", "")).strip()
@@ -106,7 +114,10 @@ def lens_to_entries(lens: dict, blackboard: Blackboard) -> list[Entry]:
                 tags=["domain_lens", "legal_authority"],
             ))
 
-    for calc in lens.get("calculation_targets", []):
+    calc_targets = lens.get("calculation_targets", [])
+    if not isinstance(calc_targets, list):
+        calc_targets = []
+    for calc in calc_targets:
         if not isinstance(calc, dict):
             continue
         target = str(calc.get("target", "")).strip()
@@ -122,7 +133,10 @@ def lens_to_entries(lens: dict, blackboard: Blackboard) -> list[Entry]:
                 tags=["domain_lens", "calculation_target"],
             ))
 
-    for elem in lens.get("output_structure", []):
+    out_structure = lens.get("output_structure", [])
+    if not isinstance(out_structure, list):
+        out_structure = []
+    for elem in out_structure:
         if not isinstance(elem, dict):
             continue
         name = str(elem.get("element", "")).strip()
@@ -146,7 +160,10 @@ def lens_to_entries(lens: dict, blackboard: Blackboard) -> list[Entry]:
             tags=["domain_lens", "negative_check"],
         ))
 
-    for rec in lens.get("cross_doc_reconciliation", []):
+    reconciliation = lens.get("cross_doc_reconciliation", [])
+    if not isinstance(reconciliation, list):
+        reconciliation = []
+    for rec in reconciliation:
         if not isinstance(rec, dict):
             continue
         point = str(rec.get("point", "")).strip()
@@ -175,7 +192,10 @@ def lens_to_signals(lens: dict, blackboard: Blackboard) -> None:
             status="open", iteration_created=0,
         ))
 
-    for auth in lens.get("legal_authorities", [])[:8]:
+    authorities = lens.get("legal_authorities", [])
+    if not isinstance(authorities, list):
+        authorities = []
+    for auth in authorities[:8]:
         if isinstance(auth, dict):
             name = str(auth.get("authority", "")).strip()
             if name:
@@ -186,7 +206,10 @@ def lens_to_signals(lens: dict, blackboard: Blackboard) -> None:
                     status="open", iteration_created=0,
                 ))
 
-    for calc in lens.get("calculation_targets", [])[:5]:
+    calcs = lens.get("calculation_targets", [])
+    if not isinstance(calcs, list):
+        calcs = []
+    for calc in calcs[:5]:
         if isinstance(calc, dict):
             target = str(calc.get("target", "")).strip()
             if target:

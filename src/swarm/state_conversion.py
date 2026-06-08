@@ -271,20 +271,32 @@ def run_plan_coverage_review(
 
     lens_rows: list[dict] = []
     lens_items = _extract_lens_coverage_items(domain_lens)
+    if lens_items:
+        non_lens_analytical = [
+            e for e in analytical if "domain_lens" not in (e.tags or [])
+        ]
+        lens_analytical_text = "\n".join(
+            f"[{e.id}] ({e.type}) {_source_tag(e)} {e.content[:300]}"
+            for e in non_lens_analytical
+        )
+    else:
+        lens_analytical_text = analytical_text
     for offset in range(0, len(lens_items), max(batch_size, 1)):
         rows = [
             {"id": f"dl{i + 1}", "text": str(item)}
             for i, item in enumerate(lens_items[offset:offset + batch_size], offset)
         ]
         batch, tokens, error = _run_coverage_batch(
-            blackboard.task_instruction, analytical_text[:analytical_char_limit],
-            len(analytical), rows, "domain_lens_item", caller, task_state_map,
+            blackboard.task_instruction, lens_analytical_text[:analytical_char_limit],
+            len(non_lens_analytical) if lens_items else len(analytical),
+            rows, "domain_lens_item", caller, task_state_map,
         )
         total_tokens += tokens
         if error and len(rows) > 1:
             retry_rows, retry_tokens, retry_errors = _retry_coverage_rows(
-                blackboard.task_instruction, analytical_text[:analytical_char_limit],
-                len(analytical), rows, "domain_lens_item", caller, task_state_map,
+                blackboard.task_instruction, lens_analytical_text[:analytical_char_limit],
+                len(non_lens_analytical) if lens_items else len(analytical),
+                rows, "domain_lens_item", caller, task_state_map,
             )
             total_tokens += retry_tokens
             lens_rows.extend(retry_rows)
@@ -555,10 +567,15 @@ def _retry_coverage_rows(
 def coverage_report_to_entries(
     seed: dict, report: dict, iteration: int,
     active_entries: list[Entry] | None = None,
+    domain_lens: dict | None = None,
 ) -> list[Entry]:
     """Materialize seed/criteria coverage judgments as substantive blackboard entries."""
     entries = []
     active_ids = {e.id for e in active_entries} if active_entries else set()
+    lens_item_texts = {
+        f"dl{i + 1}": text
+        for i, text in enumerate(_extract_lens_coverage_items(domain_lens))
+    }
 
     for item in (report.get("seed_coverage") or []):
         if not isinstance(item, dict):
@@ -682,10 +699,14 @@ def coverage_report_to_entries(
         missing_work = str(item.get("missing_work_type", "none"))
         materiality = str(item.get("materiality", "high"))
 
+        item_text = lens_item_texts.get(lid, "")
+
         if status == "satisfied":
             if not answer_summary and not supporting:
                 continue
             content_parts = [f"Domain lens item {lid} satisfied"]
+            if item_text:
+                content_parts.append(item_text)
             if answer_summary:
                 content_parts.append(f"Basis: {answer_summary}")
             entries.append(Entry(
@@ -698,6 +719,8 @@ def coverage_report_to_entries(
             ))
         else:
             content_parts = [f"Domain lens item {lid} {status}"]
+            if item_text:
+                content_parts.append(item_text)
             if missing_reason:
                 content_parts.append(f"Missing: {missing_reason}")
             if evidence_summary:
@@ -957,23 +980,42 @@ def _extract_lens_coverage_items(lens: dict | None) -> list[str]:
     """Extract evaluable items from domain lens for coverage review."""
     if not lens:
         return []
+
+    def _safe_list(key: str) -> list:
+        val = lens.get(key, [])
+        return val if isinstance(val, list) else []
+
     items: list[str] = []
-    for hyp in lens.get("issue_hypotheses", []):
+    for hyp in _safe_list("issue_hypotheses"):
         if isinstance(hyp, str) and hyp.strip():
             items.append(f"Issue hypothesis: {hyp.strip()}")
-    for auth in lens.get("legal_authorities", []):
+    for auth in _safe_list("legal_authorities"):
         if isinstance(auth, dict):
             name = str(auth.get("authority", "")).strip()
             if name:
                 items.append(f"Legal authority applicability: {name}")
-    for calc in lens.get("calculation_targets", []):
+    for calc in _safe_list("calculation_targets"):
         if isinstance(calc, dict):
             target = str(calc.get("target", "")).strip()
             if target:
                 items.append(f"Calculation completed: {target}")
-    for check in lens.get("negative_checks", []):
+    for check in _safe_list("negative_checks"):
         if isinstance(check, str) and check.strip():
             items.append(f"Negative check verified: {check.strip()}")
+    for elem in _safe_list("output_structure"):
+        if isinstance(elem, dict):
+            name = str(elem.get("element", "")).strip()
+            if name:
+                req = str(elem.get("requirement", "")).strip()
+                text = f"Output structure element present: {name}"
+                if req:
+                    text += f" — {req}"
+                items.append(text)
+    for rec in _safe_list("cross_doc_reconciliation"):
+        if isinstance(rec, dict):
+            point = str(rec.get("point", "")).strip()
+            if point:
+                items.append(f"Cross-document reconciliation completed: {point}")
     return items
 
 
