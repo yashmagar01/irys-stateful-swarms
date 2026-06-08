@@ -582,7 +582,8 @@ def coverage_report_to_entries(
             continue
         qid = str(item.get("id", ""))
         status = str(item.get("status", "unanswered"))
-        supporting = [str(s) for s in item.get("supporting_entries", []) if isinstance(item.get("supporting_entries"), list)]
+        raw_supporting = item.get("supporting_entries", [])
+        supporting = [str(s) for s in raw_supporting] if isinstance(raw_supporting, list) else []
         if active_ids:
             supporting = [s for s in supporting if s in active_ids]
         answer_summary = str(item.get("answer_summary", ""))
@@ -636,7 +637,8 @@ def coverage_report_to_entries(
             continue
         cid = str(item.get("id", ""))
         status = str(item.get("status", "unsatisfied"))
-        supporting = [str(s) for s in item.get("supporting_entries", []) if isinstance(item.get("supporting_entries"), list)]
+        raw_supporting = item.get("supporting_entries", [])
+        supporting = [str(s) for s in raw_supporting] if isinstance(raw_supporting, list) else []
         if active_ids:
             supporting = [s for s in supporting if s in active_ids]
         answer_summary = str(item.get("answer_summary", ""))
@@ -690,7 +692,8 @@ def coverage_report_to_entries(
             continue
         lid = str(item.get("id", ""))
         status = str(item.get("status", "unsatisfied"))
-        supporting = [str(s) for s in item.get("supporting_entries", []) if isinstance(item.get("supporting_entries"), list)]
+        raw_supporting = item.get("supporting_entries", [])
+        supporting = [str(s) for s in raw_supporting] if isinstance(raw_supporting, list) else []
         if active_ids:
             supporting = [s for s in supporting if s in active_ids]
         answer_summary = str(item.get("answer_summary", ""))

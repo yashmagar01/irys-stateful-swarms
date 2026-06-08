@@ -236,6 +236,8 @@ def format_lens_guidance(lens: dict) -> str:
         )
 
     authorities = lens.get("legal_authorities", [])
+    if not isinstance(authorities, list):
+        authorities = []
     if authorities:
         auth_lines = []
         for a in authorities:
@@ -254,6 +256,8 @@ def format_lens_guidance(lens: dict) -> str:
             )
 
     calcs = lens.get("calculation_targets", [])
+    if not isinstance(calcs, list):
+        calcs = []
     if calcs:
         calc_lines = []
         for c in calcs:
@@ -268,6 +272,8 @@ def format_lens_guidance(lens: dict) -> str:
             )
 
     structure = lens.get("output_structure", [])
+    if not isinstance(structure, list):
+        structure = []
     if structure:
         struct_lines = []
         for s in structure:
@@ -303,6 +309,8 @@ def _format_seed_summary(seed_plan: dict) -> str:
     parts: list[str] = []
 
     questions = seed_plan.get("key_questions", [])
+    if not isinstance(questions, list):
+        questions = []
     if questions:
         parts.append("Key questions: " + "; ".join(
             str(q).strip() for q in questions[:8] if isinstance(q, str)
