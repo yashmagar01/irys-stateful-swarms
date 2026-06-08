@@ -40,6 +40,7 @@ from .state_conversion import (
 )
 from .synthesis import (
     shadow_judge_audit,
+    shadow_judge_audit_enabled,
     synthesize_deliverable,
     synthesize_file_deliverables,
 )
@@ -459,6 +460,12 @@ def run_swarm(task: Task, caller: ModelCaller, *,
             blackboard, must_include, synth_caller,
         )
     blackboard.add_tokens_from_last_call(synth_tokens)
+
+    if shadow_judge_audit_enabled() and review_caller is not None:
+        deliverable, audit_tokens = shadow_judge_audit(
+            deliverable, blackboard, seed_plan, review_caller,
+        )
+        blackboard.add_tokens_from_last_call(audit_tokens)
 
     if source_claim_verification_enabled():
         deliverable, claim_tokens, _ = verify_source_claims(
