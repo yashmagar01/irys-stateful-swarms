@@ -5,8 +5,6 @@ These tests encode the three failure modes identified in Codex R3 review:
 2. Per-file augmentation blind to existing draft
 3. Criterion survival trace (entry → curated → draft → scorer)
 """
-import pytest
-
 from src.swarm.verification import verify_deterministic
 
 
@@ -14,7 +12,6 @@ from src.swarm.verification import verify_deterministic
 # Fixture 1: verify_deterministic false positive on intro-only mentions
 # ---------------------------------------------------------------------------
 
-@pytest.mark.xfail(reason="Bug: verify_deterministic does not distinguish intro/outline from substantive content", strict=True)
 def test_verify_deterministic_rejects_intro_only_section_ref():
     """Section ref in TOC/outline but not in body should remain unresolved."""
     draft = (
@@ -42,7 +39,6 @@ def test_verify_deterministic_rejects_intro_only_section_ref():
     assert 0 not in verified
 
 
-@pytest.mark.xfail(reason="Bug: verify_deterministic does not distinguish intro/outline from substantive content", strict=True)
 def test_verify_deterministic_rejects_dollar_in_header_only():
     """Dollar amount in heading but not discussed in body is a false positive."""
     draft = (

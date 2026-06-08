@@ -86,11 +86,27 @@ def extract_verification_targets(text: str) -> list[dict]:
     return targets
 
 
+_HEADING_RE = re.compile(r'^\s*#{1,6}\s+', re.MULTILINE)
+_TOC_LINE_RE = re.compile(r'^\s*\d+\.\s+\S', re.MULTILINE)
+
+
+def _is_in_prose(text: str, pos: int) -> bool:
+    """Return True if *pos* sits on a prose line, not a heading or TOC entry."""
+    line_start = text.rfind('\n', 0, pos) + 1
+    line_end = text.find('\n', pos)
+    if line_end == -1:
+        line_end = len(text)
+    line = text[line_start:line_end]
+    if _HEADING_RE.match(line) or _TOC_LINE_RE.match(line):
+        return False
+    return True
+
+
 def _dollar_present_in_text(canonical: int, text_lower: str) -> bool:
-    """Check if a dollar amount (in any format) appears in the text."""
+    """Check if a dollar amount (in any format) appears in prose text."""
     for m in DOLLAR_PATTERN.finditer(text_lower):
         found = normalize_dollar(m.group())
-        if found is not None and found == canonical:
+        if found is not None and found == canonical and _is_in_prose(text_lower, m.start()):
             return True
     return False
 
@@ -98,13 +114,16 @@ def _dollar_present_in_text(canonical: int, text_lower: str) -> bool:
 def _value_present_with_context(draft_lower: str, value: str,
                                 context_words: list[str],
                                 window: int = 300) -> bool:
-    """Check if value appears near context words in the draft."""
+    """Check if value appears near context words in prose (not headings/TOC)."""
     val_lower = value.lower()
     idx = 0
     while True:
         pos = draft_lower.find(val_lower, idx)
         if pos == -1:
             return False
+        if not _is_in_prose(draft_lower, pos):
+            idx = pos + 1
+            continue
         if not context_words:
             return True
         snippet = draft_lower[max(0, pos - window):pos + len(val_lower) + window]
