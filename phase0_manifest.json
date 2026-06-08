@@ -1,0 +1,117 @@
+{
+  "manifest_version": "1.0",
+  "created": "2026-06-08",
+  "purpose": "Pre-Gate-1 invariant freeze for Phase 0 execution",
+
+  "baseline": {
+    "reference_cycle": "cycle27_plan_coverage_repair_30fa25a",
+    "git_commit": "30fa25a",
+    "commit_message": "Add plan coverage state repair pass",
+    "all_pass_rate": 0.271,
+    "all_pass_count": 13,
+    "total_tasks": 48,
+    "criterion_pass_rate": 0.852,
+    "criteria_passed": 2376,
+    "criteria_total": 2789,
+    "full_run_baseline": {
+      "reference_cycle": "cycle23_full_all_e6d1a70",
+      "git_commit": "e6d1a70",
+      "all_pass_rate": 0.177,
+      "all_pass_count": 444,
+      "total_tasks": 2502,
+      "criterion_pass_rate": 0.837,
+      "criteria_passed": 125600,
+      "criteria_total": 149980
+    }
+  },
+
+  "models": {
+    "worker": "gemini-3.1-flash-lite",
+    "synthesis": "gemini-3.5-flash",
+    "reviewer": "gemini-3.5-flash",
+    "judge": "gemini-3.1-flash-lite"
+  },
+
+  "scorer": {
+    "type": "harvey_lab",
+    "scoring_mode": "all_pass_binary",
+    "env_var": "HARVEY_BENCH_ROOT"
+  },
+
+  "retry_policy": {
+    "state_conversion_retry_batch_size": 150,
+    "state_conversion_max_retry_batches": 4,
+    "convergence_triple_rejection": true,
+    "swarm_iterations": 12
+  },
+
+  "sample_48": {
+    "stratification": "24 practice areas x 2 tasks each",
+    "consistent_across": ["cycle24", "cycle25", "cycle26", "cycle27"],
+    "tasks": [
+      "antitrust-competition/draft-antitrust-compliance-training-materials",
+      "antitrust-competition/extract-relevant-product-market-definitions-from-precedent-decisions",
+      "arbitration-international-dispute-resolution/draft-emergency-application-for-interim-measures",
+      "arbitration-international-dispute-resolution/review-dispute-summary/scenario-01",
+      "banking-finance/draft-commitment-letter",
+      "banking-finance/draft-intercreditor-agreement",
+      "bankruptcy-restructuring/draft-plan-of-reorganization",
+      "bankruptcy-restructuring/identify-issues-in-counterparty-confirmation-objection",
+      "capital-markets/draft-equity-incentive-plan",
+      "capital-markets/review-proxy-statement-for-sec-form-compliance",
+      "corporate-governance/draft-action-by-incorporator",
+      "corporate-governance/extract-key-allegations-from-government-inquiry-letter",
+      "corporate-ma/draft-fund-term-sheet-vs-side-letter-deviation-analysis",
+      "corporate-ma/identify-counterparty-term-sheet-issues/scenario-01",
+      "data-privacy-cybersecurity/draft-external-privacy-notice",
+      "data-privacy-cybersecurity/draft-standard-contractual-clauses-addendum",
+      "emerging-companies-venture-capital/draft-escrow-agreement",
+      "emerging-companies-venture-capital/extract-key-terms-from-stockholder-agreement",
+      "employment-labor/analyze-iss-employment-complaint",
+      "employment-labor/research-non",
+      "energy-natural-resources/identify-issues-in-interconnection-agreement",
+      "energy-natural-resources/identify-issues-in-power-purchase-agreement",
+      "environmental-esg/analyze-counterparty-markup-of-environmental-indemnity-agreement",
+      "environmental-esg/identify-issues-in-environmental-impact-statement",
+      "funds-asset-management/draft-lpa/scenario-21",
+      "funds-asset-management/draft-subscription-agreement",
+      "healthcare-life-sciences/draft-privacy-impact-assessment",
+      "healthcare-life-sciences/identify-issues-in-healthcare-facility-license-transfer-agreement",
+      "immigration/draft-response-to-request-for-evidence",
+      "immigration/identify-h1b-qualification-issues",
+      "insurance/analyze-counterparty-markup-of-reinsurance-treaty",
+      "insurance/compare-reinsurance-treaty-against-underlying-policy",
+      "intellectual-property/analyze-counterparty-markup-of-joint-development-agreement",
+      "intellectual-property/draft-markup-of-counterparty-data-processing-addendum",
+      "international-trade-sanctions/analyze-counterparty-markup-of-mitigation-agreement",
+      "international-trade-sanctions/draft-restricted-party-screening-procedures",
+      "litigation-dispute-resolution/build-litigation-case-timeline",
+      "litigation-dispute-resolution/extract-key-terms-from-counterparty-complaint",
+      "real-estate/analyze-counterparty-markup-of-commercial-real-estate-loan-agreement",
+      "real-estate/extract-psa-key-terms/scenario-01",
+      "structured-finance-securitization/identify-issues-in-term-sheet",
+      "structured-finance-securitization/review-securitization-indenture/scenario-02",
+      "tax/identify-issues-in-annual-tax-compliance-report",
+      "tax/identify-transfer-pricing-documentation-review",
+      "trusts-estates-private-client/extract-assets-from-financial-declaration",
+      "trusts-estates-private-client/identify-settlement-proposal-issues/scenario-01",
+      "white-collar-defense-investigations/draft-proffer-agreement",
+      "white-collar-defense-investigations/identify-suspicious-patterns-in-financial-transaction-records"
+    ]
+  },
+
+  "disabled_features": {
+    "BLACKBOARD_MAINTENANCE": false,
+    "CALCULATION_DEBT": false,
+    "SEVERITY_DEBT": false,
+    "RELATION_DEBT": false,
+    "SOURCE_CLAIM_VERIFICATION": false,
+    "SHADOW_JUDGE_AUDIT": false
+  },
+
+  "gate1_criteria": {
+    "effect_size": "+15pp all-pass on 48 tasks OR +8pp on 120-150 stratified sample with cluster-bootstrapped CI",
+    "no_regression": "Final checkpoint does not regress already-passing criteria",
+    "pre_gate1_invariants_frozen": true
+  }
+}
