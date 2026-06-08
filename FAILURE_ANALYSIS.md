@@ -49399,10 +49399,11 @@ Codex challenged several assertions in the original plan. Corrections incorporat
 
 ### Gate 1: Feature Interaction (End of Week 1)
 
-**Trigger**: After all existing flags/bug fixes run on fixed 48-task Harvey smoke set.
+**Trigger**: After all existing flags/bug fixes run on fixed 48-task Harvey smoke set, THEN confirmed on 120-150 task stratified sample.
 
 **Success criteria (ALL must hold)**:
-- Binary pass improves by at least +8pp (from 17.75% to 25.75%+)
+- Binary pass improves by at least +15pp on 48-task smoke (from 17.75% to 32.75%+)
+- OR +8pp confirmed on 120-150 task stratified sample with cluster-bootstrapped CI
 - Per-criterion accuracy does NOT regress on non-sectioned tasks (stays 100%)
 - Cost stays under +35% ($1.76/task max)
 - No parse/runtime failure rate above 2%
@@ -49417,44 +49418,46 @@ Codex challenged several assertions in the original plan. Corrections incorporat
 **Trigger**: After global outline, cross-section context, and rewrite repair land.
 
 **Success criteria (ALL must hold)**:
-- Sectioned task per-criterion rises by at least +7pp (from 79.5% to 86.5%+)
-- Binary pass on sectioned smoke tasks reaches at least 15% (from 0.7%)
+- Sectioned task per-criterion rises to at least 92-94% (from 79.5%)
+- Binary pass on sectioned smoke tasks reaches at least 25-30% (from 0.7%)
 - Non-sectioned remains above 95% binary
-- Global outline recall: at least 90% of must_include items assigned to correct section
+- Global outline recall: at least 97-98% of scorer-critical must_include items assigned to correct section
 - No cross-section contradictions above 1% rate
 
-**Failure protocol**: Inspect missing-item survival by section. Compare outline assignment vs final output. Measure which sections lose which items.
+**Failure protocol**: Inspect missing-item survival by section. Compare outline assignment vs final output. Measure which sections lose which items. If per-criterion stays below 90%, IMMEDIATELY escalate curation consolidation (originally Phase C) to reduce item count and section count.
 
-**Fallback**: Lower SECTION_THRESHOLD (force more tasks into non-sectioned path). Prioritize curation consolidation BEFORE adding self-correction.
+**Fallback**: Lower SECTION_THRESHOLD (force more tasks into non-sectioned path). Prioritize curation consolidation BEFORE adding self-correction. Consider hybrid: outline-guided curation that produces fewer, higher-quality items.
 
 ### Gate 3: Correction Loop Convergence (End of Week 6)
 
 **Trigger**: After 3-5 verify/fix iterations are implemented and tested.
 
 **Success criteria (ALL must hold)**:
-- Each iteration shows positive marginal recovery (diminishing returns OK, but never negative)
+- Final selected checkpoint does NOT regress already-passing criteria (zero corruption tolerance)
 - Verifier false-positive rate below 10% (measured against judged criteria)
+- Verifier missing-item recall >= 95% (of items actually missing, verifier catches 95%+)
+- Before any 70% Harvey target: verifier recall must reach >= 98%
 - Cost per recovered criterion below $0.05
-- No output corruption (new content doesn't delete existing correct content)
 - Harvey binary pass reaches 40%+ on 48-task smoke
 
-**Failure protocol**: Freeze correction count at best marginal iteration. Recalibrate verifier. Measure verifier precision/recall on gold labels.
+**Failure protocol**: Freeze correction count at best marginal iteration. Recalibrate verifier against gold labels. If recall < 90%, verifier is the bottleneck — invest in verifier before continuing.
 
 **Fallback**: Use single post-synthesis shadow audit plus targeted section rewrite only (no loop).
 
 ### Gate 4: Cross-Benchmark Viability (End of Week 12)
 
-**Trigger**: First honest runs on GAIA, MCP-Atlas, BrowseComp, Finance Agent v2.
+**Trigger**: First honest runs on OfficeQA Pro, Finance Agent v2, and at least one P1 benchmark (GAIA, MCP-Atlas, or BrowseComp).
 
-**Success criteria (at least 3 of 4 must hold)**:
-- At least 2 non-Harvey benchmarks exceed current SOTA
-- Finance Agent v2 exceeds 57.9% (current Gemini 3.5 Flash SOTA)
-- MCP-Atlas exceeds 83.6% (current AntiGravity SOTA)
+**Success criteria (ALL must hold)**:
+- Harness reproducibility confirmed for every benchmark attempted (official scorer or validated reproduction)
+- At least 1 non-Harvey benchmark within 5pp of current SOTA
+- OR at least 1 clear positive blackboard ablation (with-blackboard > without-blackboard, statistically significant)
 - Full harness logs, scoring reproducibility, and cost tracking for every benchmark
+- Harvey LAB has NOT regressed from Gate 3 level
 
-**Failure protocol**: Split document-analysis roadmap from tool-orchestration/coding roadmap. Build benchmark-specific adapters while preserving blackboard as shared state.
+**Failure protocol**: Split document-analysis roadmap from tool-orchestration roadmap. Build benchmark-specific adapters while preserving blackboard as shared state.
 
-**Fallback**: Narrow SOTA claims to Harvey LAB + OfficeQA + BigLaw. Publish architecture ablations showing blackboard contribution. Do NOT claim "sweep everything" without evidence.
+**Fallback**: Narrow sweep claims. Publish domain-specific results: Harvey + OfficeQA + BigLaw + Finance. Publish architecture ablation paper showing blackboard contribution. Do NOT claim "sweep everything" until multiple domains proven.
 
 ### Gate 5: SOTA Claim Gate (Before Any Public Claim)
 
@@ -49462,11 +49465,12 @@ Codex challenged several assertions in the original plan. Corrections incorporat
 
 **Success criteria (ALL must hold)**:
 - Full benchmark run (not smoke sample) on official or reproducible scorer
-- 95% bootstrapped confidence interval for our score exceeds SOTA
+- 95% bootstrapped CI lower bound exceeds current SOTA (not just point estimate)
+- At least +2pp over SOTA AND CI lower bound above SOTA (corrected for multiple benchmark claims)
 - Cost/task documented
 - Ablation study showing blackboard contribution (with vs without)
 - No hidden contamination (cross-session state, leaked rubrics, benchmark-specific tuning)
-- At least +2pp over current SOTA OR statistically significant lead (p < 0.05)
+- Negative-control tasks included (designed to catch overfitting)
 
 **Failure protocol**: Downgrade claim to "competitive" or "domain-leading on X."
 
@@ -49511,13 +49515,28 @@ Codex challenged several assertions in the original plan. Corrections incorporat
 3. Scoring recall loss under 1pp (measured by criterion-level comparison)
 4. Binary pass must increase (fewer items + same recall = higher pass rate)
 
+### Criterion Survival Oracle (ALL Phases — Central Test)
+
+The most important test in the entire plan. Traces the full survival chain for scoring-critical items:
+
+**extracted entry → curated item → outline section → chunk prompt → draft → repair pass → final rendered artifact → scorer-visible evidence**
+
+Test suite: 20 fixed Harvey-style tasks with 40-60 hidden atomic criteria each, including:
+- Wrong-value traps (correct fact exists but with wrong number)
+- Unsupported citation traps (citation exists but source doesn't support it)
+- Duplicate-section traps (same fact in multiple sections, only one correct)
+- Multi-file output traps (fact must appear in the RIGHT deliverable file)
+
+For every criterion: assert which stage it survived to, which stage it was lost at. This is the diagnostic that drives all repair work.
+
 ### Cross-Benchmark (Phase B)
 
 1. Each benchmark gets a harness contract before ANY runs:
    - Input loader, tool permissions, scoring runner, retry policy, log schema, artifact validator
-2. Minimum 30 tasks per benchmark for statistical significance (unless benchmark is smaller)
-3. Official scorer or reproduced scorer with validation against published baselines
-4. Cost and latency tracking per task
+2. Benchmark-specific power analysis for sample size (not a flat "minimum 30 tasks")
+3. Full runs required for any SOTA claim
+4. Official scorer or reproduced scorer with validation against published baselines
+5. Cost and latency tracking per task
 
 ---
 
@@ -49535,6 +49554,15 @@ Codex challenged several assertions in the original plan. Corrections incorporat
 | R8 | Tool-orchestration benchmarks need non-document architecture | Medium | High | Build domain-specific action layers on blackboard spine |
 | R9 | Benchmark SOTA numbers drift before we claim | High | Medium | Refresh leaderboards before each gate |
 | R10 | Hidden harness failures dominate real scores | Medium | High | Dry-run official scorers and artifact validators early |
+| R11 | Fine-tuned verifier overfits scorer artifacts, stops generalizing | Medium | High | Holdout set, cross-benchmark validation |
+| R12 | Rebalancing extraction 12→8 iterations reduces blackboard recall | Medium | Medium | Measure extraction recall before/after; revert if >2pp loss |
+| R13 | Gold labels for verifier calibration are noisy/inconsistent | Medium | Medium | Inter-annotator agreement check; adjudication protocol |
+| R14 | Model/API drift changes behavior mid-campaign | High | Medium | Version-pin models; freeze config per phase |
+| R15 | Rate limits, latency, retries dominate practical cost | High | Medium | Measure TOTAL cost including all failures from day 1 |
+| R16 | Output renderers (.docx/.xlsx) fail even when text content correct | Medium | High | Artifact-level validation in testing protocol |
+| R17 | Benchmark-specific optimization creates narrow wins, weak product | Medium | Medium | Ablation: does the fix help OTHER benchmarks too? |
+| R18 | Prompt injection relevant once web/tool benchmarks enter | Medium | High | Input sanitization layer for web search results |
+| R19 | Partially wired features interact silently (engineering complexity) | High | Medium | Feature flag matrix; integration tests for all flag combinations |
 
 ---
 
@@ -49554,42 +49582,56 @@ Before execution begins, these must be resolved:
 - [ ] **State contamination policy**: Persistent state can leak benchmark-specific answers. Rules: immutable per-run, no cross-task leakage, provenance labels required.
 - [ ] **Statistical confidence requirement**: Minimum detectable effect size, minimum sample size, CI width target.
 - [ ] **Failure taxonomy per benchmark**: 685 proven facts are Harvey-specific. Each new benchmark needs its own meditation pass.
+- [ ] **Baseline provenance**: Exact run ID, scorer version, strict all-pass vs rubric mode, evaluated task count for current 17.75%.
+- [ ] **48-task sample composition**: Stratification rules (by task type, criterion count, document count, synthesis path).
+- [ ] **Criterion-count distribution by task type**: Know exactly how many criteria each task type faces.
+- [ ] **Gold-labeling protocol**: How are gold labels for verifier calibration created? Inter-annotator agreement? Adjudication?
+- [ ] **Token/context/output budgets per phase**: Exact budget allocated to extraction vs synthesis vs correction per phase.
+- [ ] **Cache policy**: Warm-state advantage vs contamination rules. When is cache allowed? When must it be cleared?
+- [ ] **Model/version/config freeze policy**: Pin models per phase. No mid-phase model changes.
+- [ ] **Action-layer acceptance criteria**: For each P1/P2 benchmark, what does "action layer ready" mean?
+- [ ] **Infrastructure capacity**: Concurrency limits, rate limits, total expected spend per phase.
+- [ ] **Ablation baselines**: Same model without blackboard, blackboard without repair, repair without verifier. Must run before SOTA claim.
+- [ ] **Public-claim approval standard**: Who approves, what evidence required, what claims are prohibited without Gate 5.
+- [ ] **Negative-control tasks**: Tasks designed to catch overfitting (e.g., tasks where blackboard should NOT help).
 
 ---
 
-## 2009. TIMELINE SUMMARY (Revised with Gates)
+## 2009. TIMELINE SUMMARY (Codex-Reviewed v3 — Revised Sequencing)
+
+**Key sequencing changes from Codex R2**: Curation consolidation moved to Weeks 5-6 (attacks root cause early). Output templates moved to Weeks 4-5 (scorer alignment, not polish). P1 benchmarks deferred until Harvey + OfficeQA + Finance transfer proven.
 
 | Week | Focus | Harvey LAB | OfficeQA | Finance | GATE |
 |---|---|---|---|---|---|
-| 1 | Enable features + bugs | 25-40% | — | — | **GATE 1** |
-| 2-3 | Enhanced sectioning | 35-55% | — | — | **GATE 2** |
-| 4-6 | Self-correction loop | 40-65% | 35-50% | — | **GATE 3** |
-| 7-8 | Tool use + harness eng | — | — | 50-60% | — |
-| 9-10 | MCP-Atlas + Toolathlon | — | — | — | — |
-| 11-12 | GAIA + BrowseComp | — | 50-60% | — | **GATE 4** |
-| 13-14 | Curation consolidation | 55-75% | — | — | — |
-| 15-16 | Fine-tuned verifier | 65-80% | — | — | — |
-| 17-18 | Output templates + GDPval | — | 65-75% | 60-68% | — |
-| 19-20 | Persistent state + polish | 70-85% | 68-78% | 63-72% | **GATE 5** |
+| 1 | Enable features + bugs | 25-35% | — | — | **GATE 1** |
+| 2-3 | Enhanced sectioning + output templates | 30-45% | — | — | **GATE 2** |
+| 4-6 | Curation consolidation + self-correction | 35-55% | 30-45% | — | **GATE 3** |
+| 7-8 | Fine-tuned verifier + scorer alignment | 45-65% | 40-55% | 50-58% | — |
+| 9-10 | Persistent state + OfficeQA/Finance harness | 50-70% | 55-68% | 55-65% | — |
+| 11-12 | P1 harness eng (GAIA, MCP-Atlas, BrowseComp) | — | — | — | **GATE 4** |
+| 13-16 | P1 benchmark optimization | — | — | — | — |
+| 17-20 | Full sweep + ablations + polish | 55-75% | 60-72% | 58-68% | **GATE 5** |
 
-### P0 Benchmarks — Week 20 Scorecard
+**CRITICAL DEPENDENCY (Codex R2)**: The entire 55%+ Harvey target depends on a **proven criterion-level repair oracle** — a verifier with >=95% recall and <10% false positive rate. This is THE central Phase A deliverable. Self-correction is meaningless without it.
 
-| Benchmark | Current SOTA | Our Conservative Target | Our Optimistic Target | Beat SOTA? |
-|---|---|---|---|---|
-| **Harvey LAB** | ~10.4% | **70%** | **85%** | **YES (7-8x)** |
-| **OfficeQA Pro** | 66.2% | **68%** | **78%** | **YES (+2-12pp)** |
-| **Finance Agent v2** | 57.9% | **63%** | **72%** | **YES (+5-14pp)** |
-| **BigLaw Bench** | 90.2% | **91%** | **94%** | **YES (+1-4pp)** |
+### P0 Benchmarks — Week 20 Scorecard (Codex-Calibrated)
 
-### P1 Benchmarks — Week 20 Scorecard
+| Benchmark | Current SOTA | Conservative | Strong | Stretch | Beat SOTA? |
+|---|---|---|---|---|---|
+| **Harvey LAB** | ~10.4% | **50-60%** | **60-70%** | **70-85%** | **YES (5-8x)** |
+| **OfficeQA Pro** | 66.2% | **60-65%** | **65-72%** | **72-80%** | **Strong/Stretch** |
+| **Finance Agent v2** | 57.9% | **55-60%** | **60-68%** | **68-75%** | **Strong/Stretch** |
+| **BigLaw Bench** | 90.2% | **90-91%** | **91-93%** | **93-95%** | **YES (+1-5pp)** |
 
-| Benchmark | Current SOTA | Our Conservative Target | Our Optimistic Target | Beat SOTA? |
-|---|---|---|---|---|
-| **GAIA** | 91.4% (scaffolded) | **82%** | **92%** | **BEAT if optimistic** |
-| **MCP-Atlas** | 83.6% | **85%** | **93%** | **YES (+1-10pp)** |
-| **Toolathlon** | 59.9% | **62%** | **72%** | **YES (+2-12pp)** |
-| **BrowseComp** | 90.1% | **88%** | **95%** | **BEAT if optimistic** |
-| **GDPval-AA** | 1,890 Elo | **Top 5** | **Top 3** | **BEAT if optimistic** |
+### P1 Benchmarks — Week 20 Scorecard (Codex-Calibrated)
+
+| Benchmark | Current SOTA | Conservative | Strong | Stretch | Beat SOTA? |
+|---|---|---|---|---|---|
+| **GAIA** | 91.4% (scaffolded) | **75-80%** | **80-88%** | **88-93%** | **Stretch only** |
+| **MCP-Atlas** | 83.6% | **80-85%** | **85-90%** | **90-95%** | **Strong/Stretch** |
+| **Toolathlon** | 59.9% | **58-62%** | **62-68%** | **68-75%** | **Strong/Stretch** |
+| **BrowseComp** | 90.1% | **82-87%** | **87-92%** | **92-96%** | **Strong/Stretch** |
+| **GDPval-AA** | 1,890 Elo | **Top 8** | **Top 5** | **Top 3** | **Strong/Stretch** |
 
 ### P2 Benchmarks — Deferred (Post Gate 4)
 
@@ -49605,13 +49647,23 @@ Before execution begins, these must be resolved:
 |---|---|---|
 | **Terminal-Bench 2.1** | 82.7% | Last. Only after P0+P1+P2 beaten. |
 
-### The Headline (Honest Version)
+### The Headline (Conservative — Gate 3 Passed)
 
-**"Stateful swarms dominate analytical and tool-orchestration benchmarks: 70-85% Harvey LAB (7-8x better than anyone), beat SOTA on OfficeQA + Finance Agent + MCP-Atlas + Toolathlon + BigLaw, competitive on GAIA + BrowseComp + GDPval — all at $1.60/task. Architecture beats model on every task that requires persistent reasoning."**
+**"Stateful swarms at 50-60% Harvey LAB (5-6x better than anyone at 1/40th the cost), competitive on OfficeQA + Finance + BigLaw — all at $1.60/task. Blackboard architecture proven on multi-document analytical tasks."**
 
-### The Headline (If Optimistic Targets Hit)
+### The Headline (Strong — Gate 4 Passed)
 
-**"Stateful swarms sweep 9 benchmarks: 85% Harvey LAB, SOTA on OfficeQA + Finance + MCP-Atlas + Toolathlon + BrowseComp + BigLaw + GAIA + GDPval — all at $1.60/task. Architecture beats model. Every time."**
+**"Stateful swarms dominate: 60-70% Harvey LAB (6-7x SOTA), beat SOTA on OfficeQA + Finance + BigLaw + MCP-Atlas + Toolathlon, competitive on GAIA + BrowseComp — all at $1.60/task. Architecture beats model on every task requiring persistent reasoning."**
+
+### The Headline (Stretch — Gate 5 Passed, All Claims Verified)
+
+**"Stateful swarms sweep 9 benchmarks: 70-85% Harvey LAB, SOTA on OfficeQA + Finance + MCP-Atlas + Toolathlon + BrowseComp + BigLaw, competitive on GAIA + GDPval — all at $1.60/task. Architecture beats model. Every time."**
+
+### What Must Be True For Each Headline
+
+- **Conservative**: Verifier recall >= 95%, sectioned per-criterion >= 92%, curation consolidation working
+- **Strong**: Verifier recall >= 98%, sectioned per-criterion >= 96%, cross-benchmark transfer proven, at least 2 P1 benchmarks within 5pp of SOTA
+- **Stretch**: Verifier recall >= 99%, sectioned per-criterion >= 98%, 4+ P1 benchmarks at or above SOTA with CI lower bound confirmation
 
 ---
 
