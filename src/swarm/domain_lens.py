@@ -73,13 +73,23 @@ Return JSON:
   "negative_checks": ["check 1", "check 2"],
   "cross_doc_reconciliation": [{{"point": "what to reconcile", "documents": ["doc1", "doc2"]}}]}}"""
 
-    try:
-        payload, tokens = call_model(caller, prompt, max_tokens=4096)
-    except Exception:
-        return {}, 0
-    if not isinstance(payload, dict):
-        return {}, tokens
-    return payload, tokens
+    _EXPECTED_KEYS = {
+        "issue_hypotheses", "legal_authorities", "calculation_targets",
+        "output_structure", "negative_checks", "cross_doc_reconciliation",
+    }
+
+    total_tokens = 0
+    for _attempt in range(2):
+        try:
+            payload, tokens = call_model(caller, prompt, max_tokens=4096)
+        except Exception:
+            continue
+        total_tokens += tokens
+        if not isinstance(payload, dict):
+            continue
+        if payload.keys() & _EXPECTED_KEYS:
+            return payload, total_tokens
+    return {}, total_tokens
 
 
 def lens_to_entries(lens: dict, blackboard: Blackboard) -> list[Entry]:
