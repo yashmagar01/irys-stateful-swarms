@@ -195,6 +195,7 @@ def run_plan_coverage_review(
     max_analytical_entries: int = 250,
     analytical_char_limit: int = 80_000,
     batch_size: int = 6,
+    domain_lens: dict | None = None,
 ) -> tuple[dict, int]:
     """Adversarial coverage review of seed questions and completeness criteria.
 
@@ -268,12 +269,38 @@ def run_plan_coverage_review(
                 parse_errors.append(error)
             criteria_rows.extend(batch)
 
+    lens_rows: list[dict] = []
+    lens_items = _extract_lens_coverage_items(domain_lens)
+    for offset in range(0, len(lens_items), max(batch_size, 1)):
+        rows = [
+            {"id": f"dl{i + 1}", "text": str(item)}
+            for i, item in enumerate(lens_items[offset:offset + batch_size], offset)
+        ]
+        batch, tokens, error = _run_coverage_batch(
+            blackboard.task_instruction, analytical_text[:analytical_char_limit],
+            len(analytical), rows, "domain_lens_item", caller, task_state_map,
+        )
+        total_tokens += tokens
+        if error and len(rows) > 1:
+            retry_rows, retry_tokens, retry_errors = _retry_coverage_rows(
+                blackboard.task_instruction, analytical_text[:analytical_char_limit],
+                len(analytical), rows, "domain_lens_item", caller, task_state_map,
+            )
+            total_tokens += retry_tokens
+            lens_rows.extend(retry_rows)
+            parse_errors.extend(retry_errors)
+        else:
+            if error:
+                parse_errors.append(error)
+            lens_rows.extend(batch)
+
     return {
         "parse_error": bool(parse_errors),
         "error": "; ".join(parse_errors[:3]) if parse_errors else "",
         "errors": parse_errors,
         "seed_coverage": seed_rows,
         "criteria_coverage": criteria_rows,
+        "lens_coverage": lens_rows,
     }, total_tokens
 
 
@@ -641,6 +668,50 @@ def coverage_report_to_entries(
                 supports_entries=supporting,
             ))
 
+    for item in (report.get("lens_coverage") or []):
+        if not isinstance(item, dict):
+            continue
+        lid = str(item.get("id", ""))
+        status = str(item.get("status", "unsatisfied"))
+        supporting = [str(s) for s in item.get("supporting_entries", []) if isinstance(item.get("supporting_entries"), list)]
+        if active_ids:
+            supporting = [s for s in supporting if s in active_ids]
+        answer_summary = str(item.get("answer_summary", ""))
+        evidence_summary = str(item.get("evidence_summary", ""))
+        missing_reason = str(item.get("missing_reason", ""))
+        missing_work = str(item.get("missing_work_type", "none"))
+        materiality = str(item.get("materiality", "high"))
+
+        if status == "satisfied":
+            if not answer_summary and not supporting:
+                continue
+            content_parts = [f"Domain lens item {lid} satisfied"]
+            if answer_summary:
+                content_parts.append(f"Basis: {answer_summary}")
+            entries.append(Entry(
+                id=gen_entry_id(), type="analysis",
+                content=". ".join(content_parts),
+                created_by=WorkerRecord("plan_coverage", "lens_coverage", iteration),
+                confidence=0.85, status="active",
+                tags=["plan_coverage", "domain_lens", f"lens:{lid}", "coverage:satisfied"],
+                supports_entries=supporting,
+            ))
+        else:
+            content_parts = [f"Domain lens item {lid} {status}"]
+            if missing_reason:
+                content_parts.append(f"Missing: {missing_reason}")
+            if evidence_summary:
+                content_parts.append(f"Partial evidence: {evidence_summary}")
+            entries.append(Entry(
+                id=gen_entry_id(), type="gap",
+                content=". ".join(content_parts),
+                created_by=WorkerRecord("plan_coverage", "lens_coverage", iteration),
+                confidence=0.9, status="active",
+                tags=["plan_coverage", "domain_lens", f"lens:{lid}", f"coverage:{status}",
+                      f"missing_work:{missing_work}", f"materiality:{materiality}"],
+                supports_entries=supporting,
+            ))
+
     if report.get("parse_error"):
         entries.append(Entry(
             id=gen_entry_id(), type="gap",
@@ -880,6 +951,30 @@ Produce up to {max_new_entries} new entries. Every non-gap entry MUST have valid
 def _entry_batches(entries: list[Entry], batch_size: int) -> list[list[Entry]]:
     size = max(batch_size, 1)
     return [entries[i:i + size] for i in range(0, len(entries), size)]
+
+
+def _extract_lens_coverage_items(lens: dict | None) -> list[str]:
+    """Extract evaluable items from domain lens for coverage review."""
+    if not lens:
+        return []
+    items: list[str] = []
+    for hyp in lens.get("issue_hypotheses", []):
+        if isinstance(hyp, str) and hyp.strip():
+            items.append(f"Issue hypothesis: {hyp.strip()}")
+    for auth in lens.get("legal_authorities", []):
+        if isinstance(auth, dict):
+            name = str(auth.get("authority", "")).strip()
+            if name:
+                items.append(f"Legal authority applicability: {name}")
+    for calc in lens.get("calculation_targets", []):
+        if isinstance(calc, dict):
+            target = str(calc.get("target", "")).strip()
+            if target:
+                items.append(f"Calculation completed: {target}")
+    for check in lens.get("negative_checks", []):
+        if isinstance(check, str) and check.strip():
+            items.append(f"Negative check verified: {check.strip()}")
+    return items
 
 
 def _source_balanced_sample(

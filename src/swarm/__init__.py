@@ -15,6 +15,9 @@ from .blackboard_maintenance import (
 )
 from .convergence import check_convergence, supervisor_review
 from .seed import generate_seed, seed_to_signals
+from .domain_lens import (
+    generate_domain_lens, lens_to_entries, lens_to_signals, format_lens_guidance,
+)
 from .curation import curate_entries
 from .debt_sensors import debt_sensors_enabled, run_debt_sensors
 from .derived_work import (
@@ -148,6 +151,19 @@ def run_swarm(task: Task, caller: ModelCaller, *,
                 ))
         blackboard.save_snapshot("seed")
 
+    # Phase 3a: Domain Lens — professional-prior pseudo-criteria
+    domain_lens = {}
+    if review_caller is not None and seed_plan:
+        domain_lens, lens_tokens = generate_domain_lens(
+            blackboard, seed_plan, review_caller,
+        )
+        blackboard.add_tokens_from_last_call(lens_tokens)
+        lens_entries = lens_to_entries(domain_lens, blackboard)
+        if lens_entries:
+            blackboard.add_entries_batch(lens_entries)
+        lens_to_signals(domain_lens, blackboard)
+        blackboard.save_snapshot("domain_lens")
+
     # Phase 3b: If no documents but web search is enabled, add a research signal
     from .web_search import web_search_enabled
     if not blackboard.documents and web_search_enabled():
@@ -164,7 +180,7 @@ def run_swarm(task: Task, caller: ModelCaller, *,
         ))
 
     # Phase 4: Initial reading (parallel per section)
-    entries, tokens = _execute_initial_reading(blackboard, task, caller, seed_plan)
+    entries, tokens = _execute_initial_reading(blackboard, task, caller, seed_plan, domain_lens)
     blackboard.add_entries_batch(entries)
     blackboard.add_tokens(tokens)
 
@@ -327,6 +343,7 @@ def run_swarm(task: Task, caller: ModelCaller, *,
         # Phase 7b: Plan coverage review — adversarial seed/criteria coverage check
         cov_report, cov_tokens = run_plan_coverage_review(
             blackboard, seed_plan, review_caller,
+            domain_lens=domain_lens,
         )
         blackboard.add_tokens_from_last_call(cov_tokens)
 
@@ -518,7 +535,8 @@ Return JSON with these fields."""
 
 def _execute_initial_reading(blackboard: Blackboard, task: Task,
                              caller: ModelCaller,
-                             seed_plan: dict | None = None) -> tuple[list[Entry], int]:
+                             seed_plan: dict | None = None,
+                             domain_lens: dict | None = None) -> tuple[list[Entry], int]:
     CHUNK_SIZE = 24000
     CHUNK_OVERLAP = 2000
 
@@ -546,7 +564,7 @@ def _execute_initial_reading(blackboard: Blackboard, task: Task,
                 read_tasks.append({
                     "doc_name": ds.name, "section_name": section.name,
                     "section_text": text, "density_hint": density_hint,
-                    "seed_guidance": _initial_reading_seed_guidance(seed_plan, ds.name),
+                    "seed_guidance": _initial_reading_seed_guidance(seed_plan, ds.name, domain_lens),
                 })
             else:
                 chunk_idx = 0
@@ -560,7 +578,7 @@ def _execute_initial_reading(blackboard: Blackboard, task: Task,
                         "doc_name": ds.name,
                         "section_name": f"{section.name} (part {chunk_idx})",
                         "section_text": chunk, "density_hint": density_hint,
-                        "seed_guidance": _initial_reading_seed_guidance(seed_plan, ds.name),
+                        "seed_guidance": _initial_reading_seed_guidance(seed_plan, ds.name, domain_lens),
                     })
                     offset += CHUNK_SIZE - CHUNK_OVERLAP
 
@@ -640,8 +658,9 @@ Return JSON: {{"findings": [...]}}"""
     return all_entries, total_tokens
 
 
-def _initial_reading_seed_guidance(seed_plan: dict | None, doc_name: str) -> str:
-    """Format seed plan as lightweight guidance for first-pass readers."""
+def _initial_reading_seed_guidance(seed_plan: dict | None, doc_name: str,
+                                   lens: dict | None = None) -> str:
+    """Format seed plan + domain lens as guidance for first-pass readers."""
     if not isinstance(seed_plan, dict) or not seed_plan:
         return ""
 
@@ -695,5 +714,10 @@ def _initial_reading_seed_guidance(seed_plan: dict | None, doc_name: str) -> str
             "Completeness signals:\n"
             + "\n".join(f"- {criterion}" for criterion in criteria)
         )
+
+    if lens:
+        lens_text = format_lens_guidance(lens)
+        if lens_text:
+            parts.append(lens_text)
 
     return "\n\n".join(parts)
