@@ -1,4 +1,5 @@
 ﻿{
+    "bench_root":  "$HARVEY_BENCH_ROOT",
     "tasks":  [
                   {
                       "task_id":  "antitrust-competition/draft-antitrust-compliance-training-materials"
