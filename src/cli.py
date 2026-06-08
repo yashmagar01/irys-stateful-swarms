@@ -78,7 +78,7 @@ def main():
     score_p.add_argument("--scorer", default=None,
                          help="Force scorer type: harvey, llm_judge, file_check, "
                               "or agent_bench:<name> (default: auto)")
-    score_p.add_argument("--judge-model", default="openai/o3")
+    score_p.add_argument("--judge-model", default="gemini-3.1-flash-lite")
     score_p.add_argument("--concurrency", "-j", type=int, default=20,
                          help="Criteria parallelism per task")
     score_p.add_argument("--task-concurrency", type=int, default=5,

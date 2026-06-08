@@ -173,7 +173,7 @@ def load_manifest_for_scoring(
 class HarveyLabScorer:
     """Wraps Harvey LAB's evaluation.judge.Judge + evaluation.scoring.score_rubric."""
 
-    def __init__(self, bench_root: Path, judge_model: str = "openai/o3"):
+    def __init__(self, bench_root: Path, judge_model: str = "gemini-3.1-flash-lite"):
         self._bench_root = bench_root
         self._judge_model = judge_model
         sys.path.insert(0, str(bench_root))
@@ -215,7 +215,7 @@ class HarveyLabScorer:
 class LLMJudgeScorer:
     """LLM-as-judge scorer using criteria from task.json."""
 
-    def __init__(self, judge_model: str = "openai/o3"):
+    def __init__(self, judge_model: str = "gemini-3.1-flash-lite"):
         self._judge_model = judge_model
 
     def score_task(self, task_data: dict, run_dir: Path, **kwargs) -> ScoreResult:
@@ -353,7 +353,7 @@ _SCORER_REGISTRY: dict[str, type] = {
 def create_scorer(
     scorer_name: str,
     bench_root: Path | None = None,
-    judge_model: str = "openai/o3",
+    judge_model: str = "gemini-3.1-flash-lite",
 ) -> Scorer:
     if scorer_name == "harvey":
         if not bench_root:
