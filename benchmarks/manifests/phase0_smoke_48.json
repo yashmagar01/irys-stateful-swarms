@@ -1,0 +1,149 @@
+﻿{
+    "tasks":  [
+                  {
+                      "task_id":  "antitrust-competition/draft-antitrust-compliance-training-materials"
+                  },
+                  {
+                      "task_id":  "antitrust-competition/extract-relevant-product-market-definitions-from-precedent-decisions"
+                  },
+                  {
+                      "task_id":  "arbitration-international-dispute-resolution/draft-emergency-application-for-interim-measures"
+                  },
+                  {
+                      "task_id":  "arbitration-international-dispute-resolution/review-dispute-summary/scenario-01"
+                  },
+                  {
+                      "task_id":  "banking-finance/draft-commitment-letter"
+                  },
+                  {
+                      "task_id":  "banking-finance/draft-intercreditor-agreement"
+                  },
+                  {
+                      "task_id":  "bankruptcy-restructuring/draft-plan-of-reorganization"
+                  },
+                  {
+                      "task_id":  "bankruptcy-restructuring/identify-issues-in-counterparty-confirmation-objection"
+                  },
+                  {
+                      "task_id":  "capital-markets/draft-equity-incentive-plan"
+                  },
+                  {
+                      "task_id":  "capital-markets/review-proxy-statement-for-sec-form-compliance"
+                  },
+                  {
+                      "task_id":  "corporate-governance/draft-action-by-incorporator"
+                  },
+                  {
+                      "task_id":  "corporate-governance/extract-key-allegations-from-government-inquiry-letter"
+                  },
+                  {
+                      "task_id":  "corporate-ma/draft-fund-term-sheet-vs-side-letter-deviation-analysis"
+                  },
+                  {
+                      "task_id":  "corporate-ma/identify-counterparty-term-sheet-issues/scenario-01"
+                  },
+                  {
+                      "task_id":  "data-privacy-cybersecurity/draft-external-privacy-notice"
+                  },
+                  {
+                      "task_id":  "data-privacy-cybersecurity/draft-standard-contractual-clauses-addendum"
+                  },
+                  {
+                      "task_id":  "emerging-companies-venture-capital/draft-escrow-agreement"
+                  },
+                  {
+                      "task_id":  "emerging-companies-venture-capital/extract-key-terms-from-stockholder-agreement"
+                  },
+                  {
+                      "task_id":  "employment-labor/analyze-iss-employment-complaint"
+                  },
+                  {
+                      "task_id":  "employment-labor/research-non"
+                  },
+                  {
+                      "task_id":  "energy-natural-resources/identify-issues-in-interconnection-agreement"
+                  },
+                  {
+                      "task_id":  "energy-natural-resources/identify-issues-in-power-purchase-agreement"
+                  },
+                  {
+                      "task_id":  "environmental-esg/analyze-counterparty-markup-of-environmental-indemnity-agreement"
+                  },
+                  {
+                      "task_id":  "environmental-esg/identify-issues-in-environmental-impact-statement"
+                  },
+                  {
+                      "task_id":  "funds-asset-management/draft-lpa/scenario-21"
+                  },
+                  {
+                      "task_id":  "funds-asset-management/draft-subscription-agreement"
+                  },
+                  {
+                      "task_id":  "healthcare-life-sciences/draft-privacy-impact-assessment"
+                  },
+                  {
+                      "task_id":  "healthcare-life-sciences/identify-issues-in-healthcare-facility-license-transfer-agreement"
+                  },
+                  {
+                      "task_id":  "immigration/draft-response-to-request-for-evidence"
+                  },
+                  {
+                      "task_id":  "immigration/identify-h1b-qualification-issues"
+                  },
+                  {
+                      "task_id":  "insurance/analyze-counterparty-markup-of-reinsurance-treaty"
+                  },
+                  {
+                      "task_id":  "insurance/compare-reinsurance-treaty-against-underlying-policy"
+                  },
+                  {
+                      "task_id":  "intellectual-property/analyze-counterparty-markup-of-joint-development-agreement"
+                  },
+                  {
+                      "task_id":  "intellectual-property/draft-markup-of-counterparty-data-processing-addendum"
+                  },
+                  {
+                      "task_id":  "international-trade-sanctions/analyze-counterparty-markup-of-mitigation-agreement"
+                  },
+                  {
+                      "task_id":  "international-trade-sanctions/draft-restricted-party-screening-procedures"
+                  },
+                  {
+                      "task_id":  "litigation-dispute-resolution/build-litigation-case-timeline"
+                  },
+                  {
+                      "task_id":  "litigation-dispute-resolution/extract-key-terms-from-counterparty-complaint"
+                  },
+                  {
+                      "task_id":  "real-estate/analyze-counterparty-markup-of-commercial-real-estate-loan-agreement"
+                  },
+                  {
+                      "task_id":  "real-estate/extract-psa-key-terms/scenario-01"
+                  },
+                  {
+                      "task_id":  "structured-finance-securitization/identify-issues-in-term-sheet"
+                  },
+                  {
+                      "task_id":  "structured-finance-securitization/review-securitization-indenture/scenario-02"
+                  },
+                  {
+                      "task_id":  "tax/identify-issues-in-annual-tax-compliance-report"
+                  },
+                  {
+                      "task_id":  "tax/identify-transfer-pricing-documentation-review"
+                  },
+                  {
+                      "task_id":  "trusts-estates-private-client/extract-assets-from-financial-declaration"
+                  },
+                  {
+                      "task_id":  "trusts-estates-private-client/identify-settlement-proposal-issues/scenario-01"
+                  },
+                  {
+                      "task_id":  "white-collar-defense-investigations/draft-proffer-agreement"
+                  },
+                  {
+                      "task_id":  "white-collar-defense-investigations/identify-suspicious-patterns-in-financial-transaction-records"
+                  }
+              ],
+    "bench_root":  "C:/Users/devan/OneDrive/Desktop/Projects/harvey-labs"
+}

@@ -167,3 +167,56 @@ def test_criterion_survival_deterministic_to_final():
         f"Verified: {verified}, Unresolved: {unresolved}"
     )
     assert len(unresolved) == 0
+
+
+# ---------------------------------------------------------------------------
+# Fixture 4: Numbered body paragraphs are prose (Codex R4 finding)
+# ---------------------------------------------------------------------------
+
+def test_verify_deterministic_accepts_numbered_body_paragraph():
+    """A numbered body paragraph containing a dollar amount is prose, not TOC."""
+    draft = (
+        "# Transaction Summary\n\n"
+        "## Key Terms\n"
+        "1. The enterprise value is $535 million based on trailing revenue of "
+        "$247 million, representing a 2.2x revenue multiple. The purchase price "
+        "will be subject to customary post-closing adjustments.\n\n"
+        "2. The termination fee is $15 million, payable by either party upon "
+        "breach of the merger agreement under Section 7.2.\n"
+    )
+    must_include = [
+        {"summary": "Enterprise value is $535 million"},
+    ]
+    verified, unresolved = verify_deterministic(draft, must_include)
+    assert 0 in verified, (
+        "$535 million in a numbered body paragraph should be verified — "
+        "long numbered lines are prose, not TOC entries"
+    )
+
+
+# ---------------------------------------------------------------------------
+# Fixture 5: shadow_judge_audit handles dict deliverables (Codex R4 finding)
+# ---------------------------------------------------------------------------
+
+def test_shadow_judge_audit_handles_dict_deliverable():
+    """shadow_judge_audit must not crash when deliverable is a dict."""
+    from src.swarm.synthesis import shadow_judge_audit
+    from src.swarm.blackboard import Blackboard
+    from src.swarm.models import ModelResult
+
+    class FakeCaller:
+        def complete(self, prompt, *, max_tokens=8192, temperature=0.05, json_mode=True):
+            return ModelResult(
+                text='{"omissions": []}',
+                tokens_input=1, tokens_output=1,
+                tokens_total=2, model="fake", latency_ms=0,
+            )
+
+    bb = Blackboard(task_instruction="Prepare memo and spreadsheet.")
+    deliverable = {
+        "memo.docx": "This is the memo content about the deal.",
+        "analysis.xlsx": "Col A, Col B\n1, 2",
+    }
+    result, tokens = shadow_judge_audit(deliverable, bb, {}, FakeCaller())
+    assert isinstance(result, dict), "Dict deliverable should return dict"
+    assert set(result.keys()) == {"memo.docx", "analysis.xlsx"}

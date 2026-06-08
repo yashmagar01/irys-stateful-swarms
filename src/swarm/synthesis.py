@@ -1639,17 +1639,24 @@ Write ONLY a supplemental section that addresses the missing items. Do not rewri
     return f"{draft.rstrip()}\n\n{supplement}", tokens
 
 
-def shadow_judge_audit(deliverable: str, blackboard: Blackboard,
+def shadow_judge_audit(deliverable: str | dict[str, str], blackboard: Blackboard,
                        seed_plan: dict, caller: ModelCaller,
-                       max_omissions: int = 15) -> tuple[str, int]:
+                       max_omissions: int = 15) -> tuple[str | dict[str, str], int]:
     """Post-synthesis shadow-judge: re-read the deliverable as a judge would,
     find source-supported omissions, and append-only repair them.
 
-    This targets the 150/163 omission-shaped failures in the 80-89% band
-    that the must_include verify loop doesn't catch because they're implicit
-    task expectations, not explicit must_include items.
+    Handles both monolithic (str) and file-scoped (dict) deliverables.
     """
     total_tokens = 0
+
+    is_dict = isinstance(deliverable, dict)
+    if is_dict:
+        flat_text = "\n\n".join(
+            f"--- {fname} ---\n{content}" for fname, content in deliverable.items()
+        )
+        primary_file = max(deliverable, key=lambda k: len(deliverable[k]))
+    else:
+        flat_text = deliverable
 
     active = [e for e in blackboard.entries if e.status == "active"]
     sourced = [
@@ -1690,7 +1697,7 @@ COMPLETENESS CRITERIA:
 {completeness_text}
 
 DELIVERABLE TO JUDGE:
-{deliverable[:120000]}
+{flat_text[:120000]}
 
 SOURCE-GROUNDED EVIDENCE ({len(sourced)} entries from the documents):
 {evidence_text[:100000]}
@@ -1741,6 +1748,15 @@ Be precise. "{{'summary': 'The deliverable should mention the $2.5M termination 
         }
         for o in valid_omissions[:max_omissions]
     ]
+
+    if is_dict:
+        repaired_text, repair_tokens = _append_missing_items(
+            deliverable[primary_file], missing_items, active, blackboard, caller,
+        )
+        total_tokens += repair_tokens
+        result = dict(deliverable)
+        result[primary_file] = repaired_text
+        return result, total_tokens
 
     repaired, repair_tokens = _append_missing_items(
         deliverable, missing_items, active, blackboard, caller,

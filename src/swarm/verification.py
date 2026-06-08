@@ -88,6 +88,7 @@ def extract_verification_targets(text: str) -> list[dict]:
 
 _HEADING_RE = re.compile(r'^\s*#{1,6}\s+', re.MULTILINE)
 _TOC_LINE_RE = re.compile(r'^\s*\d+\.\s+\S', re.MULTILINE)
+_TOC_MAX_LINE_LEN = 80
 
 
 def _is_in_prose(text: str, pos: int) -> bool:
@@ -97,7 +98,9 @@ def _is_in_prose(text: str, pos: int) -> bool:
     if line_end == -1:
         line_end = len(text)
     line = text[line_start:line_end]
-    if _HEADING_RE.match(line) or _TOC_LINE_RE.match(line):
+    if _HEADING_RE.match(line):
+        return False
+    if _TOC_LINE_RE.match(line) and len(line.strip()) <= _TOC_MAX_LINE_LEN:
         return False
     return True
 
