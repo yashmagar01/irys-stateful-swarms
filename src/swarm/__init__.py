@@ -440,7 +440,7 @@ def run_swarm(task: Task, caller: ModelCaller, *,
         for commitment in artifact_commitments:
             key = (commitment.get("entry_id", ""), commitment.get("target_file", ""))
             if key not in seen:
-                must_include.insert(0, commitment)
+                must_include.append(commitment)
                 seen.add(key)
 
     if derived_work_report or debt_sensor_report:

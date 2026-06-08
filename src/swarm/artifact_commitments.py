@@ -114,7 +114,7 @@ def _candidate_entries(entries: list[Entry]) -> list[Entry]:
             continue
         selected.append(entry)
         seen.add(entry.id)
-        if len(selected) >= int(os.getenv("SWARM_ARTIFACT_COMMITMENT_LIMIT", "30")):
+        if len(selected) >= int(os.getenv("SWARM_ARTIFACT_COMMITMENT_LIMIT", "50")):
             break
     return selected
 
@@ -131,6 +131,8 @@ def _is_candidate(entry: Entry) -> bool:
         return True
     if entry.type == "calculation" and extract_verification_targets(entry.content):
         return True
+    if entry.type == "analysis" and entry.confidence >= 0.6 and len(entry.content) >= 80:
+        return True
     return False
 
 
@@ -145,7 +147,7 @@ def _candidate_score(entry: Entry) -> tuple[int, float, int]:
         materiality = 2
     type_score = {
         "calculation": 4,
-        "analysis": 3,
+        "analysis": 4,
         "strategy": 2,
         "observation": 1,
     }.get(entry.type, 0)
