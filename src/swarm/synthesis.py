@@ -1367,7 +1367,9 @@ def _append_missing_items_for_file(
     ]
     relevant_text = "\n".join(relevant_entries) if relevant_entries else "See missing items above."
 
-    prompt = f"""The draft for one output file is missing required items.
+    draft_excerpt = draft[:80_000] if len(draft) > 80_000 else draft
+
+    prompt = f"""The draft for one output file is missing required items. Read the current draft to understand what is already written, then add ONLY what is missing. Do not duplicate existing content.
 
 TASK:
 {blackboard.task_instruction}
@@ -1378,13 +1380,16 @@ OUTPUT FILE:
 FORMAT GUIDANCE:
 {_file_format_guidance(filename)}
 
+CURRENT DRAFT (already written):
+{draft_excerpt}
+
 MISSING ITEMS THAT MUST BE ADDED:
 {missing_text}
 
 SOURCE ENTRIES FOR MISSING ITEMS:
 {relevant_text}
 
-Write ONLY a supplemental addition for {filename}. Keep it appropriate for this file type. For spreadsheets, use '# Sheet: ...' and Markdown table rows. For redlines or markups, write revised clause language or drafting notes. Do not write a generic memo unless {filename} is itself a memo."""
+Write ONLY a supplemental addition for {filename} covering the missing items above. Do not repeat content already in the draft. Keep it appropriate for this file type. For spreadsheets, use '# Sheet: ...' and Markdown table rows. For redlines or markups, write revised clause language or drafting notes. Do not write a generic memo unless {filename} is itself a memo."""
 
     payload, tokens = call_model(caller, prompt, max_tokens=8192, json_mode=False)
     supplement = payload.get("text", "").strip()
