@@ -63,11 +63,6 @@ BENCHMARK_TIERS: list[BenchmarkSpec] = [
         "gaia", "validation", "experimental", "multi_step_tool_use",
         sota="74.6% (HAL agent); bare model ~45%",
     ),
-    BenchmarkSpec(
-        "ama_bench", "test", "primary", "agent_memory",
-        sota="57.2% (AMA-Agent w/ causality graph)",
-    ),
-
     # --- EXPERIMENTAL: Requires separate evaluation harness ---
     BenchmarkSpec(
         "arc_agi_3", "test", "experimental", "interactive_reasoning",

@@ -29,11 +29,10 @@ def test_tiers_present():
 
 def test_primary_benchmarks_are_agentic():
     primary = get_benchmarks(tiers=["primary"])
-    assert len(primary) >= 3
+    assert len(primary) >= 2
     names = [s.name for s in primary]
     assert "harvey_lab" in names
     assert "officeqa_pro" in names
-    assert "ama_bench" in names
 
 
 def test_primary_benchmarks_have_sota():
@@ -48,10 +47,9 @@ def test_experimental_includes_arc_agi_3():
     assert "arc_agi_3" in names
 
 
-def test_ama_bench_in_primary():
-    primary = get_benchmarks(tiers=["primary"])
-    names = [s.name for s in primary]
-    assert "ama_bench" in names
+def test_ama_bench_dropped():
+    names = {s.name for s in BENCHMARK_TIERS}
+    assert "ama_bench" not in names
 
 
 def test_no_single_call_qa_benchmarks():
@@ -64,7 +62,7 @@ def test_no_single_call_qa_benchmarks():
 
 
 def test_total_benchmark_count():
-    assert len(BENCHMARK_TIERS) == 5
+    assert len(BENCHMARK_TIERS) == 4
 
 
 def test_no_duplicate_benchmark_names():
@@ -89,11 +87,11 @@ def test_filter_by_category():
 
 
 def test_filter_by_name():
-    result = get_benchmarks(names=["gaia", "ama_bench"])
+    result = get_benchmarks(names=["gaia", "harvey_lab"])
     assert len(result) == 2
     names = [s.name for s in result]
     assert "gaia" in names
-    assert "ama_bench" in names
+    assert "harvey_lab" in names
 
 
 def test_filter_returns_empty_for_nonexistent():
