@@ -49401,13 +49401,19 @@ Codex challenged several assertions in the original plan. Corrections incorporat
 
 **Trigger**: After all existing flags/bug fixes run on fixed 48-task Harvey smoke set, THEN confirmed on 120-150 task stratified sample.
 
-**Success criteria (ALL must hold)**:
-- Binary pass improves by at least +15pp on 48-task smoke (from 17.75% to 32.75%+)
-- OR +8pp confirmed on 120-150 task stratified sample with cluster-bootstrapped CI
-- Per-criterion accuracy does NOT regress on non-sectioned tasks (stays 100%)
-- Cost stays under +35% ($1.76/task max)
-- No parse/runtime failure rate above 2%
-- At least 3 of the 14+ features show positive individual contribution
+**Pre-Gate-1 invariant (must be locked BEFORE any smoke runs)**:
+- Fixed 48-task sample manifest (stratified by task type, criterion count, synthesis path)
+- Frozen model versions (exact model IDs pinned)
+- Frozen scoring runner version
+- Fixed retry policy (max retries, timeout per task)
+- Baseline run provenance recorded (run ID, scorer version, task count, date)
+
+**Success criteria (effect size PLUS all operational checks)**:
+- Effect size: +15pp binary pass on 48-task smoke (17.75% → 32.75%+) **OR** +8pp confirmed on 120-150 task stratified sample with cluster-bootstrapped CI
+- AND: Per-criterion accuracy does NOT regress on non-sectioned tasks (stays 100%)
+- AND: Cost stays under +35% ($1.76/task max)
+- AND: No parse/runtime failure rate above 2%
+- AND: At least 3 of the 14+ features show positive individual contribution
 
 **Failure protocol**: Bisect flags one at a time. Disable any feature with negative expected value. Run each feature alone, measure delta.
 
@@ -49480,13 +49486,22 @@ Codex challenged several assertions in the original plan. Corrections incorporat
 
 ## 2008b. TESTING PROTOCOL (Per-Phase)
 
+### Pre-Phase-0 Verifier Fixtures (Before Any Smoke Spend)
+
+These unit-level fixtures must pass BEFORE committing to 48-task smoke runs:
+
+1. **Deterministic false-positive fixture**: Import `verify_deterministic`, create a draft that mentions "Section 8.3" only in an intro/outline but does NOT substantively discuss the required item. Assert item remains unresolved. (Tests the verification.py:128 bug fix.)
+2. **Per-file augmentation draft-context fixture**: Call `_append_missing_items_for_file` with a non-empty draft. Assert the prompt sent to the model contains the draft text. (Tests the blind-augmentation fix.)
+3. **Criterion survival oracle fixture**: 5 synthetic tasks with known must-include items. Trace each item through: curation → outline assignment → chunk prompt → draft → repair. Assert survival. (Miniature version of full oracle.)
+
 ### Phase 0 (Feature Enable)
 
 1. Run `python -m pytest tests -q` — all existing tests must pass
-2. Per-feature ablation on 48-task smoke: each feature alone, measure binary pass delta
-3. All-features-enabled run on same 48 tasks
-4. Required measurements: per-criterion delta, binary delta, cost/task, output length, parse failures
-5. Non-sectioned regression check: re-run 10 non-sectioned tasks, must stay at 97%+ binary
+2. Pre-Phase-0 verifier fixtures must pass
+3. Per-feature ablation on 48-task smoke: each feature alone, measure binary pass delta
+4. All-features-enabled run on same 48 tasks
+5. Required measurements: per-criterion delta, binary delta, cost/task, output length, parse failures
+6. Non-sectioned regression check: re-run 10 non-sectioned tasks, must stay at 97%+ binary
 
 ### Phase 1 (Enhanced Sectioning)
 
@@ -49649,7 +49664,7 @@ Before execution begins, these must be resolved:
 
 ### The Headline (Conservative — Gate 3 Passed)
 
-**"Stateful swarms at 50-60% Harvey LAB (5-6x better than anyone at 1/40th the cost), competitive on OfficeQA + Finance + BigLaw — all at $1.60/task. Blackboard architecture proven on multi-document analytical tasks."**
+**"Stateful swarms at 50-60% Harvey LAB (5-6x better than anyone at 1/32nd the cost), competitive on OfficeQA + Finance + BigLaw — all at $1.60/task. Blackboard architecture proven on multi-document analytical tasks."**
 
 ### The Headline (Strong — Gate 4 Passed)
 
