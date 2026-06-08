@@ -227,3 +227,50 @@ def test_source_custody_quarantines_fake_file_named_like_synthetic(tmp_path):
 
     assert blackboard.entries[0].status == "source_quarantined"
     assert report["summary"]["entries_quarantined"] == 1
+
+
+def test_source_custody_disabled_skips_quarantine(tmp_path, monkeypatch):
+    monkeypatch.setenv("SWARM_ENABLE_SOURCE_CUSTODY", "0")
+    blackboard = Blackboard(
+        task_instruction="Analyze docs.",
+        output_dir=str(tmp_path),
+        documents=[DocumentStatus(id="d1", name="real-doc.docx")],
+        entries=[
+            Entry(
+                id="e1",
+                type="observation",
+                content="Found something in a fake file.",
+                source=EntrySource(document="fake-doc.pdf", evidence="fake"),
+            ),
+        ],
+    )
+
+    report = enforce_source_custody(blackboard, "test")
+
+    assert blackboard.entries[0].status == "active"
+    assert report.get("disabled") is True
+    assert report["summary"]["entries_quarantined"] == 0
+
+
+def test_source_custody_audit_only_logs_but_preserves_status(tmp_path, monkeypatch):
+    monkeypatch.setenv("SWARM_SOURCE_CUSTODY_AUDIT_ONLY", "1")
+    blackboard = Blackboard(
+        task_instruction="Analyze docs.",
+        output_dir=str(tmp_path),
+        documents=[DocumentStatus(id="d1", name="real-doc.docx")],
+        entries=[
+            Entry(
+                id="e1",
+                type="observation",
+                content="Found something in a fake file.",
+                source=EntrySource(document="fake-doc.pdf", evidence="fake"),
+            ),
+        ],
+    )
+
+    report = enforce_source_custody(blackboard, "test")
+
+    assert blackboard.entries[0].status == "active"
+    assert report["audit_only"] is True
+    assert report["summary"]["entries_flagged"] == 1
+    assert report["summary"]["entries_quarantined"] == 0

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 from pathlib import Path
 
@@ -9,6 +10,14 @@ from .models import Entry
 
 
 SOURCE_CUSTODY_STATUS = "source_quarantined"
+
+
+def source_custody_enabled() -> bool:
+    return os.getenv("SWARM_ENABLE_SOURCE_CUSTODY", "1") == "1"
+
+
+def source_custody_audit_only() -> bool:
+    return os.getenv("SWARM_SOURCE_CUSTODY_AUDIT_ONLY", "0") == "1"
 SYNTHETIC_SOURCE_NAMES = {
     "cross_cutting", "crosscutting", "cross cutting",
     "multiple",
@@ -28,6 +37,12 @@ def enforce_source_custody(
     stage: str,
 ) -> dict:
     """Quarantine active entries that claim non-existent source documents."""
+    if not source_custody_enabled():
+        report = _empty_custody_report(stage)
+        write_source_custody_report(blackboard.output_dir, report)
+        return report
+
+    audit_only = source_custody_audit_only()
     valid_docs = _valid_document_names(blackboard)
     invalid_doc_names: set[str] = set()
     quarantined_ids: set[str] = set()
@@ -39,47 +54,51 @@ def enforce_source_custody(
         invalid = _invalid_source_documents(entry, valid_docs)
         if not invalid:
             continue
-        _quarantine_entry(entry)
+        if not audit_only:
+            _quarantine_entry(entry)
         invalid_doc_names.update(invalid)
         quarantined_ids.add(entry.id)
         items.append(_item(entry, stage, "invalid_source_document", invalid, []))
 
     # Cascade once through derived/cross-cutting entries that rely on invalid
     # source entries or restate fake document names without a valid direct source.
-    for _ in range(3):
-        changed = False
-        for entry in list(blackboard.entries):
-            if entry.status != "active":
-                continue
-            supported_bad = [
-                entry_id for entry_id in entry.supports_entries
-                if entry_id in quarantined_ids
-            ]
-            mentioned_bad = _mentioned_invalid_documents(entry, invalid_doc_names)
-            if not supported_bad and not mentioned_bad:
-                continue
-            if _has_valid_direct_source(entry, valid_docs) and not mentioned_bad:
-                continue
-            _quarantine_entry(entry)
-            quarantined_ids.add(entry.id)
-            items.append(_item(
-                entry,
-                stage,
-                "depends_on_invalid_source_state",
-                mentioned_bad,
-                supported_bad,
-            ))
-            changed = True
-        if not changed:
-            break
+    if not audit_only:
+        for _ in range(3):
+            changed = False
+            for entry in list(blackboard.entries):
+                if entry.status != "active":
+                    continue
+                supported_bad = [
+                    entry_id for entry_id in entry.supports_entries
+                    if entry_id in quarantined_ids
+                ]
+                mentioned_bad = _mentioned_invalid_documents(entry, invalid_doc_names)
+                if not supported_bad and not mentioned_bad:
+                    continue
+                if _has_valid_direct_source(entry, valid_docs) and not mentioned_bad:
+                    continue
+                _quarantine_entry(entry)
+                quarantined_ids.add(entry.id)
+                items.append(_item(
+                    entry,
+                    stage,
+                    "depends_on_invalid_source_state",
+                    mentioned_bad,
+                    supported_bad,
+                ))
+                changed = True
+            if not changed:
+                break
 
     report = {
         "schema_version": 1,
         "stage": stage,
+        "audit_only": audit_only,
         "valid_documents": sorted(valid_docs),
         "items": items,
         "summary": {
-            "entries_quarantined": len(items),
+            "entries_quarantined": 0 if audit_only else len(items),
+            "entries_flagged": len(items) if audit_only else 0,
             "invalid_documents": _counts(
                 doc for item in items for doc in item.get("invalid_documents", [])
             ),
@@ -88,6 +107,23 @@ def enforce_source_custody(
     }
     write_source_custody_report(blackboard.output_dir, report)
     return report
+
+
+def _empty_custody_report(stage: str) -> dict:
+    return {
+        "schema_version": 1,
+        "stage": stage,
+        "audit_only": False,
+        "disabled": True,
+        "valid_documents": [],
+        "items": [],
+        "summary": {
+            "entries_quarantined": 0,
+            "entries_flagged": 0,
+            "invalid_documents": {},
+            "reasons": {},
+        },
+    }
 
 
 def write_source_custody_report(output_dir: str, report: dict) -> None:
