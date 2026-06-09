@@ -53,14 +53,33 @@ class ModelCaller(Protocol):
 
 # --- Document Model ---
 
-@dataclass
 class Document:
-    id: str
-    name: str
-    text: str
-    size_bytes: int = 0
-    metadata: dict[str, Any] = field(default_factory=dict)
-    structured: dict[str, Any] = field(default_factory=dict)
+    """Document with lazy text loading for large corpora."""
+    __slots__ = ("id", "name", "_text", "_loader", "size_bytes", "metadata", "structured")
+
+    def __init__(self, id: str, name: str, text: str = "",
+                 size_bytes: int = 0, metadata: dict[str, Any] | None = None,
+                 structured: dict[str, Any] | None = None,
+                 _loader: Any = None):
+        self.id = id
+        self.name = name
+        self._text = text
+        self._loader = _loader
+        self.size_bytes = size_bytes
+        self.metadata = metadata or {}
+        self.structured = structured or {}
+
+    @property
+    def text(self) -> str:
+        if self._loader is not None and not self._text:
+            self._text, self.structured = self._loader()
+            self._loader = None
+        return self._text
+
+    @text.setter
+    def text(self, value: str) -> None:
+        self._text = value
+        self._loader = None
 
 
 # --- Task Model ---
@@ -186,6 +205,24 @@ class DocumentStatus:
     sections_unread: list[str] = field(default_factory=list)
     section_index: SectionIndex | None = field(default=None, repr=False)
     text: str = field(default="", repr=False)
+    _lazy_doc: Any = field(default=None, repr=False)
+
+    @property
+    def is_loaded(self) -> bool:
+        return bool(self.text) or self._lazy_doc is None
+
+    def materialize(self) -> None:
+        """Load text from lazy document source if not yet loaded."""
+        if self._lazy_doc is not None and not self.text:
+            doc = self._lazy_doc
+            self.text = doc.text
+            self.structured = doc.structured if hasattr(doc, 'structured') else {}
+            from .section_index import build_section_index
+            idx = build_section_index(self.text)
+            self.section_index = idx
+            self.headings = [s.name for s in idx.sections]
+            self.sections_unread = [s.name for s in idx.sections]
+            self._lazy_doc = None
 
     def mark_section_read(self, section: str) -> None:
         if section not in self.sections_read:

@@ -46,11 +46,18 @@ def check_convergence(blackboard: Blackboard, convergence_output: dict,
         for item in items:
             findings_by_doc += f"  {item}\n"
 
+    loaded_docs = [
+        d for d in summary["documents"]
+        if d.get("read_status") != "unread" or d.get("structural_profile")
+    ]
+    unloaded_count = len(summary["documents"]) - len(loaded_docs)
     doc_profiles = "\n".join(
         f"- {d['name']}: {d['read_status']}, "
-        f"profile={json.dumps(d.get('structural_profile', {}))}"
-        for d in summary["documents"]
+        f"profile={json.dumps(d.get('structural_profile') or {})}"
+        for d in loaded_docs
     )
+    if unloaded_count > 0:
+        doc_profiles += f"\n(+ {unloaded_count} unloaded documents in corpus)"
 
     prompt = f"""The orchestrator says analysis is COMPLETE. Find reasons it is NOT.
 
@@ -113,11 +120,18 @@ def supervisor_review(blackboard: Blackboard,
     for e in active:
         type_counts[e.type] = type_counts.get(e.type, 0) + 1
 
+    _loaded = [
+        d for d in summary["documents"]
+        if d.get("read_status") != "unread" or d.get("structural_profile")
+    ]
+    _unloaded_count = len(summary["documents"]) - len(_loaded)
     doc_summary = "\n".join(
         f"- {d['name']}: {d['read_status']}, "
-        f"profile={json.dumps(d.get('structural_profile', {}))}"
-        for d in summary["documents"]
+        f"profile={json.dumps(d.get('structural_profile') or {})}"
+        for d in _loaded
     )
+    if _unloaded_count > 0:
+        doc_summary += f"\n(+ {_unloaded_count} unloaded documents in corpus)"
 
     prompt = f"""You are a senior reviewer. The analysis team has completed their investigation and believes they are ready for synthesis.
 
@@ -202,11 +216,19 @@ def analytical_steering(blackboard: Blackboard,
     for e in active:
         type_counts[e.type] = type_counts.get(e.type, 0) + 1
 
+    _steer_all_docs = blackboard.get_summary()["documents"]
+    _steer_loaded = [
+        d for d in _steer_all_docs
+        if d.get("read_status") != "unread" or d.get("structural_profile")
+    ]
+    _steer_unloaded = len(_steer_all_docs) - len(_steer_loaded)
     doc_summary = "\n".join(
         f"- {d['name']}: {d['read_status']}, "
-        f"profile={json.dumps(d.get('structural_profile', {}))}"
-        for d in blackboard.get_summary()["documents"]
+        f"profile={json.dumps(d.get('structural_profile') or {})}"
+        for d in _steer_loaded
     )
+    if _steer_unloaded > 0:
+        doc_summary += f"\n(+ {_steer_unloaded} unloaded documents in corpus)"
 
     prompt = f"""You are a senior analyst directing a team of junior workers. Review their work so far and decide what analytical work they should do next.
 

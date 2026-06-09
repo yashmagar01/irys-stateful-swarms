@@ -56,15 +56,20 @@ GUIDELINES:
 """
 
 
-def run_orchestrator(blackboard: Blackboard, caller: ModelCaller,
-                     override: str = "") -> tuple[dict, int]:
-    summary = blackboard.get_summary()
+def _build_orchestrator_doc_list(blackboard: Blackboard, summary: dict) -> str:
+    """Build the document list for the orchestrator prompt.
 
-    # Build document info with extraction depth analysis
-    doc_lines = []
+    For large lazy corpora, show loaded docs in detail and group unloaded
+    docs by directory to keep the prompt manageable.
+    """
+    from collections import defaultdict
+
+    loaded_lines = []
+    unloaded_by_dir: dict[str, list[str]] = defaultdict(list)
     extraction_gaps = []
+
     for d in summary["documents"]:
-        profile = d.get("structural_profile", {})
+        profile = d.get("structural_profile") or {}
         expected = profile.get("numbered_items", 0)
         if not isinstance(expected, (int, float)):
             expected = 0
@@ -75,22 +80,60 @@ def run_orchestrator(blackboard: Blackboard, caller: ModelCaller,
             and e.status == "active"
             and e.type in ("observation", "analysis", "calculation")
         ])
-        coverage_pct = round(actual / max(expected, 1) * 100) if expected > 0 else 0
-        doc_lines.append(
-            f"- {doc_name}: {d['read_status']}, "
-            f"extracted={actual} entries"
-            + (f" (expected ~{int(expected)}, coverage={coverage_pct}%)" if expected > 0 else "")
-        )
-        if expected > 0 and actual < expected * 0.7:
-            extraction_gaps.append(
-                f"EXTRACTION GAP: {doc_name} has ~{int(expected)} enumerable items "
-                f"but only {actual} extracted ({coverage_pct}%). "
-                f"Need {int(expected - actual)} more."
-            )
-    docs = "\n".join(doc_lines) or "None"
 
+        ds = next((ds for ds in blackboard.documents if ds.name == doc_name), None)
+        is_loaded = ds.is_loaded if ds else True
+
+        if is_loaded or actual > 0:
+            coverage_pct = round(actual / max(expected, 1) * 100) if expected > 0 else 0
+            loaded_lines.append(
+                f"- {doc_name}: {d['read_status']}, "
+                f"extracted={actual} entries"
+                + (f" (expected ~{int(expected)}, coverage={coverage_pct}%)" if expected > 0 else "")
+            )
+            if expected > 0 and actual < expected * 0.7:
+                extraction_gaps.append(
+                    f"EXTRACTION GAP: {doc_name} has ~{int(expected)} enumerable items "
+                    f"but only {actual} extracted ({coverage_pct}%). "
+                    f"Need {int(expected - actual)} more."
+                )
+        else:
+            path = ""
+            if ds and ds._lazy_doc is not None:
+                path = ds._lazy_doc.metadata.get("path", "")
+            parts = path.replace("\\", "/").split("/") if path else []
+            dir_key = "/".join(parts[-3:-1]) if len(parts) >= 3 else (parts[-2] if len(parts) >= 2 else "(root)")
+            unloaded_by_dir[dir_key].append(doc_name)
+
+    lines = loaded_lines
+    if unloaded_by_dir:
+        total_unloaded = sum(len(v) for v in unloaded_by_dir.values())
+        lines.append(f"\nUNLOADED CORPUS ({total_unloaded} documents available on demand):")
+        for dir_name in sorted(unloaded_by_dir.keys()):
+            names = unloaded_by_dir[dir_name]
+            if len(names) <= 5:
+                for n in names:
+                    lines.append(f"  [{dir_name}] {n}")
+            else:
+                lines.append(f"  [{dir_name}] {len(names)} files")
+                for n in names[:3]:
+                    lines.append(f"    e.g. {n}")
+                lines.append(f"    ... and {len(names) - 3} more")
+        lines.append(
+            "\nTo read unloaded documents, include them in reads_from_documents "
+            "with their exact filename. They will be loaded on demand."
+        )
+
+    docs = "\n".join(lines) or "None"
     if extraction_gaps:
         docs += "\n\nEXTRACTION DEPTH WARNINGS:\n" + "\n".join(extraction_gaps)
+    return docs
+
+
+def run_orchestrator(blackboard: Blackboard, caller: ModelCaller,
+                     override: str = "") -> tuple[dict, int]:
+    summary = blackboard.get_summary()
+    docs = _build_orchestrator_doc_list(blackboard, summary)
 
     sigs = "\n".join(
         f"- [{s.id}] [{s.priority}] {s.content}"

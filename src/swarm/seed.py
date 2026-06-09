@@ -12,23 +12,72 @@ from .models import ModelCaller, Signal, gen_signal_id
 from .worker_dispatch import call_model
 
 
+def _build_grouped_catalog(documents) -> str:
+    """Group documents by parent directory for a compact catalog."""
+    from collections import defaultdict
+    groups = defaultdict(list)
+    for d in documents:
+        path = ""
+        if hasattr(d, "_lazy_doc") and d._lazy_doc is not None:
+            path = d._lazy_doc.metadata.get("path", "")
+        if not path:
+            groups["(root)"].append(d)
+            continue
+        parts = path.replace("\\", "/").split("/")
+        if len(parts) >= 3:
+            parent = "/".join(parts[-3:-1])
+        elif len(parts) >= 2:
+            parent = parts[-2]
+        else:
+            parent = "(root)"
+        groups[parent].append(d)
+
+    lines = []
+    for group_name in sorted(groups.keys()):
+        docs_in_group = groups[group_name]
+        if len(docs_in_group) <= 10:
+            for d in docs_in_group:
+                lines.append(f"  [{group_name}] {d.name} ({d.size_bytes} bytes)")
+        else:
+            total_size = sum(d.size_bytes for d in docs_in_group)
+            lines.append(
+                f"  [{group_name}] {len(docs_in_group)} files, "
+                f"{total_size // 1024}KB total"
+            )
+            for d in docs_in_group[:3]:
+                lines.append(f"    e.g. {d.name}")
+            lines.append(f"    ... and {len(docs_in_group) - 3} more")
+    return "\n".join(lines)
+
+
 def generate_seed(blackboard: Blackboard,
                   caller: ModelCaller) -> tuple[dict, int]:
     """Read task and structural profiles, then produce an analytical plan.
 
     Returns (seed_plan, tokens_used).
     """
-    doc_summary = "\n".join(
-        f"- {d.name}: {d.size_bytes} bytes, {d.read_status}, "
-        f"headings={d.headings[:20]}, "
-        f"profile={json.dumps(d.structural_profile or {})}"
-        for d in blackboard.documents
-    )
+    large_corpus = len(blackboard.documents) > 50
+    if large_corpus:
+        doc_summary = _build_grouped_catalog(blackboard.documents)
+        corpus_note = (
+            f"\nIMPORTANT: This is a LARGE corpus ({len(blackboard.documents)} documents). "
+            f"Documents are grouped by directory. In EXTRACTION FOCUS, reference documents by their "
+            f"directory group name (e.g. 'sec/10-K', 'ir/news-releases') or by example filenames "
+            f"shown in the catalog. The system will load matching files automatically.\n"
+        )
+    else:
+        doc_summary = "\n".join(
+            f"- {d.name}: {d.size_bytes} bytes, {d.read_status}, "
+            f"headings={d.headings[:20]}, "
+            f"profile={json.dumps(d.structural_profile or {})}"
+            for d in blackboard.documents
+        )
+        corpus_note = ""
 
     prompt = f"""You are a senior analyst planning an investigation. Before any documents are read in detail, you need to create an analytical plan.
 
 TASK: {blackboard.task_instruction}
-
+{corpus_note}
 DOCUMENTS AVAILABLE (not yet read in detail — only structure/headings known):
 {doc_summary}
 

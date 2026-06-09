@@ -57,7 +57,7 @@ def run_single_task(task_dir: Path, output_dir: Path, *,
     if not instruction:
         return RunResult(task_id=task_id, error="no instruction found")
 
-    documents = discover_documents(task_dir)
+    documents = discover_documents(task_dir, task_data.get("docs_path"))
     if not documents:
         return RunResult(task_id=task_id, error="no documents found")
 

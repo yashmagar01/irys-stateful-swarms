@@ -26,6 +26,8 @@ _READERS = {
     ".eml": read_eml,
 }
 
+LAZY_THRESHOLD = 50
+
 
 def ingest_file(path: Path) -> Document:
     suffix = path.suffix.lower()
@@ -46,15 +48,42 @@ def ingest_file(path: Path) -> Document:
     )
 
 
-def ingest_directory(directory: Path) -> list[Document]:
-    docs = []
-    for path in sorted(directory.rglob("*")):
-        if path.is_file() and path.suffix.lower() in SUPPORTED_EXTENSIONS:
-            docs.append(ingest_file(path))
-    return docs
+def _make_lazy_doc(path: Path) -> Document:
+    suffix = path.suffix.lower()
+    name = path.name
+    size_bytes = path.stat().st_size
+    doc_id = f"doc_{hashlib.md5(name.encode()).hexdigest()[:8]}"
+    reader = _READERS.get(suffix, read_text)
+
+    def _load():
+        return reader(path)
+
+    return Document(
+        id=doc_id,
+        name=name,
+        size_bytes=size_bytes,
+        metadata={"extension": suffix, "path": str(path)},
+        _loader=_load,
+    )
 
 
-def discover_documents(task_dir: Path) -> list[Document]:
+def ingest_directory(directory: Path, *, lazy: bool = False) -> list[Document]:
+    paths = sorted(
+        p for p in directory.rglob("*")
+        if p.is_file() and p.suffix.lower() in SUPPORTED_EXTENSIONS
+    )
+    if not lazy and len(paths) <= LAZY_THRESHOLD:
+        return [ingest_file(p) for p in paths]
+    return [_make_lazy_doc(p) for p in paths]
+
+
+def discover_documents(task_dir: Path, docs_path: str | None = None) -> list[Document]:
+    if docs_path:
+        ext = Path(docs_path).resolve()
+        if ext.is_dir():
+            return ingest_directory(ext)
+        if ext.is_file():
+            return [ingest_file(ext)]
     for subdir_name in ("source_documents", "input_documents", "documents", "docs"):
         subdir = task_dir / subdir_name
         if subdir.is_dir():

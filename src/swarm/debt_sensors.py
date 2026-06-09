@@ -1422,6 +1422,8 @@ def _source_object_excerpts(documents) -> list[dict]:
     max_sections = int(os.getenv("SWARM_SOURCE_OBJECT_SECTIONS_PER_DOC", "4"))
     max_chars = int(os.getenv("SWARM_SOURCE_OBJECT_SECTION_CHARS", "12000"))
     for doc in documents:
+        if not doc.is_loaded:
+            continue
         section_names = list(doc.sections_unread[:max_sections])
         if not section_names and doc.section_index:
             section_names = [s.name for s in doc.section_index.sections[:max_sections]]

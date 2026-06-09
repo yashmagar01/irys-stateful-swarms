@@ -346,15 +346,26 @@ def execute_workers_parallel(worker_tasks: list[dict], blackboard: Blackboard,
         sections_read: list[tuple[str, str]] = []
         for spec in task.get("reads_from_documents", []):
             doc_name = spec.get("document", "")
+            matched = None
             for ds in blackboard.documents:
                 if ds.name == doc_name:
-                    for sec_name in spec.get("sections", ["Full Document"]):
-                        text = resolve_section_text(
-                            ds.text, ds.section_index, sec_name,
-                        )
-                        doc_sections.append((f"{doc_name} — {sec_name}", text))
-                        sections_read.append((doc_name, sec_name))
+                    matched = ds
                     break
+            if matched is None:
+                doc_lower = doc_name.lower()
+                for ds in blackboard.documents:
+                    if doc_lower in ds.name.lower() or ds.name.lower() in doc_lower:
+                        matched = ds
+                        break
+            if matched is not None:
+                if not matched.is_loaded:
+                    matched.materialize()
+                for sec_name in spec.get("sections", ["Full Document"]):
+                    text = resolve_section_text(
+                        matched.text, matched.section_index, sec_name,
+                    )
+                    doc_sections.append((f"{matched.name} — {sec_name}", text))
+                    sections_read.append((matched.name, sec_name))
 
         web_results = None
         raw_queries = task.get("search_queries", [])
