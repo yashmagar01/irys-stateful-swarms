@@ -17,7 +17,7 @@ def source_custody_enabled() -> bool:
 
 
 def source_custody_audit_only() -> bool:
-    return os.getenv("SWARM_SOURCE_CUSTODY_AUDIT_ONLY", "1") == "1"
+    return os.getenv("SWARM_SOURCE_CUSTODY_AUDIT_ONLY", "0") == "1"
 SYNTHETIC_SOURCE_NAMES = {
     "cross_cutting", "crosscutting", "cross cutting",
     "multiple",
@@ -218,7 +218,17 @@ def _document_name_aliases(raw: str | None) -> set[str]:
         collapsed = _SEPARATOR_RE.sub("", name)
         if collapsed:
             aliases.add(collapsed)
+    acronym = _acronym_from_name(stem)
+    if acronym and len(acronym) >= 2:
+        aliases.add(acronym)
     return aliases
+
+
+def _acronym_from_name(stem: str) -> str:
+    parts = _SEPARATOR_RE.split(stem)
+    if len(parts) < 2:
+        return ""
+    return "".join(p[0] for p in parts if p)
 
 
 _LEGAL_CITATION_RE = re.compile(
@@ -258,6 +268,8 @@ def _invalid_source_documents(entry: Entry, valid_docs: set[str]) -> list[str]:
     full_aliases = _document_name_aliases(entry.source.document)
     if full_aliases & valid_docs:
         return []
+    if _slug_matches_any_valid_doc(entry.source.document, valid_docs):
+        return []
     parts = _source_document_parts(entry.source.document)
     if not parts and _is_synthetic_source(entry.source.document):
         return []
@@ -270,8 +282,24 @@ def _invalid_source_documents(entry: Entry, valid_docs: set[str]) -> list[str]:
             continue
         if part_aliases & valid_docs or _is_synthetic_source(part):
             continue
+        if _slug_matches_any_valid_doc(part, valid_docs):
+            continue
         invalid.append(part)
     return invalid
+
+
+_SLUG_MIN_LEN = 5
+
+
+def _slug_matches_any_valid_doc(name: str, valid_docs: set[str]) -> bool:
+    """Check if a short name is a substring slug of any valid document."""
+    slug = _SEPARATOR_RE.sub("-", _normalize_doc_name(name)).strip("-")
+    if len(slug) < _SLUG_MIN_LEN:
+        return False
+    for doc in valid_docs:
+        if slug in doc:
+            return True
+    return False
 
 
 def _source_document_parts(raw: str) -> list[str]:

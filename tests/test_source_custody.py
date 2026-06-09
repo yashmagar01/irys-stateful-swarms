@@ -296,7 +296,7 @@ def test_source_custody_audit_only_logs_but_preserves_status(tmp_path, monkeypat
     assert report["summary"]["entries_quarantined"] == 0
 
 
-def test_default_is_audit_only(tmp_path, monkeypatch):
+def test_default_is_quarantine(tmp_path, monkeypatch):
     monkeypatch.delenv("SWARM_SOURCE_CUSTODY_AUDIT_ONLY", raising=False)
     blackboard = Blackboard(
         task_instruction="Analyze docs.",
@@ -314,10 +314,10 @@ def test_default_is_audit_only(tmp_path, monkeypatch):
 
     report = enforce_source_custody(blackboard, "test")
 
-    assert blackboard.entries[0].status == "active", "Default should be audit-only"
-    assert report["audit_only"] is True
-    assert report["summary"]["entries_flagged"] == 1
-    assert report["summary"]["entries_quarantined"] == 0
+    assert blackboard.entries[0].status == "source_quarantined", "Default should quarantine"
+    assert report["audit_only"] is False
+    assert report["summary"]["entries_flagged"] == 0
+    assert report["summary"]["entries_quarantined"] == 1
 
 
 def test_compound_source_with_legal_citation_still_checks_parts(tmp_path, monkeypatch):
