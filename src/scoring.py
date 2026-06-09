@@ -91,10 +91,24 @@ class TaskResolver:
         elif len(self._sources) == 1:
             source = next(iter(self._sources.values()))
         else:
-            raise ValueError(
-                f"Task {task_id} has no 'source' field and manifest has "
-                f"multiple sources: {list(self._sources.keys())}"
-            )
+            for t in self._manifest.get("tasks", []):
+                if t.get("task_id") == task_id and t.get("source"):
+                    source_name = t["source"]
+                    break
+            if source_name:
+                source = self._sources.get(source_name)
+                if not source:
+                    raise ValueError(f"Unknown source '{source_name}' for task {task_id}")
+            else:
+                for src in self._sources.values():
+                    if (src.root / "tasks" / task_id / "task.json").exists():
+                        source = src
+                        break
+                else:
+                    raise ValueError(
+                        f"Task {task_id} not found in any source: "
+                        f"{list(self._sources.keys())}"
+                    )
 
         task_dir = source.root / "tasks" / task_id
         scorer_name = self._resolve_scorer(task_entry, task_dir, source)
