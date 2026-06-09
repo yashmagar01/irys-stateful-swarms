@@ -16,6 +16,13 @@ def _doc_line(d: dict) -> str:
 def check_convergence(blackboard: Blackboard, convergence_output: dict,
                       caller: ModelCaller) -> tuple[bool, int]:
     """Convergence check that runs every iteration."""
+    # 0. Document read gate (deterministic)
+    total_docs = len(blackboard.documents)
+    if total_docs > 0:
+        read_docs = sum(1 for d in blackboard.documents if d.read_status != "unread")
+        if read_docs == 0:
+            return False, 0
+
     # 1. Structural coverage (deterministic)
     for doc in blackboard.documents:
         if doc.structural_profile:
