@@ -1061,27 +1061,41 @@ def _selected_evidence_text(
     max_chars: int,
     include_remaining: bool = True,
 ) -> str:
-    selected_ids: list[str] = []
+    evidence_ids: list[str] = []
+    open_issue_ids: set[str] = set()
     for item in selected_items:
-        if isinstance(item, dict):
-            for entry_id in _entry_ids_from_item(item):
-                if entry_id not in selected_ids:
-                    selected_ids.append(entry_id)
+        if not isinstance(item, dict):
+            continue
+        ids = _entry_ids_from_item(item)
+        if item.get("open_issue_only"):
+            open_issue_ids.update(ids)
+        else:
+            for entry_id in ids:
+                if entry_id not in evidence_ids:
+                    evidence_ids.append(entry_id)
+
+    pure_open_issue_ids = open_issue_ids - set(evidence_ids)
 
     by_id = {e.id: e for e in active if e.id}
-    selected_entries = [by_id[entry_id] for entry_id in selected_ids if entry_id in by_id]
+    evidence_entries = [by_id[eid] for eid in evidence_ids if eid in by_id]
 
     parts: list[str] = []
-    if selected_entries:
+    if evidence_entries:
         parts.append("=== SELECTED ITEM SUPPORTING ENTRIES ===")
-        for e in selected_entries:
+        for e in evidence_entries:
             parts.append(render_entry(e, max_content=900))
+
+    open_issue_entries = [by_id[eid] for eid in pure_open_issue_ids if eid in by_id]
+    if open_issue_entries:
+        parts.append("\n=== OPEN ISSUES (render as explicit gaps, not assertions) ===")
+        for e in open_issue_entries:
+            parts.append(render_entry(e, max_content=400))
 
     text = "\n".join(parts)
     if not include_remaining:
         return text[:max_chars]
 
-    selected_set = {e.id for e in selected_entries}
+    selected_set = set(evidence_ids) | pure_open_issue_ids
     remaining_by_doc: dict[str, list[str]] = {}
     for e in active:
         if e.id in selected_set:

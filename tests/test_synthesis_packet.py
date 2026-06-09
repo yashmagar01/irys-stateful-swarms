@@ -1,0 +1,147 @@
+from src.swarm.blackboard import Blackboard
+from src.swarm.models import Entry, EntrySource
+from src.swarm.synthesis_packet import (
+    build_synthesis_packet,
+    filter_evidence_entries,
+    packet_items_for_file,
+)
+
+
+def _bb_with_entries(entries):
+    return Blackboard(task_instruction="Test task", entries=entries)
+
+
+def test_normalizes_curation_items():
+    entries = [
+        Entry(id="e1", type="observation", content="Revenue is $10M",
+              source=EntrySource("10k.pdf", "Financials", "Revenue $10M"),
+              confidence=0.9),
+        Entry(id="e2", type="analysis", content="Growth rate is 15%",
+              source=EntrySource("10k.pdf", "Analysis", "15% growth"),
+              confidence=0.85),
+    ]
+    bb = _bb_with_entries(entries)
+    items = [
+        {"entry_id": "e1", "importance": "critical", "section": "Revenue",
+         "summary": "Revenue is $10M"},
+        {"entry_id": "e2", "importance": "high", "section": "Growth",
+         "summary": "Growth rate is 15%"},
+    ]
+    packet = build_synthesis_packet(items, bb)
+    assert len(packet) == 2
+    assert packet[0]["entry_ids"] == ["e1"]
+    assert packet[0]["required_source_refs"] == ["10k.pdf / Financials"]
+    assert packet[0]["open_issue_only"] is False
+
+
+def test_strategy_entries_marked_open_issue():
+    entries = [
+        Entry(id="e1", type="strategy", content="Consider alternative approach",
+              confidence=0.7),
+        Entry(id="e2", type="gap", content="Missing vendor backup plan",
+              confidence=0.6),
+        Entry(id="e3", type="observation", content="Contract expires June 2027",
+              source=EntrySource("msa.pdf", "Terms", "June 2027"),
+              confidence=0.95),
+    ]
+    bb = _bb_with_entries(entries)
+    items = [
+        {"entry_id": "e1", "importance": "medium", "section": "Strategy",
+         "summary": "Alternative approach"},
+        {"entry_id": "e2", "importance": "high", "section": "Gaps",
+         "summary": "Missing vendor backup"},
+        {"entry_id": "e3", "importance": "critical", "section": "Terms",
+         "summary": "Contract expires June 2027"},
+    ]
+    packet = build_synthesis_packet(items, bb)
+    by_eid = {r["entry_ids"][0]: r for r in packet}
+    assert by_eid["e1"]["open_issue_only"] is True
+    assert by_eid["e2"]["open_issue_only"] is True
+    assert by_eid["e3"]["open_issue_only"] is False
+
+
+def test_mixed_entry_ids_not_marked_open_issue():
+    entries = [
+        Entry(id="e1", type="observation", content="Fact A",
+              source=EntrySource("doc.pdf", "S1", "ev"), confidence=0.9),
+        Entry(id="e2", type="gap", content="Gap B", confidence=0.5),
+    ]
+    bb = _bb_with_entries(entries)
+    items = [
+        {"entry_ids": ["e1", "e2"], "importance": "high", "section": "Mixed",
+         "summary": "Fact with gap"},
+    ]
+    packet = build_synthesis_packet(items, bb)
+    assert len(packet) == 1
+    assert packet[0]["open_issue_only"] is False
+
+
+def test_deduplication():
+    entries = [
+        Entry(id="e1", type="observation", content="X",
+              source=EntrySource("d.pdf", "S", "ev"), confidence=0.9),
+    ]
+    bb = _bb_with_entries(entries)
+    items = [
+        {"entry_id": "e1", "section": "A", "summary": "same summary here"},
+        {"entry_id": "e1", "section": "B", "summary": "same summary here"},
+    ]
+    packet = build_synthesis_packet(items, bb)
+    assert len(packet) == 1
+
+
+def test_packet_items_for_file():
+    packet = [
+        {"target_file": "memo.docx", "summary": "A"},
+        {"target_file": "sheet.xlsx", "summary": "B"},
+        {"target_file": "", "summary": "C"},
+    ]
+    memo_items = packet_items_for_file(packet, "memo.docx")
+    assert len(memo_items) == 2
+    assert {r["summary"] for r in memo_items} == {"A", "C"}
+
+
+def test_filter_evidence_entries():
+    entries = [
+        Entry(id="e1", type="observation", content="Fact",
+              source=EntrySource("d.pdf", "S", "ev"), confidence=0.9),
+        Entry(id="e2", type="gap", content="Missing info", confidence=0.5),
+        Entry(id="e3", type="analysis", content="Analysis",
+              source=EntrySource("d.pdf", "S2", "ev2"), confidence=0.8),
+    ]
+    bb = _bb_with_entries(entries)
+    active = bb.entries
+
+    packet = [
+        {"entry_ids": ["e1"], "open_issue_only": False, "summary": "Fact"},
+        {"entry_ids": ["e2"], "open_issue_only": True, "summary": "Gap"},
+        {"entry_ids": ["e3"], "open_issue_only": False, "summary": "Analysis"},
+    ]
+
+    evidence, open_issues = filter_evidence_entries(packet, active)
+    evidence_ids = {e.id for e in evidence}
+    assert "e1" in evidence_ids
+    assert "e3" in evidence_ids
+    assert "e2" not in evidence_ids
+    assert len(open_issues) == 1
+    assert open_issues[0]["summary"] == "Gap"
+
+
+def test_artifact_contract_items_preserved():
+    entries = [
+        Entry(id="e1", type="observation", content="X",
+              source=EntrySource("d.pdf", "S", "ev"), confidence=0.9),
+    ]
+    bb = _bb_with_entries(entries)
+    items = [
+        {"section": "LP Terms", "native_form": "table", "summary": "Compare LP",
+         "importance": "critical", "target_file": "memo.docx",
+         "source": "artifact_contract"},
+        {"entry_id": "e1", "importance": "high", "section": "Facts",
+         "summary": "Fact X"},
+    ]
+    packet = build_synthesis_packet(items, bb)
+    contract_rows = [r for r in packet if r["source"] == "artifact_contract"]
+    assert len(contract_rows) == 1
+    assert contract_rows[0]["native_form"] == "table"
+    assert contract_rows[0]["target_file"] == "memo.docx"

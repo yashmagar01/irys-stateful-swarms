@@ -42,6 +42,11 @@ from .state_conversion import (
     run_plan_coverage_state_repair, run_state_conversion_review,
 )
 from .artifact_contracts import build_artifact_contracts
+from .synthesis_packet import (
+    build_synthesis_packet,
+    filter_evidence_entries,
+    write_synthesis_packet_report,
+)
 from .synthesis import (
     shadow_judge_audit,
     shadow_judge_audit_enabled,
@@ -567,6 +572,10 @@ def run_swarm(task: Task, caller: ModelCaller, *,
                 must_include.insert(0, commitment)
                 seen.add(key)
 
+    # Phase 8b: build synthesis packet — normalize and filter
+    synthesis_packet = build_synthesis_packet(must_include, blackboard)
+    write_synthesis_packet_report(synthesis_packet, blackboard.output_dir)
+
     if derived_work_report or debt_sensor_report:
         write_pending_survival_trace(
             blackboard.output_dir,
@@ -577,11 +586,11 @@ def run_swarm(task: Task, caller: ModelCaller, *,
 
     if _should_use_file_scoped_synthesis(deliverables_map):
         deliverable, synth_tokens = synthesize_file_deliverables(
-            blackboard, must_include, deliverables_map, [], synth_caller,
+            blackboard, synthesis_packet, deliverables_map, [], synth_caller,
         )
     else:
         deliverable, synth_tokens = synthesize_deliverable(
-            blackboard, must_include, synth_caller,
+            blackboard, synthesis_packet, synth_caller,
         )
     blackboard.add_tokens_from_last_call(synth_tokens)
 

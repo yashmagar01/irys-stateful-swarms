@@ -1,0 +1,162 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+from .blackboard import Blackboard
+from .models import Entry
+
+
+EVIDENCE_TYPES = frozenset({"observation", "analysis", "calculation"})
+OPEN_ISSUE_TYPES = frozenset({"strategy", "gap"})
+
+
+def build_synthesis_packet(
+    must_include: list[dict],
+    blackboard: Blackboard,
+) -> list[dict]:
+    """Normalize must_include items into structured packet rows.
+
+    Strategy/gap entries are marked open_issue_only=True so synthesis
+    renders them as explicit open issues rather than asserting them as facts.
+    """
+    by_id = {e.id: e for e in blackboard.entries}
+    packet: list[dict] = []
+    seen_keys: set[str] = set()
+
+    for item in must_include:
+        if not isinstance(item, dict):
+            continue
+
+        row = _normalize_item(item, by_id)
+        key = _dedup_key(row)
+        if key in seen_keys:
+            continue
+        seen_keys.add(key)
+        packet.append(row)
+
+    return packet
+
+
+def _normalize_item(item: dict, by_id: dict[str, Entry]) -> dict:
+    entry_ids = _extract_entry_ids(item)
+    entries = [by_id[eid] for eid in entry_ids if eid in by_id]
+
+    source_refs = []
+    for e in entries:
+        if e.source and e.source.document:
+            ref = e.source.document
+            if e.source.section:
+                ref += f" / {e.source.section}"
+            if ref not in source_refs:
+                source_refs.append(ref)
+
+    open_issue_only = False
+    if entries:
+        open_issue_only = all(e.type in OPEN_ISSUE_TYPES for e in entries)
+
+    return {
+        "entry_ids": entry_ids,
+        "summary": item.get("summary", ""),
+        "section": item.get("section", "General"),
+        "importance": item.get("importance", "medium"),
+        "target_file": item.get("target_file", ""),
+        "native_form": item.get("native_form", ""),
+        "source": item.get("source", "curation"),
+        "obligation_type": item.get("obligation_type", ""),
+        "verification_terms": item.get("verification_terms", ""),
+        "required_source_refs": source_refs,
+        "open_issue_only": open_issue_only,
+    }
+
+
+def _extract_entry_ids(item: dict) -> list[str]:
+    raw = item.get("entry_ids")
+    if isinstance(raw, list):
+        return [str(e).strip() for e in raw if str(e).strip()]
+    raw = item.get("entry_id", "")
+    if not raw:
+        return []
+    return [part.strip() for part in str(raw).split(",") if part.strip()]
+
+
+def _dedup_key(row: dict) -> str:
+    ids = ",".join(sorted(row.get("entry_ids", [])))
+    return f"{ids}|{row.get('summary', '')[:60].lower().strip()}"
+
+
+def packet_items_for_file(
+    packet: list[dict],
+    filename: str,
+) -> list[dict]:
+    """Return packet rows targeted at a specific file, plus untargeted rows."""
+    return [
+        row for row in packet
+        if not row.get("target_file") or row["target_file"] == filename
+    ]
+
+
+def filter_evidence_entries(
+    packet: list[dict],
+    active: list[Entry],
+) -> tuple[list[Entry], list[dict]]:
+    """Split active entries into evidence vs open-issue-only based on packet.
+
+    Returns (evidence_entries, open_issue_items) where evidence_entries
+    are entries that can be cited as factual support, and open_issue_items
+    are packet rows that should be rendered as explicit open issues.
+    """
+    open_issue_entry_ids: set[str] = set()
+    open_issue_items: list[dict] = []
+
+    for row in packet:
+        if row.get("open_issue_only"):
+            open_issue_entry_ids.update(row.get("entry_ids", []))
+            open_issue_items.append(row)
+
+    evidence_entry_ids: set[str] = set()
+    for row in packet:
+        if not row.get("open_issue_only"):
+            evidence_entry_ids.update(row.get("entry_ids", []))
+
+    pure_open_issue_ids = open_issue_entry_ids - evidence_entry_ids
+
+    by_id = {e.id: e for e in active}
+    evidence_entries = [
+        e for e in active
+        if e.id not in pure_open_issue_ids
+    ]
+
+    return evidence_entries, open_issue_items
+
+
+def write_synthesis_packet_report(
+    packet: list[dict],
+    output_dir: str | None,
+) -> None:
+    """Write diagnostic report of the synthesis packet."""
+    if not output_dir:
+        return
+    swarm_dir = Path(output_dir) / "swarm"
+    swarm_dir.mkdir(parents=True, exist_ok=True)
+
+    report = {
+        "total_items": len(packet),
+        "evidence_items": sum(1 for r in packet if not r.get("open_issue_only")),
+        "open_issue_items": sum(1 for r in packet if r.get("open_issue_only")),
+        "by_source": _count_by_key(packet, "source"),
+        "by_importance": _count_by_key(packet, "importance"),
+        "items": packet,
+    }
+    (swarm_dir / "synthesis_packet.json").write_text(
+        json.dumps(report, indent=2, default=str),
+        encoding="utf-8",
+    )
+
+
+def _count_by_key(items: list[dict], key: str) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for item in items:
+        val = str(item.get(key, "unknown"))
+        counts[val] = counts.get(val, 0) + 1
+    return counts
