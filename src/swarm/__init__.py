@@ -225,7 +225,7 @@ def run_swarm(task: Task, caller: ModelCaller, *,
         # Analysis mode shift: after iteration 8, if obs:analysis ratio > 3:1,
         # force the orchestrator to stop extracting and start reasoning
         analysis_mode_override = ""
-        if iteration >= 8:
+        if iteration > 8:
             _active = [e for e in blackboard.entries if e.status == "active"]
             _obs = sum(1 for e in _active if e.type == "observation")
             _ana = sum(1 for e in _active if e.type in ("analysis", "calculation"))
@@ -279,17 +279,23 @@ def run_swarm(task: Task, caller: ModelCaller, *,
         if not tasks_list:
             continue
 
-        if analysis_mode_override and tasks_list:
+        if analysis_mode_override:
             _analytical = [
                 t for t in tasks_list
                 if t.get("expected_output_type", "observation") != "observation"
             ]
-            _obs_tasks = [
+            _critical_reads = [
                 t for t in tasks_list
                 if t.get("expected_output_type", "observation") == "observation"
+                and any(
+                    s.id in t.get("addresses_signals", [])
+                    for s in blackboard.signals
+                    if s.status == "open" and s.priority == "critical"
+                )
             ]
-            tasks_list = _analytical + _obs_tasks[:1]
-            if not tasks_list:
+            if _analytical or _critical_reads:
+                tasks_list = _analytical + _critical_reads
+            else:
                 from .convergence import analytical_steering
                 _steering_tasks, _steer_tokens = analytical_steering(
                     blackboard, caller,
@@ -297,6 +303,12 @@ def run_swarm(task: Task, caller: ModelCaller, *,
                 blackboard.add_tokens_from_last_call(_steer_tokens)
                 if _steering_tasks:
                     tasks_list = _steering_tasks
+                else:
+                    _obs_tasks = [
+                        t for t in tasks_list
+                        if t.get("expected_output_type", "observation") == "observation"
+                    ]
+                    tasks_list = _obs_tasks[:1]
 
         if not tasks_list:
             continue
@@ -479,8 +491,10 @@ def run_swarm(task: Task, caller: ModelCaller, *,
     total_docs = len(blackboard.documents)
     read_docs = sum(1 for d in blackboard.documents if d.read_status != "unread")
     quarantined = sum(1 for e in blackboard.entries if e.status == "source_quarantined")
-    total_entries = len(blackboard.entries)
-    quarantine_rate = quarantined / total_entries if total_entries > 0 else 0.0
+    evidentiary_entries = sum(
+        1 for e in blackboard.entries if e.status in ("active", "source_quarantined")
+    )
+    quarantine_rate = quarantined / evidentiary_entries if evidentiary_entries > 0 else 0.0
 
     synthesis_blocked = False
     block_reasons = []
@@ -490,7 +504,7 @@ def run_swarm(task: Task, caller: ModelCaller, *,
     if not sourced_active:
         block_reasons.append("zero source-grounded active entries")
         synthesis_blocked = True
-    if quarantine_rate > 0.8 and total_entries > 20:
+    if quarantine_rate > 0.8 and evidentiary_entries > 20:
         block_reasons.append(f"quarantine rate {quarantine_rate:.0%} exceeds 80% threshold")
         synthesis_blocked = True
 

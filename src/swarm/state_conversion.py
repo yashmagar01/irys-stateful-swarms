@@ -508,7 +508,7 @@ Return JSON only:
       "evidence_summary": "short source-grounded support summary",
       "supporting_entries": ["e12", "e18"],
       "missing_reason": "what is still needed if partial/uncovered",
-      "missing_work_type": "none|extract_more|calculate|compare|legal_authority|severity|recommendation|unanswerable",
+      "missing_work_type": "none|extract_more|calculate|compare|reference_framework|severity|recommendation|unanswerable",
       "materiality": "critical|high|medium|low"
     }}
   ]
@@ -758,7 +758,7 @@ def _select_repair_gaps(
     state_repairable_work = {
         "calculate",
         "compare",
-        "legal_authority",
+        "reference_framework",
         "severity",
         "recommendation",
     }
@@ -782,7 +782,7 @@ def _select_repair_gaps(
     work_rank = {
         "calculate": 0,
         "compare": 1,
-        "legal_authority": 2,
+        "reference_framework": 2,
         "severity": 3,
         "recommendation": 4,
     }
@@ -882,8 +882,8 @@ Return JSON exactly in this shape:
       "content": "specific state repair, calculation, recommendation, or remaining gap",
       "supports_entries": ["e12", "e18"],
       "addressed_gap_ids": ["e33"],
-      "repair_type": "calculation|comparison|classification|legal_authority|severity|recommendation|artifact_form|extraction_gap|unanswerable|state_repair",
-      "missing_work_type": "extract_more|calculate|compare|legal_authority|severity|recommendation|unanswerable|state_repair",
+      "repair_type": "calculation|comparison|classification|reference_framework|severity|recommendation|artifact_form|extraction_gap|unanswerable|state_repair",
+      "missing_work_type": "extract_more|calculate|compare|reference_framework|severity|recommendation|unanswerable|state_repair",
       "confidence": 0.0
     }}
   ]
@@ -964,7 +964,7 @@ Return JSON:
       "type": "analysis|calculation|strategy|gap",
       "content": "the specific converted conclusion, calculation, recommendation, or gap",
       "source_entries": ["e12", "e18"],
-      "conversion_type": "unperformed_calculation|cross_document_link|issue_without_recommendation|risk_without_severity|legal_authority_needed|seed_question_unanswered|criterion_without_obligation|task_state_row_incomplete|wrong_relation|wrong_classification|wrong_derived_value|wrong_artifact_form",
+      "conversion_type": "unperformed_calculation|cross_document_link|issue_without_recommendation|risk_without_severity|reference_framework_needed|seed_question_unanswered|criterion_without_obligation|task_state_row_incomplete|wrong_relation|wrong_classification|wrong_derived_value|wrong_artifact_form",
       "materiality": "low|medium|high|critical",
       "confidence": 0.0-1.0
     }}

@@ -81,7 +81,7 @@ CRITICAL: Look at the observations and ask "what ISSUE, CONCLUSION, or FLAG shou
 
 For each obligation, specify:
 - "summary": The exact assertion, calculation, citation, or clause the deliverable must state. Be PRECISE — "$472,500, not $475,000" not "broker commission issue."
-- "obligation_type": One of: exact_value | legal_authority | cross_document_link | risk_recommendation | drafting_clause | output_structure | task_state_field | task_state_relationship | task_state_closure
+- "obligation_type": One of: exact_value | reference_framework | cross_document_link | risk_recommendation | drafting_clause | output_structure | task_state_field | task_state_relationship | task_state_closure
 - "importance": critical | high | medium
 - "section": Which section of the deliverable this belongs in
 - "entry_id": Source entry IDs (comma-separated)
@@ -186,7 +186,7 @@ def _debt_sensor_obligations(entries: list[Entry]) -> list[dict]:
             "relation": "cross_document_link",
             "source_object": "task_state_field",
             "severity": "risk_recommendation",
-            "authority": "legal_authority",
+            "authority": "reference_framework",
         }.get(debt_type, "task_state_closure")
         section = {
             "relation": "Cross-Document Analysis",
