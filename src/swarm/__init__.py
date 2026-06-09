@@ -220,7 +220,8 @@ def run_swarm(task: Task, caller: ModelCaller, *,
     for iteration in range(1, max_iter + 1):
         blackboard.iteration = iteration
         blackboard.expire_old_signals()
-        blackboard.save_snapshot(f"pre_{iteration}")
+        if iteration == 1 or iteration % 4 == 0:
+            blackboard.save_snapshot(f"pre_{iteration}")
 
         # Analysis mode shift: after iteration 8, if obs:analysis ratio > 3:1,
         # force the orchestrator to stop extracting and start reasoning
@@ -338,7 +339,8 @@ def run_swarm(task: Task, caller: ModelCaller, *,
             blackboard.save_snapshot("budget_exhausted")
             break
 
-        blackboard.save_snapshot(f"post_{iteration}")
+        if iteration == 1 or iteration % 4 == 0 or iteration == max_iter:
+            blackboard.save_snapshot(f"post_{iteration}")
 
     # Phase after extraction: direct analysis
     if review_caller is not None:
@@ -443,8 +445,6 @@ def run_swarm(task: Task, caller: ModelCaller, *,
         blackboard.save_snapshot("post_state_repair")
 
     custody_report = enforce_source_custody(blackboard, "post_state_repair")
-    if custody_report.get("items"):
-        blackboard.save_snapshot("post_source_custody")
 
     if review_caller is not None and blackboard_maintenance_enabled():
         _, maintenance_tokens = run_blackboard_maintenance(
@@ -453,9 +453,6 @@ def run_swarm(task: Task, caller: ModelCaller, *,
         if maintenance_tokens:
             blackboard.add_tokens_from_last_call(maintenance_tokens)
         custody_report = enforce_source_custody(blackboard, "post_blackboard_maintenance")
-        blackboard.save_snapshot("post_blackboard_maintenance")
-        if custody_report.get("items"):
-            blackboard.save_snapshot("post_blackboard_maintenance_source_custody")
 
     debt_sensor_report = None
     if review_caller is not None and debt_sensors_enabled():
@@ -465,9 +462,6 @@ def run_swarm(task: Task, caller: ModelCaller, *,
         if debt_sensor_tokens:
             blackboard.add_tokens_from_last_call(debt_sensor_tokens)
         custody_report = enforce_source_custody(blackboard, "post_debt_sensors")
-        blackboard.save_snapshot("post_debt_sensors")
-        if custody_report.get("items"):
-            blackboard.save_snapshot("post_debt_sensors_source_custody")
 
     derived_work_report = None
     if review_caller is not None and calculation_debt_enabled():
@@ -477,9 +471,8 @@ def run_swarm(task: Task, caller: ModelCaller, *,
         if calc_debt_tokens:
             blackboard.add_tokens_from_last_call(calc_debt_tokens)
         custody_report = enforce_source_custody(blackboard, "post_calculation_debt_detection")
-        blackboard.save_snapshot("post_calculation_debt_detection")
-        if custody_report.get("items"):
-            blackboard.save_snapshot("post_calculation_debt_source_custody")
+
+    blackboard.save_snapshot("post_processing")
 
     # Phase 7b: Synthesis Readiness Gate
     active_entries = [e for e in blackboard.entries if e.status == "active"]
