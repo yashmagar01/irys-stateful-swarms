@@ -394,10 +394,11 @@ SUPPORTING EVIDENCE:
 
 PRECISION RULES:
 1. For each item, state the EXACT fact: specific dollar amounts, percentages, dates, party names, statutory citations, defined terms. Never paraphrase a number or date — use the original value.
-2. One concise paragraph or bullet per item. Do not pad with background, context, or restating the task.
-3. If two items cover the same fact, merge them into one statement with the most specific version.
-4. Omit generic observations not listed as required items above and not supported by specific documents — but KEEP any required item even if it sounds generic.
-5. This is one section of a larger document — focus only on this section's items."""
+2. ENTITY NAMES AND VALUES ARE SACRED: Copy entity names, company names, person names, dollar amounts, dates, percentages, and share counts VERBATIM from the items and evidence above. Do NOT substitute with similar-sounding names or round numbers from your own knowledge. If the evidence says "$7.5M" write "$7.5M", not "$1.5M". If it says "University of Geneva" write that, not "Columbia Law School".
+3. One concise paragraph or bullet per item. Do not pad with background, context, or restating the task.
+4. If two items cover the same fact, merge them into one statement with the most specific version.
+5. Omit generic observations not listed as required items above and not supported by specific documents — but KEEP any required item even if it sounds generic.
+6. This is one section of a larger document — focus only on this section's items."""
 
 
 def _draft_section_chunk(
@@ -1310,10 +1311,11 @@ SUPPORTING BLACKBOARD EVIDENCE:
 CRITICAL INSTRUCTIONS:
 1. Write only this section or sheet for {filename}.
 2. Include every selected item for this section with exact values, dates, party names, citations, and calculations.
-3. Keep the content appropriate for {filename}; spreadsheets should use Markdown tables and '# Sheet: ...' headings.
-4. One concise paragraph or bullet per item. Do not pad with background or restating the task.
-5. If two items cover the same fact, merge them into one statement with the most specific version.
-6. Omit generic observations not listed as required items and not supported by specific documents — but KEEP any required item even if it sounds generic."""
+3. ENTITY NAMES AND VALUES ARE SACRED: Copy entity names, company names, person names, dollar amounts, dates, percentages, and share counts VERBATIM from the items and evidence above. Do NOT substitute with similar-sounding names or round numbers from your own knowledge.
+4. Keep the content appropriate for {filename}; spreadsheets should use Markdown tables and '# Sheet: ...' headings.
+5. One concise paragraph or bullet per item. Do not pad with background or restating the task.
+6. If two items cover the same fact, merge them into one statement with the most specific version.
+7. Omit generic observations not listed as required items and not supported by specific documents — but KEEP any required item even if it sounds generic."""
 
             _write_sectioned_synthesis_progress(
                 blackboard, len(section_drafts), total_sections,
@@ -1564,10 +1566,11 @@ CRITICAL INSTRUCTIONS:
 7. Every individual item from numbered lists must appear separately — do NOT summarize groups.
 8. Include ALL financial terms with exact amounts and conditions.
 9. Include ALL party names with full legal designations.
-10. Include ALL representations, warranties, covenants, conditions, and restrictions.
-11. Items listed under KNOWN GAPS AND OPEN ISSUES are unresolved — flag them as open questions or caveats, never as established facts.
-12. The deliverable must stand alone — a reader should get EVERY material fact without needing the source documents.
-13. For drafting tasks: produce the actual document content (not a memo about the document). Include all required sections, clauses, and provisions."""
+10. ENTITY NAMES AND VALUES ARE SACRED: Copy entity names, company names, person names, dollar amounts, dates, percentages, and share counts VERBATIM from the mandatory items and findings above. Do NOT substitute with similar-sounding names or round numbers from your own knowledge. If the findings say "$7.5M" write "$7.5M". If they say "University of Geneva" write exactly that. Your knowledge of the world is irrelevant — only the provided evidence matters.
+11. Include ALL representations, warranties, covenants, conditions, and restrictions.
+12. Items listed under KNOWN GAPS AND OPEN ISSUES are unresolved — flag them as open questions or caveats, never as established facts.
+13. The deliverable must stand alone — a reader should get EVERY material fact without needing the source documents.
+14. For drafting tasks: produce the actual document content (not a memo about the document). Include all required sections, clauses, and provisions."""
 
     payload, tokens = call_model(caller, prompt, max_tokens=32768, json_mode=False)
     deliverable = payload.get("text", "")
