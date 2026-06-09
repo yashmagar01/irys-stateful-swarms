@@ -3,7 +3,7 @@ import threading
 import time
 
 from src.swarm.blackboard import Blackboard
-from src.swarm.curation import curate_entries
+from src.swarm.curation import _coverage_safety_net, curate_entries
 from src.swarm.models import Entry, EntrySource, ModelResult
 
 
@@ -62,3 +62,56 @@ def test_parallel_curation_preserves_cluster_order_and_usage(tmp_path, monkeypat
     progress = json.loads(progress_path.read_text(encoding="utf-8"))
     assert progress["completed_clusters"] == 3
     assert progress["total_clusters"] == 3
+
+
+def test_coverage_safety_net_adds_from_uncovered_docs():
+    active = [
+        Entry(id="e1", content="Fact from doc-a", confidence=0.9,
+              source=EntrySource(document="doc-a.docx", section="Intro")),
+        Entry(id="e2", content="Fact from doc-b", confidence=0.8,
+              source=EntrySource(document="doc-b.docx", section="Terms")),
+        Entry(id="e3", content="Low confidence from doc-b", confidence=0.3,
+              source=EntrySource(document="doc-b.docx")),
+    ]
+    must_include = [{"entry_id": "e1", "section": "A", "summary": "A fact"}]
+    result = _coverage_safety_net(must_include, active)
+    added_ids = [m["entry_id"] for m in result if m.get("source") == "coverage_safety_net"]
+    assert "e2" in added_ids, "High-confidence entry from uncovered doc-b should be added"
+    assert "e3" not in added_ids, "Low-confidence entry should be skipped"
+
+
+def test_coverage_safety_net_handles_entry_ids_list_format():
+    active = [
+        Entry(id="e1", content="From doc-a", confidence=0.9,
+              source=EntrySource(document="doc-a.docx")),
+        Entry(id="e2", content="From doc-b", confidence=0.9,
+              source=EntrySource(document="doc-b.docx")),
+    ]
+    must_include = [{"entry_ids": ["e1"], "section": "A", "summary": "A fact"}]
+    result = _coverage_safety_net(must_include, active)
+    added_ids = [m["entry_id"] for m in result if m.get("source") == "coverage_safety_net"]
+    assert "e1" not in added_ids, "Already-curated entry via entry_ids should not be re-added"
+    assert "e2" in added_ids, "Uncovered doc entry should be added"
+
+
+def test_coverage_safety_net_caps_at_max_per_doc():
+    active = [
+        Entry(id=f"e{i}", content=f"Fact {i}", confidence=0.9,
+              source=EntrySource(document="big-doc.docx"))
+        for i in range(10)
+    ]
+    must_include: list[dict] = []
+    result = _coverage_safety_net(must_include, active)
+    added = [m for m in result if m.get("source") == "coverage_safety_net"]
+    assert len(added) == 3, f"Should cap at MAX_AUTOINCLUDES_PER_DOC=3, got {len(added)}"
+
+
+def test_coverage_safety_net_no_duplicates():
+    active = [
+        Entry(id="e1", content="Fact", confidence=0.9,
+              source=EntrySource(document="doc-a.docx")),
+    ]
+    must_include = [{"entry_id": "e1", "section": "A", "summary": "Already included"}]
+    result = _coverage_safety_net(must_include, active)
+    added = [m for m in result if m.get("source") == "coverage_safety_net"]
+    assert len(added) == 0, "Should not add entries that are already curated"

@@ -203,6 +203,12 @@ def _coverage_safety_net(
     curated_ids = set()
     for m in must_include:
         if isinstance(m, dict):
+            raw_ids = m.get("entry_ids")
+            if isinstance(raw_ids, list):
+                for v in raw_ids:
+                    s = str(v).strip()
+                    if s:
+                        curated_ids.add(s)
             eid = m.get("entry_id", "")
             if eid:
                 for part in str(eid).split(","):
@@ -221,7 +227,6 @@ def _coverage_safety_net(
             doc = e.source.document if e.source else "cross_cutting"
             curated_docs.add(doc or "cross_cutting")
 
-    added = 0
     for doc, entries in by_doc.items():
         if doc in curated_docs:
             continue
@@ -237,6 +242,5 @@ def _coverage_safety_net(
                 "summary": (e.content or "")[:500],
                 "source": "coverage_safety_net",
             })
-            added += 1
 
     return must_include

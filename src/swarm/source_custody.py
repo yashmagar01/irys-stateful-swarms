@@ -159,8 +159,8 @@ def write_source_custody_report(output_dir: str, report: dict) -> None:
             pass
     full_report["audits"].append(report)
     summary = full_report["summary"]
-    summary["entries_quarantined"] = int(summary.get("entries_quarantined", 0)) + len(
-        report.get("items", [])
+    summary["entries_quarantined"] = int(summary.get("entries_quarantined", 0)) + (
+        report.get("summary", {}).get("entries_quarantined", 0)
     )
     _merge_counts(
         summary.setdefault("invalid_documents", {}),
