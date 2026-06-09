@@ -231,7 +231,7 @@ def _coverage_safety_net(
         if doc in curated_docs:
             continue
         best = sorted(
-            [e for e in entries if e.confidence >= COVERAGE_CONFIDENCE_THRESHOLD],
+            [e for e in entries if e.confidence >= COVERAGE_CONFIDENCE_THRESHOLD and e.type != "gap"],
             key=lambda e: (-e.confidence, e.id),
         )
         for e in best[:MAX_AUTOINCLUDES_PER_DOC]:

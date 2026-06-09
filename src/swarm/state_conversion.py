@@ -417,7 +417,7 @@ def run_plan_coverage_state_repair(
             if sid not in support_set:
                 support_set.append(sid)
 
-        if entry_type != "gap" and not factual_supports:
+        if not factual_supports:
             dropped += 1
             continue
 
@@ -615,6 +615,8 @@ def coverage_report_to_entries(
                 supports_entries=supporting,
             ))
         else:
+            if not supporting:
+                continue
             content_parts = [f"Seed question {qid} {status}: {q_text}"]
             if missing_reason:
                 content_parts.append(f"Missing: {missing_reason}")
@@ -670,6 +672,8 @@ def coverage_report_to_entries(
                 supports_entries=supporting,
             ))
         else:
+            if not supporting:
+                continue
             content_parts = [f"Completeness criterion {cid} {status}: {c_text}"]
             if missing_reason:
                 content_parts.append(f"Missing: {missing_reason}")
@@ -721,6 +725,8 @@ def coverage_report_to_entries(
                 supports_entries=supporting,
             ))
         else:
+            if not supporting:
+                continue
             content_parts = [f"Domain lens item {lid} {status}"]
             if item_text:
                 content_parts.append(item_text)
