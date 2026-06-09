@@ -32,7 +32,7 @@ def shadow_judge_audit_enabled() -> bool:
 SECTION_THRESHOLD = int(os.getenv("SWARM_SYNTHESIS_SECTION_THRESHOLD", "15"))
 SECTION_CHUNK_SIZE = int(os.getenv("SWARM_SYNTHESIS_SECTION_CHUNK_SIZE", "25"))
 MAX_SECTIONS = int(os.getenv("SWARM_SYNTHESIS_MAX_SECTIONS", "20"))
-SECTION_DRAFT_MAX_TOKENS = int(os.getenv("SWARM_SYNTHESIS_SECTION_MAX_TOKENS", "8192"))
+SECTION_DRAFT_MAX_TOKENS = int(os.getenv("SWARM_SYNTHESIS_SECTION_MAX_TOKENS", "16384"))
 ASSIGNMENT_BATCH_SIZE = 50
 SECTION_EVIDENCE_CHARS = int(os.getenv("SWARM_SYNTHESIS_SECTION_EVIDENCE_CHARS", "24000"))
 SELECTED_ITEM_SUMMARY_CHARS = int(os.getenv("SWARM_SYNTHESIS_ITEM_SUMMARY_CHARS", "700"))
@@ -396,7 +396,7 @@ PRECISION RULES:
 1. For each item, state the EXACT fact: specific dollar amounts, percentages, dates, party names, statutory citations, defined terms. Never paraphrase a number or date — use the original value.
 2. One concise paragraph or bullet per item. Do not pad with background, context, or restating the task.
 3. If two items cover the same fact, merge them into one statement with the most specific version.
-4. Omit generic observations not listed as required items above and not supported by specific documents.
+4. Omit generic observations not listed as required items above and not supported by specific documents — but KEEP any required item even if it sounds generic.
 5. This is one section of a larger document — focus only on this section's items."""
 
 
@@ -1313,7 +1313,7 @@ CRITICAL INSTRUCTIONS:
 3. Keep the content appropriate for {filename}; spreadsheets should use Markdown tables and '# Sheet: ...' headings.
 4. One concise paragraph or bullet per item. Do not pad with background or restating the task.
 5. If two items cover the same fact, merge them into one statement with the most specific version.
-6. Omit generic observations not listed as required items and not supported by specific documents."""
+6. Omit generic observations not listed as required items and not supported by specific documents — but KEEP any required item even if it sounds generic."""
 
             _write_sectioned_synthesis_progress(
                 blackboard, len(section_drafts), total_sections,
