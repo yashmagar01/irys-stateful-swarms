@@ -421,7 +421,45 @@ def run_swarm(task: Task, caller: ModelCaller, *,
         if custody_report.get("items"):
             blackboard.save_snapshot("post_calculation_debt_source_custody")
 
-    # Phase 7b: build synthesis obligations
+    # Phase 7b: Synthesis Readiness Gate
+    active_entries = [e for e in blackboard.entries if e.status == "active"]
+    sourced_active = [
+        e for e in active_entries
+        if e.source and e.source.document
+        and e.type in ("observation", "analysis", "calculation")
+    ]
+    total_docs = len(blackboard.documents)
+    read_docs = sum(1 for d in blackboard.documents if d.read_status != "unread")
+    quarantined = sum(1 for e in blackboard.entries if e.status == "source_quarantined")
+    total_entries = len(blackboard.entries)
+    quarantine_rate = quarantined / total_entries if total_entries > 0 else 0.0
+
+    synthesis_blocked = False
+    block_reasons = []
+    if total_docs > 0 and read_docs == 0:
+        block_reasons.append(f"zero documents read out of {total_docs}")
+        synthesis_blocked = True
+    if not sourced_active:
+        block_reasons.append("zero source-grounded active entries")
+        synthesis_blocked = True
+    if quarantine_rate > 0.8 and total_entries > 20:
+        block_reasons.append(f"quarantine rate {quarantine_rate:.0%} exceeds 80% threshold")
+        synthesis_blocked = True
+
+    if synthesis_blocked:
+        blackboard.save_snapshot("synthesis_blocked")
+        deliverable = (
+            f"# Synthesis Blocked — Insufficient Source Evidence\n\n"
+            f"The system determined that synthesis cannot proceed reliably:\n"
+            + "\n".join(f"- {r}" for r in block_reasons)
+            + f"\n\n**Active entries:** {len(active_entries)}\n"
+            f"**Source-grounded active:** {len(sourced_active)}\n"
+            f"**Documents read:** {read_docs}/{total_docs}\n"
+            f"**Quarantine rate:** {quarantine_rate:.0%}\n"
+        )
+        return deliverable, blackboard
+
+    # Phase 7c: build synthesis obligations
     obligations = []
     if review_caller is not None:
         obligations, obl_tokens = build_synthesis_obligations(
