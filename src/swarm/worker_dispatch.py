@@ -19,6 +19,29 @@ from .section_index import resolve_section_text
 _usage_state = threading.local()
 
 
+def parse_json_object(text: str) -> dict | None:
+    """Extract the first JSON object from model output using raw_decode."""
+    text = text.strip()
+    if text.startswith("```"):
+        text = re.sub(r"^```\w*\n?", "", text)
+        text = re.sub(r"\n?```$", "", text)
+    try:
+        obj = json.loads(text)
+        return obj if isinstance(obj, dict) else {"value": obj}
+    except json.JSONDecodeError:
+        pass
+    decoder = json.JSONDecoder()
+    for i, ch in enumerate(text):
+        if ch == '{':
+            try:
+                obj, _ = decoder.raw_decode(text, i)
+                if isinstance(obj, dict):
+                    return obj
+            except json.JSONDecodeError:
+                continue
+    return None
+
+
 def call_model(caller: ModelCaller, prompt: str, *,
                max_tokens: int = 8192, json_mode: bool = True,
                audit_context: Any = None) -> tuple[dict, int]:
@@ -46,32 +69,10 @@ def call_model(caller: ModelCaller, prompt: str, *,
     if not json_mode:
         return {"text": text}, tokens
 
-    if text.startswith("```"):
-        text = re.sub(r"^```\w*\n?", "", text)
-        text = re.sub(r"\n?```$", "", text)
-
-    try:
-        payload = json.loads(text)
-        if not isinstance(payload, dict):
-            payload = {"value": payload}
-        return payload, tokens
-    except json.JSONDecodeError:
-        # Find JSON by bracket counting (avoids greedy regex issues)
-        for i, ch in enumerate(text):
-            if ch == '{':
-                depth = 0
-                for j in range(i, len(text)):
-                    if text[j] == '{':
-                        depth += 1
-                    elif text[j] == '}':
-                        depth -= 1
-                    if depth == 0:
-                        try:
-                            return json.loads(text[i:j + 1]), tokens
-                        except json.JSONDecodeError:
-                            break
-                break
-        return {"findings": [], "parse_error": True}, tokens
+    payload = parse_json_object(text)
+    if payload is None:
+        payload = {"findings": [], "parse_error": True}
+    return payload, tokens
 
 
 def begin_call_model_usage() -> None:
@@ -393,31 +394,9 @@ def execute_workers_parallel(worker_tasks: list[dict], blackboard: Blackboard,
         t_out = result.tokens_output
         tokens = result.tokens_total
         text = result.text.strip()
-        if text.startswith("```"):
-            text = re.sub(r"^```\w*\n?", "", text)
-            text = re.sub(r"\n?```$", "", text)
-        try:
-            payload = json.loads(text)
-            if not isinstance(payload, dict):
-                payload = {"value": payload}
-        except json.JSONDecodeError:
-            for i, ch in enumerate(text):
-                if ch == '{':
-                    depth = 0
-                    for j in range(i, len(text)):
-                        if text[j] == '{':
-                            depth += 1
-                        elif text[j] == '}':
-                            depth -= 1
-                        if depth == 0:
-                            try:
-                                payload = json.loads(text[i:j + 1])
-                            except json.JSONDecodeError:
-                                payload = None
-                            break
-                    break
-            if not payload:
-                payload = {"findings": [], "parse_error": True}
+        payload = parse_json_object(text)
+        if payload is None:
+            payload = {"findings": [], "parse_error": True}
         entries = parse_worker_output(
             payload, blackboard.iteration, wid, task["description"],
         )
@@ -430,9 +409,15 @@ def execute_workers_parallel(worker_tasks: list[dict], blackboard: Blackboard,
     with ThreadPoolExecutor(max_workers=max_w) as pool:
         futures = [pool.submit(run_one, t) for t in worker_tasks]
         results = []
+        errors = []
         for f in futures:
             try:
                 results.append(f.result())
-            except Exception:
-                pass
+            except Exception as exc:
+                errors.append(exc)
+        if errors and not results:
+            raise RuntimeError(
+                f"All {len(errors)} workers failed. "
+                f"First error: {errors[0]}"
+            )
         return results

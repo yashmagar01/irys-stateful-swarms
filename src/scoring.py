@@ -244,7 +244,18 @@ class LLMJudgeScorer:
         output_files = list(output_dir.iterdir()) if output_dir.exists() else []
         output_text = ""
         for f in output_files:
-            if f.is_file() and f.suffix.lower() in (".txt", ".md", ".docx", ".json"):
+            if not f.is_file():
+                continue
+            ext = f.suffix.lower()
+            if ext == ".docx":
+                try:
+                    from docx import Document as DocxDoc
+                    doc = DocxDoc(str(f))
+                    text = "\n".join(p.text for p in doc.paragraphs)
+                    output_text += f"\n--- {f.name} ---\n{text}"
+                except Exception:
+                    output_text += f"\n[Could not read {f.name}]\n"
+            elif ext in (".txt", ".md", ".json"):
                 try:
                     output_text += f"\n--- {f.name} ---\n"
                     output_text += f.read_text(encoding="utf-8-sig", errors="replace")

@@ -1025,7 +1025,7 @@ def _extract_lens_coverage_items(lens: dict | None) -> list[str]:
 def _source_balanced_sample(
     observations: list[Entry], max_count: int,
 ) -> list[Entry]:
-    """Sample observations balanced by source document, deterministically."""
+    """Sample observations balanced by source document using round-robin."""
     if len(observations) <= max_count:
         return observations
 
@@ -1034,16 +1034,19 @@ def _source_balanced_sample(
         doc = e.source.document if e.source else "unknown"
         by_doc.setdefault(doc, []).append(e)
 
-    per_doc = max(max_count // max(len(by_doc), 1), 10)
-    sampled = []
-    for doc_name in sorted(by_doc.keys()):
-        doc_entries = by_doc[doc_name]
-        if len(doc_entries) <= per_doc:
-            sampled.extend(doc_entries)
-        else:
-            sampled.extend(doc_entries[:per_doc])
-
-    if len(sampled) > max_count:
-        sampled = sampled[:max_count]
+    buckets = [entries for _, entries in sorted(by_doc.items())]
+    sampled: list[Entry] = []
+    idx = [0] * len(buckets)
+    while len(sampled) < max_count:
+        added = False
+        for bi, bucket in enumerate(buckets):
+            if idx[bi] < len(bucket):
+                sampled.append(bucket[idx[bi]])
+                idx[bi] += 1
+                added = True
+                if len(sampled) >= max_count:
+                    break
+        if not added:
+            break
 
     return sampled
