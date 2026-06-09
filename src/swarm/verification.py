@@ -44,6 +44,33 @@ NUMBER_UNIT_PATTERN = re.compile(
 )
 
 
+PLACEHOLDER_PATTERN = re.compile(
+    r'\['
+    r'(?:Amount|Party(?:\s+Name)?|Name|Date|Number|Value|Address|Title'
+    r'|Company|Entity|Percentage|Price|Term|Period|Deadline|Location'
+    r'|Placeholder|Insert|TBD|TBA|XXX|___+)'
+    r'\]',
+    re.IGNORECASE,
+)
+
+
+def detect_placeholders(text: str) -> list[dict]:
+    """Find bracket-placeholder patterns that should have been filled with real values."""
+    results = []
+    for m in PLACEHOLDER_PATTERN.finditer(text):
+        if _is_in_prose(text, m.start()):
+            line_start = text.rfind('\n', 0, m.start()) + 1
+            line_end = text.find('\n', m.end())
+            if line_end == -1:
+                line_end = len(text)
+            results.append({
+                "placeholder": m.group(),
+                "position": m.start(),
+                "context": text[line_start:line_end].strip()[:200],
+            })
+    return results
+
+
 def normalize_dollar(raw: str) -> int | None:
     s = raw.replace('$', '').replace(',', '').replace(' ', '').strip()
     multipliers = {'k': 1_000, 'm': 1_000_000, 'b': 1_000_000_000}

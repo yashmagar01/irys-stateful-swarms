@@ -228,6 +228,49 @@ def test_state_conversion_reports_failure_when_retry_entries_are_dropped():
     assert report["entries_dropped_no_source"] == 1
 
 
+def test_plan_coverage_state_repair_allows_gap_entries_without_factual_supports():
+    """Gap/strategy repair entries without factual supports should pass through
+    as unsupported open issues, not be silently dropped."""
+    obs = Entry(
+        id="e1", type="observation",
+        content="The agreement requires a payment of $5 million within 30 days.",
+        source=EntrySource(document="doc", evidence=""),
+        confidence=0.9,
+    )
+    gap = Entry(
+        id="g1", type="gap",
+        content="Missing calculation of net present value for the deferred payment stream.",
+        tags=["plan_coverage", "missing_work:calculate", "materiality:high"],
+        supports_entries=["e1"],
+    )
+    blackboard = Blackboard(
+        task_instruction="Analyze documents",
+        entries=[obs, gap],
+    )
+    import json
+    repair_response = json.dumps({"repair_entries": [
+        {
+            "type": "gap",
+            "content": "Open issue: discount rate for NPV calculation is not specified in documents.",
+            "supports_entries": ["g1"],
+            "addressed_gap_ids": ["g1"],
+            "confidence": 0.6,
+            "repair_type": "state_repair",
+            "missing_work_type": "calculate",
+        },
+    ]})
+    caller = FakeCaller(repair_response)
+
+    entries, report, tokens = run_plan_coverage_state_repair(
+        blackboard, [gap], caller,
+    )
+
+    assert len(entries) == 1
+    assert entries[0].type == "gap"
+    assert "unsupported_open_issue" in entries[0].tags
+    assert report["entries_dropped"] == 0
+
+
 def test_plan_coverage_state_repair_noops_without_high_value_gaps():
     blackboard = Blackboard(task_instruction="Analyze documents")
     coverage_entries = [

@@ -417,9 +417,13 @@ def run_plan_coverage_state_repair(
             if sid not in support_set:
                 support_set.append(sid)
 
+        is_open_issue_repair = False
         if not factual_supports:
-            dropped += 1
-            continue
+            if entry_type in ("gap", "strategy"):
+                is_open_issue_repair = True
+            else:
+                dropped += 1
+                continue
 
         try:
             conf = min(max(float(raw.get("confidence", 0.78)), 0.0), 1.0)
@@ -435,6 +439,8 @@ def run_plan_coverage_state_repair(
             f"missing_work:{missing_work}",
             f"materiality:{materiality}",
         ]
+        if is_open_issue_repair:
+            tags.append("unsupported_open_issue")
 
         for gid in valid_addressed:
             if gid not in repaired_gap_ids:

@@ -196,8 +196,17 @@ def _partition_key(item: dict) -> str:
     return f"{sec}|{target}|{source}|{native}"
 
 
+_HIGH_IMPORTANCE = frozenset({"critical", "high"})
+_MAX_ITEM_DROP_RATIO = 0.70
+_MAX_HIGH_DROP_RATIO = 0.80
+
+
 def consolidate_items(items: list[dict], similarity_threshold: float = 0.85) -> list[dict]:
-    """Merge near-duplicate items within same partition via word-set overlap."""
+    """Merge near-duplicate items within same partition via word-set overlap.
+
+    Includes a regression guard: if consolidation drops more than 30% of total
+    items or 20% of critical/high items, the original list is returned unchanged.
+    """
     by_partition: dict[str, list[dict]] = {}
     for item in items:
         key = _partition_key(item)
@@ -233,5 +242,17 @@ def consolidate_items(items: list[dict], similarity_threshold: float = 0.85) -> 
             if "entry_id" in merged:
                 merged["entry_id"] = ",".join(merged["entry_ids"])
             result.append(merged)
+
+    if len(items) < 15:
+        return result
+
+    if len(result) / len(items) < _MAX_ITEM_DROP_RATIO:
+        return list(items)
+
+    orig_high = sum(1 for i in items if i.get("importance") in _HIGH_IMPORTANCE)
+    if orig_high > 4:
+        new_high = sum(1 for i in result if i.get("importance") in _HIGH_IMPORTANCE)
+        if new_high / orig_high < _MAX_HIGH_DROP_RATIO:
+            return list(items)
 
     return result

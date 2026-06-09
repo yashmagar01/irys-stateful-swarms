@@ -220,6 +220,64 @@ def test_artifact_contract_without_entries_marked_open_issue():
     )
 
 
+def test_consolidate_regression_guard_rollback_on_excessive_drop():
+    """If consolidation would drop >30% of items, roll back to original."""
+    words = [
+        "revenue growth quarterly earnings fiscal",
+        "revenue growth quarterly earnings annual",
+        "revenue growth quarterly profit fiscal",
+        "revenue growth quarterly profit annual",
+        "revenue growth monthly earnings fiscal",
+        "revenue growth monthly earnings annual",
+        "revenue growth monthly profit fiscal",
+        "revenue growth monthly profit annual",
+        "operating expenses quarterly reduction plan",
+        "operating expenses quarterly reduction budget",
+        "operating expenses annual reduction plan",
+        "operating expenses annual reduction budget",
+        "capital expenditure quarterly investment plan",
+        "capital expenditure quarterly investment budget",
+        "capital expenditure annual investment plan",
+        "capital expenditure annual investment budget",
+        "debt restructuring quarterly payment schedule",
+        "debt restructuring quarterly payment timeline",
+        "debt restructuring annual payment schedule",
+        "debt restructuring annual payment timeline",
+    ]
+    items = [
+        {"entry_id": f"e{i}", "section": "Finance", "importance": "high",
+         "summary": w, "source": "curation"}
+        for i, w in enumerate(words)
+    ]
+    result = consolidate_items(items, similarity_threshold=0.3)
+    assert len(result) == len(items), (
+        "Regression guard should roll back when >30% of items would be lost"
+    )
+
+
+def test_consolidate_regression_guard_rollback_on_high_importance_drop():
+    """If consolidation would lose >20% of critical/high items, roll back."""
+    items = []
+    for i in range(8):
+        items.append({
+            "entry_id": f"e{i}", "section": "A", "importance": "critical",
+            "summary": f"critical obligation payment deadline thirty days term {i}",
+            "source": "curation",
+        })
+    for i in range(8, 18):
+        items.append({
+            "entry_id": f"e{i}", "section": "A", "importance": "medium",
+            "summary": f"background context general information item {i}",
+            "source": "curation",
+        })
+    result = consolidate_items(items, similarity_threshold=0.5)
+    high_orig = sum(1 for i in items if i["importance"] in ("critical", "high"))
+    high_result = sum(1 for i in result if i["importance"] in ("critical", "high"))
+    assert high_result / high_orig >= 0.8, (
+        "Regression guard should prevent losing >20% of critical/high items"
+    )
+
+
 def test_missing_entry_ids_marked_open_issue():
     entries = [
         Entry(id="e1", type="observation", content="X",

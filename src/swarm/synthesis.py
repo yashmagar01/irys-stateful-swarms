@@ -13,6 +13,7 @@ from .placement_verifier import (
     get_repair_candidates,
     repair_placements,
 )
+from .verification import detect_placeholders
 from .synthesis_packet import filter_evidence_entries
 from .worker_dispatch import (
     begin_call_model_usage,
@@ -93,6 +94,12 @@ def synthesize_deliverable(blackboard: Blackboard, must_include: list[dict],
                 draft, missing, active, blackboard, caller,
             )
         total_tokens += augment_tokens
+
+        repaired_map, ph_tokens = _repair_placeholders(
+            {"deliverable": augmented}, blackboard, caller,
+        )
+        total_tokens += ph_tokens
+        augmented = repaired_map.get("deliverable", augmented)
 
         return augmented, total_tokens
     finally:
@@ -253,6 +260,9 @@ def synthesize_file_deliverables(
                 repair_candidates, outputs, blackboard, caller,
             )
             total_tokens += repair_tokens
+
+        outputs, ph_tokens = _repair_placeholders(outputs, blackboard, caller)
+        total_tokens += ph_tokens
 
         return outputs, total_tokens
     finally:
@@ -1640,6 +1650,74 @@ def _draft_excerpt_for_verification(draft: str, max_chars: int = 160000) -> str:
         + "\n\n[... tail of long draft follows ...]\n\n"
         + draft[-part:]
     )
+
+
+_MAX_PLACEHOLDER_REPAIRS = 3
+
+
+def _repair_placeholders(
+    outputs: dict[str, str],
+    blackboard: Blackboard,
+    caller: ModelCaller,
+) -> tuple[dict[str, str], int]:
+    """Scan outputs for bracket placeholders and replace them with evidence values."""
+    total_tokens = 0
+    repaired = dict(outputs)
+    repairs_done = 0
+
+    for filename, text in outputs.items():
+        hits = detect_placeholders(text)
+        if not hits or repairs_done >= _MAX_PLACEHOLDER_REPAIRS:
+            continue
+
+        active = [e for e in blackboard.entries if e.status == "active"]
+        evidence_block = "\n".join(
+            f"[{e.id}] ({e.type}) {e.content[:300]}"
+            for e in active[:80]
+        )
+        placeholder_list = "\n".join(
+            f"- {h['placeholder']} in: {h['context']}"
+            for h in hits[:10]
+        )
+
+        prompt = (
+            f"The following draft for '{filename}' contains bracket placeholders "
+            f"that must be replaced with actual values from the evidence.\n\n"
+            f"PLACEHOLDERS FOUND:\n{placeholder_list}\n\n"
+            f"EVIDENCE:\n{evidence_block}\n\n"
+            f"DRAFT (relevant sections):\n{text[:6000]}\n\n"
+            f"For each placeholder, find the correct value from evidence and "
+            f"return a JSON object with key \"replacements\" containing a list "
+            f"of objects with \"placeholder\" (the exact bracket text), "
+            f"\"value\" (the replacement from evidence), and \"confidence\" "
+            f"(0.0-1.0). If no evidence supports a value, set confidence to 0 "
+            f"and value to empty string. ONLY replace with values from evidence."
+        )
+        try:
+            payload, tokens = call_model(caller, prompt, max_tokens=2048)
+            total_tokens += tokens
+        except Exception:
+            continue
+
+        replacements = payload.get("replacements", [])
+        if not isinstance(replacements, list):
+            continue
+
+        patched = text
+        for rep in replacements:
+            if not isinstance(rep, dict):
+                continue
+            ph = rep.get("placeholder", "")
+            val = str(rep.get("value", "")).strip()
+            conf = float(rep.get("confidence", 0))
+            if ph and val and conf >= 0.7:
+                patched = patched.replace(ph, val, 1)
+                repairs_done += 1
+
+        if patched != text:
+            repaired[filename] = patched
+
+    return repaired, total_tokens
 
 
 def _augment_draft(draft: str, missing: list[dict], active: list[Entry],
