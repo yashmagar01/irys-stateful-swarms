@@ -200,3 +200,38 @@ def test_consolidate_does_not_merge_across_target_files():
     ]
     result = consolidate_items(items)
     assert len(result) == 2, "Items targeting different files must not merge"
+
+
+def test_artifact_contract_without_entries_marked_open_issue():
+    entries = [
+        Entry(id="e1", type="observation", content="Fact A",
+              source=EntrySource("doc.pdf", "S1", "ev"), confidence=0.9),
+    ]
+    bb = _bb_with_entries(entries)
+    items = [
+        {"section": "Summary", "native_form": "section", "summary": "Executive summary",
+         "importance": "critical", "target_file": "memo.docx",
+         "source": "artifact_contract"},
+    ]
+    packet = build_synthesis_packet(items, bb)
+    assert len(packet) == 1
+    assert packet[0]["open_issue_only"] is True, (
+        "Artifact contract items without evidence must be open_issue_only"
+    )
+
+
+def test_missing_entry_ids_marked_open_issue():
+    entries = [
+        Entry(id="e1", type="observation", content="X",
+              source=EntrySource("d.pdf", "S", "ev"), confidence=0.9),
+    ]
+    bb = _bb_with_entries(entries)
+    items = [
+        {"entry_id": "e999", "importance": "high", "section": "Facts",
+         "summary": "Claim with dangling entry reference"},
+    ]
+    packet = build_synthesis_packet(items, bb)
+    assert len(packet) == 1
+    assert packet[0]["open_issue_only"] is True, (
+        "Items with all entry_ids missing must be open_issue_only"
+    )

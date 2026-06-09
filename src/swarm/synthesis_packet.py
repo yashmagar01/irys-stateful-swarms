@@ -54,6 +54,11 @@ def _normalize_item(item: dict, by_id: dict[str, Entry]) -> dict:
     open_issue_only = False
     if entries:
         open_issue_only = all(e.type in OPEN_ISSUE_TYPES for e in entries)
+    elif entry_ids:
+        # All referenced entries missing from blackboard — treat as ungrounded
+        open_issue_only = True
+    elif item.get("source") == "artifact_contract":
+        open_issue_only = True
 
     return {
         "entry_ids": entry_ids,
