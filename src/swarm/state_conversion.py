@@ -485,7 +485,7 @@ def _run_coverage_batch(
     items_block = "\n".join(f"{row['id']}. {row['text']}" for row in rows)
     prompt = f"""You are an adversarial coverage auditor. Evaluate only the listed {item_type} items against the blackboard analytical state.
 
-Be STRICT. Mark an item covered ONLY when the blackboard contains the exact analytical conclusion, calculation, legal authority, severity rating, recommendation, or comparison required. Raw factual proximity is NOT enough.
+Be STRICT. Mark an item covered ONLY when the blackboard contains the exact analytical conclusion, calculation, authoritative reference, severity rating, recommendation, or comparison required. Raw factual proximity is NOT enough.
 
 TASK: {task_instruction}
 
@@ -871,7 +871,7 @@ Rules:
 - Use only the selected gaps and available blackboard context.
 - Every non-gap repair entry must cite at least one factual existing support entry in supports_entries. addressed_gap_ids are useful for traceability, but they do not count as factual support.
 - If the current state cannot support the missing work, create a gap entry explaining the remaining missing state instead of inventing facts.
-- Prefer concrete calculations, comparisons, classifications, legal authority, severity assessments, recommendations, or artifact-form commitments.
+- Prefer concrete calculations, comparisons, classifications, authoritative references, severity assessments, recommendations, or artifact-form commitments.
 - Do not include prose outside JSON.
 
 Return JSON exactly in this shape:

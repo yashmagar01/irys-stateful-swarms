@@ -747,7 +747,7 @@ PARENT BLACKBOARD ENTRIES:
 Rules:
 - Use only the parent blackboard entries shown here.
 - Identify the exact source clause, document provision, cited standard, or evidence anchor available from the parent entries.
-- Do not invent external legal authority, cases, statutes, standards, or source sections.
+- Do not invent external authority, cases, statutes, standards, or source sections.
 - If the parent entries do not contain enough source custody, return status "unsupported".
 - This is blackboard state, not final deliverable prose.
 

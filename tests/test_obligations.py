@@ -122,7 +122,7 @@ def test_build_synthesis_obligations_preserves_executed_debt_entries():
     assert by_entry["e1"]["source"] == "debt_sensor"
     assert by_entry["e1"]["obligation_type"] == "cross_document_link"
     assert by_entry["e2"]["obligation_type"] == "risk_recommendation"
-    assert by_entry["e3"]["obligation_type"] == "legal_authority"
+    assert by_entry["e3"]["obligation_type"] == "reference_framework"
     assert by_entry["e4"]["obligation_type"] == "task_state_field"
     assert "e5" not in by_entry
     assert "Section 12.4" in by_entry["e3"]["verification_terms"]

@@ -404,7 +404,7 @@ Only missing_operation is executable. Be conservative.
 
 For missing_operation, you MUST provide a concrete arithmetic expression using only source-grounded required_inputs, such as "1000000 * 0.02" or "(12500000 - 9400000)". If you cannot write that expression from visible inputs, classify the item as missing_population, missing_assumption, placement_failure, or not_calculable instead.
 
-Do not classify missing source extraction, workbook tab placement, legal authority, severity, recommendation work, outdated valuation adjustments, future NPV estimates, unsupported current-market adjustments, or professional judgment as executable calculation debt.
+Do not classify missing source extraction, workbook tab placement, reference framework applicability, severity, recommendation work, outdated valuation adjustments, future NPV estimates, unsupported current-market adjustments, or professional judgment as executable calculation debt.
 
 Return JSON:
 {{"items": [
