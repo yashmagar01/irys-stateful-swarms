@@ -167,6 +167,10 @@ class Blackboard:
         for sig_id in entry.addresses_signals:
             for s in self.signals:
                 if s.id == sig_id and s.status == "open":
+                    if s.type == "artifact_requirement" and entry.type not in (
+                        "analysis", "calculation", "strategy",
+                    ):
+                        continue
                     s.status = "addressed"
                     s.addressed_by = entry.id
 

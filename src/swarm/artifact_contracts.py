@@ -4,7 +4,7 @@ import json
 import os
 
 from .blackboard import Blackboard
-from .models import ModelCaller
+from .models import ModelCaller, Signal, gen_signal_id
 from .worker_dispatch import call_model, parse_json_object
 
 
@@ -109,3 +109,39 @@ Return JSON:
         })
 
     return contracts, tokens
+
+
+def contracts_to_signals(
+    contracts: list[dict],
+    blackboard: Blackboard,
+) -> int:
+    """Register artifact_requirement signals for critical/high contracts.
+
+    These signals can only be closed by analytical/calculation/strategy entries,
+    not by plain observations. Returns count of signals added.
+    """
+    count = 0
+    for c in contracts:
+        importance = c.get("importance", "medium")
+        if importance not in ("critical", "high"):
+            continue
+        section = c.get("section", "")
+        native_form = c.get("native_form", "")
+        target = c.get("target_file", "")
+        summary = c.get("summary", "")
+        content = (
+            f"Artifact must contain {native_form} in '{section}' "
+            f"for {target}: {summary}"
+        )
+        priority = "critical" if importance == "critical" else "high"
+        blackboard.add_signal(Signal(
+            id=gen_signal_id(),
+            type="artifact_requirement",
+            content=content,
+            origin_entry="artifact_contract",
+            priority=priority,
+            status="open",
+            iteration_created=blackboard.iteration,
+        ))
+        count += 1
+    return count

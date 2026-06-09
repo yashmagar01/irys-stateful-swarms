@@ -41,7 +41,7 @@ from .state_conversion import (
     coverage_report_to_entries, run_plan_coverage_review,
     run_plan_coverage_state_repair, run_state_conversion_review,
 )
-from .artifact_contracts import build_artifact_contracts
+from .artifact_contracts import build_artifact_contracts, contracts_to_signals
 from .synthesis_packet import (
     build_synthesis_packet,
     filter_evidence_entries,
@@ -537,6 +537,7 @@ def run_swarm(task: Task, caller: ModelCaller, *,
             blackboard, deliverables_map_pre, contract_caller,
         )
         blackboard.add_tokens_from_last_call(contract_tokens)
+        contracts_to_signals(contract_items, blackboard)
         obligations.extend(contract_items)
 
     # Phase 8: Curate + Combine obligations + Synthesize
