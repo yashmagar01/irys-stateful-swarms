@@ -231,6 +231,29 @@ def test_manifest_loading_nothing_raises(tmp_path, monkeypatch):
 # Benchmark integrity — criteria never leak into generation
 # ---------------------------------------------------------------------------
 
+def test_generation_metadata_excludes_benchmark_fields():
+    """_generation_metadata must never include task_id or evaluator fields."""
+    from src.runner import _generation_metadata, _GENERATION_METADATA_BLOCKLIST
+    task_data = {
+        "task_id": "test/task-01",
+        "title": "Test Task",
+        "work_type": "analysis",
+        "criteria": [{"id": "C1"}],
+        "match_criteria": [{"id": "MC1"}],
+        "scorer": "harvey",
+        "scorer_config": {},
+    }
+    meta = _generation_metadata(task_data, {"report": "report.docx"})
+    for blocked in _GENERATION_METADATA_BLOCKLIST:
+        assert blocked not in meta, (
+            f"_generation_metadata includes '{blocked}' — "
+            f"benchmark field leaked into generation context"
+        )
+    assert "task_id" not in meta
+    assert meta["title"] == "Test Task"
+    assert meta["deliverables"] == {"report": "report.docx"}
+
+
 def test_criteria_never_in_generation_context():
     """run_single_task only passes instructions/title/deliverables/work_type
     into generation, never criteria/match_criteria/scorer fields."""

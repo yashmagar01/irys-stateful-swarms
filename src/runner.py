@@ -33,6 +33,21 @@ class RunResult:
     error: str | None = None
 
 
+_GENERATION_METADATA_BLOCKLIST = frozenset({
+    "task_id", "criteria", "match_criteria", "scorer", "scores",
+    "criteria_results", "rubric", "prior_score", "prior_scores",
+})
+
+
+def _generation_metadata(task_data: dict, deliverables: dict) -> dict:
+    """Build metadata safe for generation — no evaluator/benchmark fields."""
+    return {
+        "title": task_data.get("title", ""),
+        "work_type": task_data.get("work_type", ""),
+        "deliverables": deliverables,
+    }
+
+
 def run_single_task(task_dir: Path, output_dir: Path, *,
                     worker_model: str | None = None,
                     synthesis_model: str | None = None,
@@ -78,12 +93,7 @@ def run_single_task(task_dir: Path, output_dir: Path, *,
     task = Task(
         instruction=instruction,
         documents=documents,
-        metadata={
-            "task_id": task_id,
-            "title": task_data.get("title", ""),
-            "work_type": task_data.get("work_type", ""),
-            "deliverables": deliverables_for_task,
-        },
+        metadata=_generation_metadata(task_data, deliverables_for_task),
         output_dir=str(out_dir),
     )
 
