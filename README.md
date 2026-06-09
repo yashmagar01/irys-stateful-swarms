@@ -13,6 +13,8 @@
 
 The system doesn't just cost less — it returns dramatically more capability per unit of spend. And this is the *stateless* cost — every task starting from zero with no prior knowledge. With persistent state enabled, subsequent queries would cost a fraction of even this.
 
+For a technical discussion of the stateful swarm paradigm and the ideas behind this system, see [Stateful Swarms Make AI Agents Cheaper, Safer, Better](https://www.linkedin.com/pulse/stateful-swarms-make-ai-agents-cheaper-safer-better-devansh-devansh-8enxe).
+
 ---
 
 ## Why this matters
@@ -43,6 +45,8 @@ The complete outputs from the full benchmark run are available as downloadable a
 ### Context
 
 Harvey's published LAB results use a private holdout set that mirrors the public benchmark distribution. Harvey reported that its strongest published private-holdout all-pass result reached `10.4%`, with earlier initial results at `7.1%` all-pass at about `$50.90/task`. We ran on the public benchmark because we don't have access to the private holdout — we'd welcome the opportunity to run irys-stateful-swarms on the private set for a direct comparison.
+
+Two notes: due to rate limit issues, we used Gemini 3.1 FL as our judge (instead of Sonnet 4.6 as recommended). We made sure to compare the outputs of both and found over 90%+ agreement so this isn't a killer. Second, we lack access to Harvey's Private Holdout Benchmark (where they get their numbers). However, they endorsed Anthropic's run on their public benchmark when Opus 4.8 released. Since Opus 4.8 from Anthropic and Harvey got very close results, we can reasonably assume similar distributions for public and private benchmark (something said by Harvey themselves). So we think we can reasonably compare the performance of the systems. We're happy to use their benchmarks if provided.
 
 ### It's the architecture, not the model
 
