@@ -8,6 +8,11 @@ from pathlib import Path
 
 from .blackboard import Blackboard
 from .models import Entry, ModelCaller
+from .placement_verifier import (
+    evaluate_placements,
+    get_repair_candidates,
+    repair_placements,
+)
 from .worker_dispatch import (
     begin_call_model_usage,
     call_model,
@@ -238,6 +243,14 @@ def synthesize_file_deliverables(
                     total_tokens += augment_tokens
 
             outputs[filename] = draft
+
+        placements = evaluate_placements(must_include, outputs)
+        repair_candidates = get_repair_candidates(placements)
+        if repair_candidates:
+            outputs, repair_tokens = repair_placements(
+                repair_candidates, outputs, blackboard, caller,
+            )
+            total_tokens += repair_tokens
 
         return outputs, total_tokens
     finally:
