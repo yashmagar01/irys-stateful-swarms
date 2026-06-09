@@ -10,6 +10,8 @@ from .models import Entry, ModelCaller
 from .worker_dispatch import call_model, get_last_call_usage, set_last_call_usage
 
 MIN_MUST_INCLUDE = 20
+_MIN_CLUSTER_ENTRIES_FOR_DENSITY = 10
+_MIN_CLUSTER_DENSITY = 0.15
 
 
 def curate_entries(blackboard: Blackboard, caller: ModelCaller) -> tuple[list[dict], int]:
@@ -22,12 +24,13 @@ def curate_entries(blackboard: Blackboard, caller: ModelCaller) -> tuple[list[di
         doc = e.source.document if e.source else "cross_cutting"
         clusters.setdefault(doc or "cross_cutting", []).append(e)
 
-    must_include_all: list[dict] = []
     cluster_items = list(clusters.items())
     max_workers = min(
         len(cluster_items),
         max(1, int(os.getenv("SWARM_CURATION_WORKERS", "8"))),
     )
+
+    cluster_results: list[tuple[str, list[Entry], list[dict]]] = []
 
     if max_workers <= 1:
         for index, (doc_name, entries) in enumerate(cluster_items):
@@ -36,7 +39,7 @@ def curate_entries(blackboard: Blackboard, caller: ModelCaller) -> tuple[list[di
             )
             total_tokens += tokens
             _merge_usage(usage_by_model, usage)
-            must_include_all.extend(items)
+            cluster_results.append((doc_name, entries, items))
             _write_curation_progress(
                 blackboard, index + 1, len(cluster_items), doc_name, len(items),
             )
@@ -61,15 +64,39 @@ def curate_entries(blackboard: Blackboard, caller: ModelCaller) -> tuple[list[di
                     blackboard, completed, len(cluster_items), doc_name, len(items),
                 )
 
-        for result in results:
+        for i, result in enumerate(results):
             if result is None:
                 continue
-            _, _, items, tokens, usage = result
+            _, doc_name_r, items, tokens, usage = result
             total_tokens += tokens
             _merge_usage(usage_by_model, usage)
-            must_include_all.extend(items)
+            cluster_results.append((doc_name_r, cluster_items[i][1], items))
 
-    # Density quality gate: if too few items, re-curate with stronger enforcement.
+    sparse = _find_sparse_clusters(cluster_results)
+    for doc_name, entries, _ in sparse:
+        _, _, retry_items, retry_tokens, retry_usage = _curate_cluster(
+            blackboard, caller, 0, doc_name, entries,
+        )
+        total_tokens += retry_tokens
+        _merge_usage(usage_by_model, retry_usage)
+        for cr in cluster_results:
+            if cr[0] == doc_name:
+                existing_ids = {
+                    m.get("entry_id") for m in cr[2] if isinstance(m, dict) and m.get("entry_id")
+                }
+                for item in retry_items:
+                    eid = item.get("entry_id") if isinstance(item, dict) else None
+                    if not eid or eid not in existing_ids:
+                        cr[2].append(item)
+                        if eid:
+                            existing_ids.add(eid)
+                break
+
+    must_include_all: list[dict] = []
+    for _, _, items in cluster_results:
+        must_include_all.extend(items)
+
+    # Global density quality gate: if too few items, re-curate with stronger enforcement.
     if len(must_include_all) < MIN_MUST_INCLUDE and len(active) >= MIN_MUST_INCLUDE:
         fallback_items, fallback_tokens = _fallback_curate(blackboard, active, caller)
         total_tokens += fallback_tokens
@@ -88,6 +115,20 @@ def curate_entries(blackboard: Blackboard, caller: ModelCaller) -> tuple[list[di
 
     set_last_call_usage(usage_by_model)
     return must_include_all, total_tokens
+
+
+def _find_sparse_clusters(
+    cluster_results: list[tuple[str, list[Entry], list[dict]]],
+) -> list[tuple[str, list[Entry], list[dict]]]:
+    """Identify clusters that produced too few items relative to their entry count."""
+    sparse = []
+    for doc_name, entries, items in cluster_results:
+        if len(entries) < _MIN_CLUSTER_ENTRIES_FOR_DENSITY:
+            continue
+        density = len(items) / len(entries) if entries else 1.0
+        if density < _MIN_CLUSTER_DENSITY:
+            sparse.append((doc_name, entries, items))
+    return sparse
 
 
 def _curate_cluster(
