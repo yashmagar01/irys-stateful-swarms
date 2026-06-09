@@ -41,6 +41,7 @@ from .state_conversion import (
     coverage_report_to_entries, run_plan_coverage_review,
     run_plan_coverage_state_repair, run_state_conversion_review,
 )
+from .artifact_contracts import build_artifact_contracts
 from .synthesis import (
     shadow_judge_audit,
     shadow_judge_audit_enabled,
@@ -522,6 +523,16 @@ def run_swarm(task: Task, caller: ModelCaller, *,
         )
         blackboard.add_tokens_from_last_call(obl_tokens)
         blackboard.save_snapshot("post_obligations")
+
+    # Phase 7d: artifact-native structural contracts
+    deliverables_map_pre = task.metadata.get("deliverables", {})
+    if deliverables_map_pre:
+        contract_caller = review_caller or caller
+        contract_items, contract_tokens = build_artifact_contracts(
+            blackboard, deliverables_map_pre, contract_caller,
+        )
+        blackboard.add_tokens_from_last_call(contract_tokens)
+        obligations.extend(contract_items)
 
     # Phase 8: Curate + Combine obligations + Synthesize
     must_include, cur_tokens = curate_entries(blackboard, caller)
