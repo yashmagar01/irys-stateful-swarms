@@ -269,6 +269,61 @@ def synthesize_file_deliverables(
         end_call_model_usage()
 
 
+_SECTION_MERGE_JACCARD = 0.60
+_SECTION_STOP_WORDS = frozenset({
+    "the", "a", "an", "of", "in", "for", "and", "or", "to", "with",
+    "on", "by", "from", "key", "main", "general", "additional", "other",
+    "summary", "overview", "section", "details",
+})
+
+
+def _stem(word: str) -> str:
+    if word.endswith("ies") and len(word) > 4:
+        return word[:-3] + "y"
+    if word.endswith("ses") and len(word) > 4:
+        return word[:-2]
+    if word.endswith("s") and not word.endswith("ss") and len(word) > 3:
+        return word[:-1]
+    return word
+
+
+def _normalize_sections(
+    by_section: dict[str, list[dict]],
+) -> dict[str, list[dict]]:
+    """Merge section names with high word-overlap to reduce fragmentation."""
+    if len(by_section) <= MAX_SECTIONS:
+        return by_section
+
+    def _sig_words(name: str) -> set[str]:
+        return {
+            _stem(w) for w in re.findall(r"[a-z]+", name.lower())
+            if len(w) > 2 and w not in _SECTION_STOP_WORDS
+        }
+
+    names = list(by_section.keys())
+    sigs = {n: _sig_words(n) for n in names}
+    canonical_map: dict[str, str] = {n: n for n in names}
+
+    sorted_names = sorted(names, key=lambda n: len(by_section[n]), reverse=True)
+    for i, big in enumerate(sorted_names):
+        for small in sorted_names[i + 1:]:
+            if canonical_map[small] != small:
+                continue
+            s1, s2 = sigs[big], sigs[small]
+            if not s1 or not s2:
+                continue
+            jaccard = len(s1 & s2) / len(s1 | s2)
+            if jaccard >= _SECTION_MERGE_JACCARD:
+                target = canonical_map[big]
+                canonical_map[small] = target
+
+    result: dict[str, list[dict]] = {}
+    for n in names:
+        target = canonical_map[n]
+        result.setdefault(target, []).extend(by_section[n])
+    return result
+
+
 def _cap_sections(
     by_section: dict[str, list[dict]],
     max_sections: int = MAX_SECTIONS,
@@ -300,7 +355,7 @@ def _sectioned_synthesis(blackboard: Blackboard, must_include: list[dict],
             section = m.get("section", "General")
             by_section.setdefault(section, []).append(m)
 
-    by_section = _cap_sections(by_section)
+    by_section = _cap_sections(_normalize_sections(by_section))
 
     jobs = []
     section_order = list(by_section.keys())
@@ -405,10 +460,11 @@ SUPPORTING EVIDENCE:
 PRECISION RULES:
 1. For each item, state the EXACT fact: specific dollar amounts, percentages, dates, party names, statutory citations, defined terms. Never paraphrase a number or date — use the original value.
 2. ENTITY NAMES AND VALUES ARE SACRED: Copy entity names, company names, person names, dollar amounts, dates, percentages, and share counts VERBATIM from the items and evidence above. Do NOT substitute with similar-sounding names or round numbers from your own knowledge. If the evidence says "$7.5M" write "$7.5M", not "$1.5M". If it says "University of Geneva" write that, not "Columbia Law School".
-3. One concise paragraph or bullet per item. Do not pad with background, context, or restating the task.
-4. If two items cover the same fact, merge them into one statement with the most specific version.
-5. Omit generic observations not listed as required items above and not supported by specific documents — but KEEP any required item even if it sounds generic.
-6. This is one section of a larger document — focus only on this section's items."""
+3. If you CANNOT find a specific entity name, person name, firm name, or address in the items and evidence above, write a bracketed placeholder like [Firm Name], [Counsel Name], [Address] instead. NEVER generate a plausible-sounding name from your own knowledge — a placeholder is always better than a hallucinated name.
+4. One concise paragraph or bullet per item. Do not pad with background, context, or restating the task.
+5. If two items cover the same fact, merge them into one statement with the most specific version.
+6. Omit generic observations not listed as required items above and not supported by specific documents — but KEEP any required item even if it sounds generic.
+7. This is one section of a larger document — focus only on this section's items."""
 
 
 def _draft_section_chunk(
@@ -1269,7 +1325,7 @@ def _sectioned_file_deliverable(
         section = item.get("section", "General") if isinstance(item, dict) else "General"
         by_section.setdefault(section or "General", []).append(item)
 
-    by_section = _cap_sections(by_section)
+    by_section = _cap_sections(_normalize_sections(by_section))
 
     active = [e for e in blackboard.entries if e.status == "active"]
     contract_text = _format_artifact_contract(artifact_contract)
@@ -1322,10 +1378,11 @@ CRITICAL INSTRUCTIONS:
 1. Write only this section or sheet for {filename}.
 2. Include every selected item for this section with exact values, dates, party names, citations, and calculations.
 3. ENTITY NAMES AND VALUES ARE SACRED: Copy entity names, company names, person names, dollar amounts, dates, percentages, and share counts VERBATIM from the items and evidence above. Do NOT substitute with similar-sounding names or round numbers from your own knowledge.
-4. Keep the content appropriate for {filename}; spreadsheets should use Markdown tables and '# Sheet: ...' headings.
-5. One concise paragraph or bullet per item. Do not pad with background or restating the task.
-6. If two items cover the same fact, merge them into one statement with the most specific version.
-7. Omit generic observations not listed as required items and not supported by specific documents — but KEEP any required item even if it sounds generic."""
+4. If you CANNOT find a specific entity name, person name, firm name, or address in the items and evidence above, write a bracketed placeholder like [Firm Name], [Counsel Name], [Address] instead. NEVER generate a plausible-sounding name from your own knowledge — a placeholder is always better than a hallucinated name.
+5. Keep the content appropriate for {filename}; spreadsheets should use Markdown tables and '# Sheet: ...' headings.
+6. One concise paragraph or bullet per item. Do not pad with background or restating the task.
+7. If two items cover the same fact, merge them into one statement with the most specific version.
+8. Omit generic observations not listed as required items and not supported by specific documents — but KEEP any required item even if it sounds generic."""
 
             _write_sectioned_synthesis_progress(
                 blackboard, len(section_drafts), total_sections,
@@ -1577,10 +1634,11 @@ CRITICAL INSTRUCTIONS:
 8. Include ALL financial terms with exact amounts and conditions.
 9. Include ALL party names with full legal designations.
 10. ENTITY NAMES AND VALUES ARE SACRED: Copy entity names, company names, person names, dollar amounts, dates, percentages, and share counts VERBATIM from the mandatory items and findings above. Do NOT substitute with similar-sounding names or round numbers from your own knowledge. If the findings say "$7.5M" write "$7.5M". If they say "University of Geneva" write exactly that. Your knowledge of the world is irrelevant — only the provided evidence matters.
-11. Include ALL representations, warranties, covenants, conditions, and restrictions.
-12. Items listed under KNOWN GAPS AND OPEN ISSUES are unresolved — flag them as open questions or caveats, never as established facts.
-13. The deliverable must stand alone — a reader should get EVERY material fact without needing the source documents.
-14. For drafting tasks: produce the actual document content (not a memo about the document). Include all required sections, clauses, and provisions."""
+11. If you CANNOT find a specific entity name, person name, firm name, or address in the mandatory items and findings above, write a bracketed placeholder like [Firm Name], [Counsel Name], [Address] instead. NEVER generate a plausible-sounding name from your own knowledge — a placeholder is always better than a hallucinated name.
+12. Include ALL representations, warranties, covenants, conditions, and restrictions.
+13. Items listed under KNOWN GAPS AND OPEN ISSUES are unresolved — flag them as open questions or caveats, never as established facts.
+14. The deliverable must stand alone — a reader should get EVERY material fact without needing the source documents.
+15. For drafting tasks: produce the actual document content (not a memo about the document). Include all required sections, clauses, and provisions."""
 
     payload, tokens = call_model(caller, prompt, max_tokens=32768, json_mode=False)
     deliverable = payload.get("text", "")
