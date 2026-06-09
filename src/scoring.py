@@ -221,7 +221,10 @@ class LLMJudgeScorer:
     def score_task(self, task_data: dict, run_dir: Path, **kwargs) -> ScoreResult:
         criteria = task_data.get("criteria", [])
         if not criteria:
-            raise ValueError("LLMJudgeScorer requires 'criteria' in task.json")
+            raise ValueError(
+                "LLMJudgeScorer requires 'criteria' in task.json. "
+                "For ad-hoc tasks without criteria, use sub-agent evaluation instead."
+            )
 
         output_dir = run_dir / "output"
         if not output_dir.exists():
