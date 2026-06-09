@@ -992,11 +992,11 @@ def _extract_lens_coverage_items(lens: dict | None) -> list[str]:
     for hyp in _safe_list("issue_hypotheses"):
         if isinstance(hyp, str) and hyp.strip():
             items.append(f"Issue hypothesis: {hyp.strip()}")
-    for auth in _safe_list("legal_authorities"):
-        if isinstance(auth, dict):
-            name = str(auth.get("authority", "")).strip()
+    for fw in _safe_list("reference_frameworks") or _safe_list("legal_authorities"):
+        if isinstance(fw, dict):
+            name = str(fw.get("framework", fw.get("authority", ""))).strip()
             if name:
-                items.append(f"Legal authority applicability: {name}")
+                items.append(f"Reference framework applicability: {name}")
     for calc in _safe_list("calculation_targets"):
         if isinstance(calc, dict):
             target = str(calc.get("target", "")).strip()
