@@ -222,7 +222,30 @@ def run_swarm(task: Task, caller: ModelCaller, *,
         blackboard.expire_old_signals()
         blackboard.save_snapshot(f"pre_{iteration}")
 
-        orch, orch_tokens = run_orchestrator(blackboard, caller)
+        # Analysis mode shift: after iteration 8, if obs:analysis ratio > 3:1,
+        # force the orchestrator to stop extracting and start reasoning
+        analysis_mode_override = ""
+        if iteration >= 8:
+            _active = [e for e in blackboard.entries if e.status == "active"]
+            _obs = sum(1 for e in _active if e.type == "observation")
+            _ana = sum(1 for e in _active if e.type in ("analysis", "calculation"))
+            _ratio = _obs / max(_ana, 1)
+            if _ratio > 3.0:
+                analysis_mode_override = (
+                    f"ANALYSIS MODE: obs:analysis ratio is {_ratio:.1f}:1 "
+                    f"({_obs} observations, {_ana} analyses/calculations). "
+                    f"You are over-extracting and under-reasoning. "
+                    f"Dispatch ONLY analysis, calculation, and strategy workers. "
+                    f"NO observation workers. Focus on: "
+                    f"(1) What conclusions are MISSING from existing observations? "
+                    f"(2) What calculations should be performed from extracted numbers? "
+                    f"(3) What cross-document comparisons need to be made? "
+                    f"(4) What issues should be flagged based on findings so far?"
+                )
+
+        orch, orch_tokens = run_orchestrator(
+            blackboard, caller, override=analysis_mode_override,
+        )
         blackboard.add_tokens_from_last_call(orch_tokens)
 
         if orch.get("action") == "converge" and iteration >= min_iter:
@@ -231,9 +254,11 @@ def run_swarm(task: Task, caller: ModelCaller, *,
             if converged:
                 blackboard.save_snapshot("converged")
                 break
+            _reject = "Convergence rejected. Address the gaps identified."
+            if analysis_mode_override:
+                _reject += " " + analysis_mode_override
             orch, t = run_orchestrator(
-                blackboard, caller,
-                override="Convergence rejected. Address the gaps identified.",
+                blackboard, caller, override=_reject,
             )
             blackboard.add_tokens_from_last_call(t)
             if orch.get("action") == "converge":
@@ -242,14 +267,37 @@ def run_swarm(task: Task, caller: ModelCaller, *,
                 if converged2:
                     blackboard.save_snapshot("converged_retry")
                     break
-                # Double convergence failure — force workers
+                _force = "You MUST produce workers. Do NOT converge. Find remaining gaps."
+                if analysis_mode_override:
+                    _force += " " + analysis_mode_override
                 orch, t3 = run_orchestrator(
-                    blackboard, caller,
-                    override="You MUST produce workers. Do NOT converge. Find remaining gaps.",
+                    blackboard, caller, override=_force,
                 )
                 blackboard.add_tokens_from_last_call(t3)
 
         tasks_list = orch.get("workers", [])
+        if not tasks_list:
+            continue
+
+        if analysis_mode_override and tasks_list:
+            _analytical = [
+                t for t in tasks_list
+                if t.get("expected_output_type", "observation") != "observation"
+            ]
+            _obs_tasks = [
+                t for t in tasks_list
+                if t.get("expected_output_type", "observation") == "observation"
+            ]
+            tasks_list = _analytical + _obs_tasks[:1]
+            if not tasks_list:
+                from .convergence import analytical_steering
+                _steering_tasks, _steer_tokens = analytical_steering(
+                    blackboard, caller,
+                )
+                blackboard.add_tokens_from_last_call(_steer_tokens)
+                if _steering_tasks:
+                    tasks_list = _steering_tasks
+
         if not tasks_list:
             continue
 
