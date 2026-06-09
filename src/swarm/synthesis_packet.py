@@ -196,8 +196,8 @@ def _partition_key(item: dict) -> str:
     return f"{sec}|{target}|{source}|{native}"
 
 
-def consolidate_items(items: list[dict], similarity_threshold: float = 0.65) -> list[dict]:
-    """Merge semantically similar items within same partition via word-set overlap."""
+def consolidate_items(items: list[dict], similarity_threshold: float = 0.85) -> list[dict]:
+    """Merge near-duplicate items within same partition via word-set overlap."""
     by_partition: dict[str, list[dict]] = {}
     for item in items:
         key = _partition_key(item)
