@@ -172,11 +172,81 @@ def run_state_conversion_review(
             supports_entries=valid_sources,
         ))
 
+    zero_entry_retries = 0
+    if not entries and len(observations) > 100 and not initial_parse_error:
+        id_catalog = ", ".join(sorted(active_ids)[:200])
+        for batch in _entry_batches(observations, retry_batch_size)[:max_retry_batches]:
+            zero_entry_retries += 1
+            retry_prompt = _build_state_conversion_prompt(
+                task_instruction=blackboard.task_instruction,
+                framework=framework,
+                task_state_map=task_state_map,
+                analytical=analytical,
+                analytical_text=analytical_text,
+                observations=batch,
+                max_new_entries=max(1, max_new_entries // 2),
+                observations_label="smaller retry batch",
+            )
+            retry_prompt += f"\n\nIMPORTANT: Valid entry IDs you may reference in source_entries: [{id_catalog}]"
+            retry_payload, retry_tokens = call_model(
+                caller, retry_prompt, max_tokens=8192,
+            )
+            total_tokens += retry_tokens
+            if retry_payload.get("parse_error"):
+                continue
+            for o in (retry_payload.get("new_entries") or [])[:max_new_entries]:
+                if not isinstance(o, dict):
+                    continue
+                content = str(o.get("content", "")).strip()
+                if not content or len(content) < 20:
+                    continue
+                entry_type = o.get("type", "analysis")
+                if entry_type not in ("analysis", "calculation", "strategy", "gap"):
+                    entry_type = "analysis"
+                source_ids = o.get("source_entries", [])
+                if not isinstance(source_ids, list):
+                    source_ids = []
+                valid_sources = [s for s in source_ids if s in active_ids]
+                if entry_type != "gap" and not valid_sources:
+                    dropped += 1
+                    continue
+                has_grounded = any(
+                    e.source and e.source.document
+                    for e in active if e.id in valid_sources
+                )
+                if entry_type != "gap" and not has_grounded:
+                    dropped += 1
+                    continue
+                source = None
+                if valid_sources:
+                    ref = next((e for e in active if e.id == valid_sources[0]), None)
+                    if ref and ref.source and ref.source.document:
+                        source = EntrySource(ref.source.document, ref.source.section, "")
+                try:
+                    conf = min(max(float(o.get("confidence", 0.75)), 0.0), 1.0)
+                except (ValueError, TypeError):
+                    conf = 0.75
+                entries.append(Entry(
+                    id=gen_entry_id(), type=entry_type, content=content,
+                    source=source,
+                    epistemic=EpistemicStatus("inference", "unknown", ""),
+                    created_by=WorkerRecord(
+                        "state_conversion_reviewer", "state_conversion_retry",
+                        blackboard.iteration,
+                    ),
+                    confidence=conf,
+                    tags=["state_conversion", "retry"], status="active",
+                    supports_entries=valid_sources,
+                ))
+            if entries:
+                break
+
     report = {
         "parse_error": bool(payload.get("parse_error")) or (initial_parse_error and not entries),
         "initial_parse_error": initial_parse_error,
         "retry_batches": retry_batches,
         "retry_parse_errors": retry_parse_errors,
+        "zero_entry_retries": zero_entry_retries,
         "entries_created": len(entries),
         "entries_dropped_no_source": dropped,
         "created_entry_ids": [e.id for e in entries],

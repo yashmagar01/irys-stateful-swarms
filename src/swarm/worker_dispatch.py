@@ -267,7 +267,8 @@ def _attach_assigned_signal_ids(entries: list[Entry], signal_ids: list[str]) -> 
 
 
 def parse_worker_output(payload: dict, iteration: int,
-                        worker_id: str, task_description: str) -> list[Entry]:
+                        worker_id: str, task_description: str,
+                        valid_doc_names: set[str] | None = None) -> list[Entry]:
     findings = payload.get("findings", [])
     entries = []
     for f in findings:
@@ -283,9 +284,18 @@ def parse_worker_output(payload: dict, iteration: int,
             entry_type = "observation"
 
         source = None
-        if f.get("source_document"):
+        raw_doc = f.get("source_document")
+        if raw_doc and valid_doc_names is not None:
+            from .source_custody import source_document_is_valid
+            if not source_document_is_valid(str(raw_doc), valid_doc_names):
+                if entry_type == "observation":
+                    continue
+                raw_doc = None
+                entry_type = "gap"
+                content = f"[Source '{f.get('source_document')}' not in document registry — claim discarded] Needs verification: {content[:200]}"
+        if raw_doc:
             source = EntrySource(
-                f["source_document"], f.get("source_section"),
+                raw_doc, f.get("source_section"),
                 str(f.get("evidence", "")),
             )
 
@@ -317,6 +327,14 @@ def parse_worker_output(payload: dict, iteration: int,
     return entries
 
 
+_NEGATIVE_PREFIXES = (
+    "does not contain", "no mention of", "not found in",
+    "the document does not", "there is no", "the provided text does not",
+    "no information about", "the text does not", "no evidence of",
+    "no reference to", "this document does not",
+)
+
+
 def passes_quality_gate(entry: Entry) -> bool:
     if not entry.content or len(entry.content.strip()) < 20:
         return False
@@ -327,6 +345,17 @@ def passes_quality_gate(entry: Entry) -> bool:
         has_op = any(op in entry.content for op in ("=", "+", "×", "*", "/", "%", "−"))
         if not (has_nums and has_op):
             return False
+    if entry.type == "observation" and _is_negative_noise(entry):
+        return False
+    return True
+
+
+def _is_negative_noise(entry: Entry) -> bool:
+    low = entry.content.strip().lower()
+    if not any(low.startswith(p) for p in _NEGATIVE_PREFIXES):
+        return False
+    if entry.addresses_signals:
+        return False
     return True
 
 
@@ -336,6 +365,9 @@ ANALYTICAL_TYPES = {"analysis", "calculation", "strategy"}
 def execute_workers_parallel(worker_tasks: list[dict], blackboard: Blackboard,
                              caller: ModelCaller, *,
                              analytical_caller: ModelCaller | None = None) -> list[WorkerOutput]:
+    from .source_custody import _valid_document_names
+    _valid_docs = _valid_document_names(blackboard)
+
     def run_one(task: dict) -> WorkerOutput:
         wid = f"w{blackboard.iteration}_{uuid.uuid4().hex[:4]}"
         assigned_ids = _assigned_signal_ids(task, blackboard)
@@ -399,6 +431,7 @@ def execute_workers_parallel(worker_tasks: list[dict], blackboard: Blackboard,
             payload = {"findings": [], "parse_error": True}
         entries = parse_worker_output(
             payload, blackboard.iteration, wid, task["description"],
+            valid_doc_names=_valid_docs,
         )
         _attach_assigned_signal_ids(entries, assigned_ids)
         return WorkerOutput(entries, tokens, t_in, t_out, result.model, wid, task, sections_read)

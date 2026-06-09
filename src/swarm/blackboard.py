@@ -86,7 +86,18 @@ class Blackboard:
         if entry.id:
             self._entry_index[entry.id] = entry
 
+    def _ensure_unique_id(self, entry: Entry) -> None:
+        if not hasattr(self, '_entry_index'):
+            self._entry_index = {}
+        if entry.id and entry.id in self._entry_index:
+            from .models import gen_entry_id
+            for _ in range(100):
+                entry.id = gen_entry_id()
+                if entry.id not in self._entry_index:
+                    break
+
     def add_entry(self, entry: Entry) -> None:
+        self._ensure_unique_id(entry)
         self.entries.append(entry)
         self._index_entry(entry)
         self._extract_signals(entry)
@@ -94,6 +105,7 @@ class Blackboard:
 
     def add_entries_batch(self, entries: list[Entry]) -> None:
         for e in entries:
+            self._ensure_unique_id(e)
             self.entries.append(e)
             self._index_entry(e)
         for e in entries:

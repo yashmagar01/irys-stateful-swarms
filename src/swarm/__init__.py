@@ -27,7 +27,7 @@ from .derived_work import (
 from .obligations import build_synthesis_obligations
 from .models import (
     Document, DocumentStatus, Entry, EntrySource, ModelCaller, Task,
-    gen_entry_id, reset_id_counters,
+    gen_entry_id,
 )
 from .orchestrator import run_orchestrator
 from .section_index import build_section_index
@@ -115,8 +115,6 @@ def run_swarm(task: Task, caller: ModelCaller, *,
     min_iter = min_iterations or int(os.getenv("SWARM_MIN_ITERATIONS", "2"))
     synth_caller = synthesis_caller or caller
     review_caller = reviewer_caller
-
-    reset_id_counters()
 
     # Phase 1: Initialize
     blackboard = Blackboard(
@@ -402,6 +400,8 @@ def run_swarm(task: Task, caller: ModelCaller, *,
                                     ds.mark_section_read(parent)
                 blackboard.add_entries_batch(new_entries)
             blackboard.save_snapshot(f"post_supervisor_{review_round}")
+
+    enforce_source_custody(blackboard, "pre_state_conversion")
 
     # Phase 7a: State conversion review — convert observations into analytical state
     if review_caller is not None:
