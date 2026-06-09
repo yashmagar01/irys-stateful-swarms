@@ -11,7 +11,8 @@ from src.swarm.source_custody import (
 )
 
 
-def test_source_custody_quarantines_fake_source_documents(tmp_path):
+def test_source_custody_quarantines_fake_source_documents(tmp_path, monkeypatch):
+    monkeypatch.setenv("SWARM_SOURCE_CUSTODY_AUDIT_ONLY", "0")
     blackboard = Blackboard(
         task_instruction="Analyze incidents.",
         output_dir=str(tmp_path),
@@ -71,7 +72,8 @@ def test_source_custody_accepts_text_wrapped_source_file_alias(tmp_path):
     assert report["summary"]["entries_quarantined"] == 0
 
 
-def test_source_custody_cascades_to_dependent_cross_cutting_entries(tmp_path):
+def test_source_custody_cascades_to_dependent_cross_cutting_entries(tmp_path, monkeypatch):
+    monkeypatch.setenv("SWARM_SOURCE_CUSTODY_AUDIT_ONLY", "0")
     blackboard = Blackboard(
         task_instruction="Analyze incidents.",
         output_dir=str(tmp_path),
@@ -209,7 +211,20 @@ def test_synthetic_source_does_not_match_real_files():
     assert not _is_synthetic_source("instruction.xlsx")
 
 
-def test_source_custody_quarantines_fake_file_named_like_synthetic(tmp_path):
+def test_legal_citations_recognized_as_synthetic():
+    assert _is_synthetic_source("ORS 659A.370")
+    assert _is_synthetic_source("A.R.S. § 14-3933")
+    assert _is_synthetic_source("20 CFR 656.17")
+    assert _is_synthetic_source("N.C. Gen. Stat. § 66-157")
+    assert _is_synthetic_source("Treas. Reg. § 1.170A-14(g)(6)(ii)")
+    assert _is_synthetic_source("755 ILCS 5/18-10")
+    assert _is_synthetic_source("28 U.S.C. § 1826")
+    assert not _is_synthetic_source("ops_report.md")
+    assert not _is_synthetic_source("Incident Report Q3")
+
+
+def test_source_custody_quarantines_fake_file_named_like_synthetic(tmp_path, monkeypatch):
+    monkeypatch.setenv("SWARM_SOURCE_CUSTODY_AUDIT_ONLY", "0")
     blackboard = Blackboard(
         task_instruction="Analyze docs.",
         output_dir=str(tmp_path),
@@ -298,7 +313,8 @@ def test_mentioned_invalid_documents_requires_word_boundary():
     assert "formal default notice" in result3
 
 
-def test_cascade_does_not_quarantine_valid_direct_source_entries(tmp_path):
+def test_cascade_does_not_quarantine_valid_direct_source_entries(tmp_path, monkeypatch):
+    monkeypatch.setenv("SWARM_SOURCE_CUSTODY_AUDIT_ONLY", "0")
     blackboard = Blackboard(
         task_instruction="Analyze docs.",
         output_dir=str(tmp_path),
@@ -327,7 +343,8 @@ def test_cascade_does_not_quarantine_valid_direct_source_entries(tmp_path):
         "Entry with valid direct source should survive cascade even if mentioning invalid doc"
 
 
-def test_cascade_cap_limits_quarantine_count(tmp_path):
+def test_cascade_cap_limits_quarantine_count(tmp_path, monkeypatch):
+    monkeypatch.setenv("SWARM_SOURCE_CUSTODY_AUDIT_ONLY", "0")
     entries = [
         Entry(
             id=f"e{i}", type="observation",

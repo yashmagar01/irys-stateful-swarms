@@ -17,7 +17,7 @@ def source_custody_enabled() -> bool:
 
 
 def source_custody_audit_only() -> bool:
-    return os.getenv("SWARM_SOURCE_CUSTODY_AUDIT_ONLY", "0") == "1"
+    return os.getenv("SWARM_SOURCE_CUSTODY_AUDIT_ONLY", "1") == "1"
 SYNTHETIC_SOURCE_NAMES = {
     "cross_cutting", "crosscutting", "cross cutting",
     "multiple",
@@ -221,6 +221,23 @@ def _document_name_aliases(raw: str | None) -> set[str]:
     return aliases
 
 
+_LEGAL_CITATION_RE = re.compile(
+    r"§"
+    r"|\bu\.?\s*s\.?\s*c\.?\b"
+    r"|\bc\.?\s*f\.?\s*r\.?\b"
+    r"|\bilcs\b"
+    r"|\bgen\.?\s*stat"
+    r"|\brev\.?\s*stat"
+    r"|\bn\.?\s*c\.?\s*gen"
+    r"|\ba\.?\s*r\.?\s*s\.?\b"
+    r"|\bo\.?\s*r\.?\s*s\.?\b"
+    r"|\btreas\.?\s*reg"
+    r"|^\d+\s+cfr\b"
+    r"|^\d+\s+u\.?\s*s\.?\s*c\.?\b",
+    re.IGNORECASE,
+)
+
+
 def _is_synthetic_source(raw: str | None) -> bool:
     normalized = _normalize_doc_name(raw)
     if not normalized:
@@ -228,7 +245,11 @@ def _is_synthetic_source(raw: str | None) -> bool:
     if normalized in SYNTHETIC_SOURCE_NAMES:
         return True
     collapsed = _SEPARATOR_RE.sub("", normalized)
-    return collapsed in SYNTHETIC_SOURCE_NAMES
+    if collapsed in SYNTHETIC_SOURCE_NAMES:
+        return True
+    if _LEGAL_CITATION_RE.search(normalized):
+        return True
+    return False
 
 
 def _invalid_source_documents(entry: Entry, valid_docs: set[str]) -> list[str]:
