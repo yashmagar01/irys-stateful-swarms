@@ -6,6 +6,7 @@ from src.swarm.synthesis import (
     _append_missing_items,
     _append_missing_items_for_file,
     _assign_unassigned_items,
+    _cap_sections,
     _clean_assembled_deliverable,
     _compact_selected_item_summary,
     _format_file_requirements,
@@ -1009,3 +1010,23 @@ def test_file_scoped_synthesis_routing_keeps_ordinary_single_docx_generic():
     assert _should_use_file_scoped_synthesis({
         "rider": "lease-rider.docx",
     }) is True
+
+
+def test_cap_sections_merges_smallest_when_over_limit():
+    by_section = {f"Section {i}": [{"summary": f"item {i}"}] for i in range(1, 26)}
+    by_section["Big Section"] = [{"summary": f"big item {i}"} for i in range(1, 20)]
+
+    capped = _cap_sections(by_section, max_sections=5)
+
+    assert len(capped) == 5
+    assert "Big Section" in capped
+    assert len(capped["Big Section"]) == 19
+    assert "Additional Items" in capped
+    overflow = capped["Additional Items"]
+    assert len(overflow) == 22
+
+
+def test_cap_sections_noop_under_limit():
+    by_section = {"A": [{"summary": "a"}], "B": [{"summary": "b"}]}
+    capped = _cap_sections(by_section, max_sections=20)
+    assert capped == by_section

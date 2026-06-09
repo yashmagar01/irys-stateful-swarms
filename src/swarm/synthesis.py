@@ -31,6 +31,7 @@ def shadow_judge_audit_enabled() -> bool:
 
 SECTION_THRESHOLD = int(os.getenv("SWARM_SYNTHESIS_SECTION_THRESHOLD", "15"))
 SECTION_CHUNK_SIZE = int(os.getenv("SWARM_SYNTHESIS_SECTION_CHUNK_SIZE", "25"))
+MAX_SECTIONS = int(os.getenv("SWARM_SYNTHESIS_MAX_SECTIONS", "20"))
 SECTION_DRAFT_MAX_TOKENS = int(os.getenv("SWARM_SYNTHESIS_SECTION_MAX_TOKENS", "16384"))
 ASSIGNMENT_BATCH_SIZE = 50
 SECTION_EVIDENCE_CHARS = int(os.getenv("SWARM_SYNTHESIS_SECTION_EVIDENCE_CHARS", "24000"))
@@ -258,6 +259,22 @@ def synthesize_file_deliverables(
         end_call_model_usage()
 
 
+def _cap_sections(
+    by_section: dict[str, list[dict]],
+    max_sections: int = MAX_SECTIONS,
+) -> dict[str, list[dict]]:
+    """Merge smallest sections when count exceeds max_sections."""
+    if len(by_section) <= max_sections:
+        return by_section
+    ranked = sorted(by_section.items(), key=lambda kv: len(kv[1]), reverse=True)
+    kept = dict(ranked[:max_sections - 1])
+    overflow_items: list[dict] = []
+    for name, items in ranked[max_sections - 1:]:
+        overflow_items.extend(items)
+    kept["Additional Items"] = overflow_items
+    return kept
+
+
 def _sectioned_synthesis(blackboard: Blackboard, must_include: list[dict],
                          active: list[Entry], caller: ModelCaller) -> tuple[str, int]:
     """Draft deliverable in sections to avoid output truncation on large tasks."""
@@ -272,6 +289,8 @@ def _sectioned_synthesis(blackboard: Blackboard, must_include: list[dict],
         elif isinstance(m, dict):
             section = m.get("section", "General")
             by_section.setdefault(section, []).append(m)
+
+    by_section = _cap_sections(by_section)
 
     jobs = []
     section_order = list(by_section.keys())
@@ -1233,6 +1252,8 @@ def _sectioned_file_deliverable(
     for item in selected_items:
         section = item.get("section", "General") if isinstance(item, dict) else "General"
         by_section.setdefault(section or "General", []).append(item)
+
+    by_section = _cap_sections(by_section)
 
     active = [e for e in blackboard.entries if e.status == "active"]
     contract_text = _format_artifact_contract(artifact_contract)
