@@ -156,6 +156,9 @@ EXHAUSTIVE ENUMERATION RULES:
 4. A must_include list with fewer than {MIN_MUST_INCLUDE} items is almost certainly incomplete - you are probably summarizing instead of enumerating.
 5. Each must_include item must contain ONE specific, verifiable fact with exact numbers, names, dates, amounts.
 6. Include ALL of these if present: dollar amounts, percentages, dates, deadlines, party names with legal designations, defined terms, obligations, conditions, restrictions, representations, warranties.
+7. PRESERVE EXACT QUOTES: If a finding contains a direct quote, regulatory language, or specific wording, include that verbatim in the summary. Never paraphrase a quote into a concept.
+8. PRESERVE CAUSAL DETAILS: If a finding explains WHY something happened, include the reason, not just the fact. "X ended" is incomplete; "X ended because Y relocated" is correct.
+9. PRESERVE RECOMMENDATIONS: If a finding contains an explicit recommendation, include it as a separate must_include item with the specific action recommended.
 
 Return: {{"must_include": [{{"entry_id": "e1", "importance": "critical|high|medium",
   "section": "section heading", "summary": "one specific fact with exact numbers/names"}}]}}"""
