@@ -92,11 +92,30 @@ def synthesize_deliverable(blackboard: Blackboard, must_include: list[dict],
         end_call_model_usage()
 
 
+_FILE_REQUIREMENTS_BLOCKLIST = frozenset({
+    "criteria", "match_criteria", "scorer", "scores",
+    "criteria_results", "rubric", "prior_score",
+})
+
+
+def _validate_file_requirements(requirements: list[dict]) -> None:
+    """Reject any requirement dict containing benchmark/evaluator keys."""
+    for req in requirements:
+        if not isinstance(req, dict):
+            continue
+        blocked = _FILE_REQUIREMENTS_BLOCKLIST & req.keys()
+        if blocked:
+            raise ValueError(
+                f"file_requirements contains benchmark key(s): {blocked} — "
+                f"evaluator metadata must never reach synthesis"
+            )
+
+
 def synthesize_file_deliverables(
     blackboard: Blackboard,
     must_include: list[dict],
     deliverables_map: dict,
-    criteria: list[dict],
+    file_requirements: list[dict],
     caller: ModelCaller,
 ) -> tuple[dict[str, str], int]:
     """Synthesize each requested output file separately.
@@ -106,6 +125,7 @@ def synthesize_file_deliverables(
     review context explode. This keeps the shared blackboard state but makes
     the final synthesis call file-scoped.
     """
+    _validate_file_requirements(file_requirements)
     begin_call_model_usage()
     try:
         filenames = []
@@ -125,20 +145,20 @@ def synthesize_file_deliverables(
         if len(filenames) == 1:
             filename = filenames[0]
             plans[filename] = {
-                "criteria": _criteria_for_file(criteria, filename),
+                "file_requirements": _requirements_for_file(file_requirements, filename),
                 "numbers": [n for n, _ in item_pool],
                 "contract": _default_artifact_contract(filename),
             }
             assigned_numbers = {n for n, _ in item_pool}
         else:
             for filename in filenames:
-                file_criteria = _criteria_for_file(criteria, filename)
+                file_reqs = _requirements_for_file(file_requirements, filename)
                 selected_numbers, contract, plan_tokens = _plan_file_deliverable(
-                    blackboard, filename, file_criteria, item_pool, caller,
+                    blackboard, filename, file_reqs, item_pool, caller,
                 )
                 total_tokens += plan_tokens
                 plans[filename] = {
-                    "criteria": file_criteria,
+                    "file_requirements": file_reqs,
                     "numbers": selected_numbers,
                     "contract": contract,
                 }
@@ -152,7 +172,7 @@ def synthesize_file_deliverables(
         unassigned = [n for n, _ in item_pool if n not in assigned_numbers]
         if unassigned:
             extra_assignments, assign_tokens = _assign_unassigned_items(
-                blackboard, filenames, criteria, item_pool, unassigned, caller,
+                blackboard, filenames, file_requirements, item_pool, unassigned, caller,
             )
             ran_assignment_repair = True
             total_tokens += assign_tokens
@@ -169,7 +189,7 @@ def synthesize_file_deliverables(
 
         if _needs_assignment_rebalance(plans, item_pool, filenames):
             rebalanced, rebalance_tokens = _rebalance_file_assignments(
-                blackboard, filenames, criteria, item_pool, plans, caller,
+                blackboard, filenames, file_requirements, item_pool, plans, caller,
             )
             ran_assignment_repair = True
             total_tokens += rebalance_tokens
@@ -181,9 +201,9 @@ def synthesize_file_deliverables(
                     n for plan in plans.values() for n in plan.get("numbers", [])
                 }
 
-        if _needs_assignment_audit(plans, item_pool, filenames, criteria, ran_assignment_repair):
+        if _needs_assignment_audit(plans, item_pool, filenames, file_requirements, ran_assignment_repair):
             audited, audit_tokens = _audit_file_assignments(
-                blackboard, filenames, criteria, item_pool, plans, caller,
+                blackboard, filenames, file_requirements, item_pool, plans, caller,
             )
             total_tokens += audit_tokens
             if any(audited.values()):
@@ -193,12 +213,12 @@ def synthesize_file_deliverables(
         for filename in filenames:
             plan = plans[filename]
             selected_items = _items_by_numbers(item_pool, plan["numbers"])
-            selected_items = _with_file_criteria_items(
-                selected_items, plan["criteria"], filename,
+            selected_items = _with_file_requirement_items(
+                selected_items, plan["file_requirements"], filename,
             )
 
             draft, draft_tokens = _draft_file_deliverable(
-                blackboard, filename, plan["criteria"], selected_items,
+                blackboard, filename, plan["file_requirements"], selected_items,
                 plan.get("contract", _default_artifact_contract(filename)),
                 caller,
             )
@@ -420,25 +440,25 @@ def _apply_target_file_pins(
                 plans[filename]["numbers"] = [n for n in numbers if n != number]
 
 
-def _criteria_for_file(criteria: list[dict], filename: str) -> list[dict]:
+def _requirements_for_file(requirements: list[dict], filename: str) -> list[dict]:
     return [
-        c for c in criteria
-        if filename in [str(d) for d in c.get("deliverables", [])]
+        r for r in requirements
+        if filename in [str(d) for d in r.get("deliverables", [])]
     ]
 
 
-def _format_criteria(criteria: list[dict], max_count: int | None = None) -> str:
-    if not criteria:
+def _format_file_requirements(requirements: list[dict], max_count: int | None = None) -> str:
+    if not requirements:
         return "No file-specific acceptance hints were provided."
     parts = []
-    visible = criteria if max_count is None else criteria[:max_count]
-    for c in visible:
-        title = str(c.get("title", "")).strip()
-        match = str(c.get("match_criteria", "")).strip()
-        cid = str(c.get("id", "")).strip()
-        parts.append(f"- {cid}: {title}\n  Match: {match}")
-    if max_count is not None and len(criteria) > max_count:
-        parts.append(f"- ... {len(criteria) - max_count} additional criteria omitted from prompt")
+    visible = requirements if max_count is None else requirements[:max_count]
+    for r in visible:
+        title = str(r.get("title", "")).strip()
+        req_text = str(r.get("requirement_text", "")).strip()
+        rid = str(r.get("id", "")).strip()
+        parts.append(f"- {rid}: {title}\n  Requirement: {req_text}")
+    if max_count is not None and len(requirements) > max_count:
+        parts.append(f"- ... {len(requirements) - max_count} additional requirements omitted from prompt")
     return "\n".join(parts)
 
 
@@ -464,17 +484,17 @@ def _format_item_pool(
     return "\n".join(parts)
 
 
-def _format_routing_criteria(criteria: list[dict]) -> str:
-    if not criteria:
+def _format_routing_requirements(requirements: list[dict]) -> str:
+    if not requirements:
         return "No file-specific acceptance hints were provided."
     parts = []
-    for c in criteria:
-        title = str(c.get("title", "")).strip()
-        match = str(c.get("match_criteria", "")).strip()
-        cid = str(c.get("id", "")).strip()
-        line = f"- {cid}: {title}"
-        if match:
-            line += f" | Match hint: {match[:180]}"
+    for r in requirements:
+        title = str(r.get("title", "")).strip()
+        req_text = str(r.get("requirement_text", "")).strip()
+        rid = str(r.get("id", "")).strip()
+        line = f"- {rid}: {title}"
+        if req_text:
+            line += f" | Requirement: {req_text[:180]}"
         parts.append(line)
     return "\n".join(parts)
 
@@ -482,7 +502,7 @@ def _format_routing_criteria(criteria: list[dict]) -> str:
 def _plan_file_deliverable(
     blackboard: Blackboard,
     filename: str,
-    file_criteria: list[dict],
+    file_reqs: list[dict],
     item_pool: list[tuple[int, dict]],
     caller: ModelCaller,
 ) -> tuple[list[int], dict, int]:
@@ -594,7 +614,7 @@ def _format_artifact_contract(contract: dict) -> str:
 def _assign_unassigned_items(
     blackboard: Blackboard,
     filenames: list[str],
-    criteria: list[dict],
+    file_requirements: list[dict],
     item_pool: list[tuple[int, dict]],
     unassigned_numbers: list[int],
     caller: ModelCaller,
@@ -608,7 +628,7 @@ def _assign_unassigned_items(
         batch_assignments, tokens = _assign_item_batch_to_files(
             blackboard,
             filenames,
-            criteria,
+            file_requirements,
             batch,
             caller,
             "Assign previously unassigned mandatory items to the best output file(s).",
@@ -621,7 +641,7 @@ def _assign_unassigned_items(
 def _assign_item_batch_to_files(
     blackboard: Blackboard,
     filenames: list[str],
-    criteria: list[dict],
+    file_requirements: list[dict],
     items: list[tuple[int, dict]],
     caller: ModelCaller,
     instruction: str,
@@ -643,7 +663,7 @@ def _assign_item_batch_to_files(
         file_parts.append(
             f"## {filename}\n"
             f"{current}"
-            f"{_format_routing_criteria(_criteria_for_file(criteria, filename))}"
+            f"{_format_routing_requirements(_requirements_for_file(file_requirements, filename))}"
         )
     file_text = "\n\n".join(file_parts)
 
@@ -749,12 +769,12 @@ def _needs_assignment_audit(
     plans: dict[str, dict],
     item_pool: list[tuple[int, dict]],
     filenames: list[str],
-    criteria: list[dict],
+    file_requirements: list[dict],
     ran_assignment_repair: bool,
 ) -> bool:
     if ran_assignment_repair or len(filenames) < 2 or not item_pool:
         return False
-    if not any(_criteria_for_file(criteria, filename) for filename in filenames):
+    if not any(_requirements_for_file(file_requirements, filename) for filename in filenames):
         return False
 
     valid_numbers = {n for n, _ in item_pool}
@@ -769,7 +789,7 @@ def _needs_assignment_audit(
 def _audit_file_assignments(
     blackboard: Blackboard,
     filenames: list[str],
-    criteria: list[dict],
+    file_requirements: list[dict],
     item_pool: list[tuple[int, dict]],
     plans: dict[str, dict],
     caller: ModelCaller,
@@ -781,7 +801,7 @@ def _audit_file_assignments(
         revised, tokens = _assign_item_batch_to_files(
             blackboard,
             filenames,
-            criteria,
+            file_requirements,
             batch,
             caller,
             (
@@ -836,7 +856,7 @@ def _merge_assignment_revision(
 def _rebalance_file_assignments(
     blackboard: Blackboard,
     filenames: list[str],
-    criteria: list[dict],
+    file_requirements: list[dict],
     item_pool: list[tuple[int, dict]],
     plans: dict[str, dict],
     caller: ModelCaller,
@@ -847,7 +867,7 @@ def _rebalance_file_assignments(
         batch_assignments, tokens = _assign_item_batch_to_files(
             blackboard,
             filenames,
-            criteria,
+            file_requirements,
             batch,
             caller,
             (
@@ -874,10 +894,10 @@ def _items_by_numbers(item_pool: list[tuple[int, dict]], numbers: list[int]) -> 
     return [by_number[n] for n in numbers if n in by_number]
 
 
-def _with_file_criteria_items(
-    selected_items: list[dict], file_criteria: list[dict], filename: str,
+def _with_file_requirement_items(
+    selected_items: list[dict], file_reqs: list[dict], filename: str,
 ) -> list[dict]:
-    if not file_criteria:
+    if not file_reqs:
         return selected_items
 
     items = list(selected_items)
@@ -885,22 +905,22 @@ def _with_file_criteria_items(
         str(item.get("criterion_id", "")).strip()
         for item in items if isinstance(item, dict)
     }
-    for criterion in file_criteria:
-        cid = str(criterion.get("id", "")).strip()
-        if cid and cid in existing_criteria:
+    for req in file_reqs:
+        rid = str(req.get("id", "")).strip()
+        if rid and rid in existing_criteria:
             continue
-        title = str(criterion.get("title", "")).strip()
-        match = str(criterion.get("match_criteria", "")).strip()
-        summary = f"{cid}: {title}" if cid else title
-        if match:
-            summary = f"{summary}. Match: {match}"
+        title = str(req.get("title", "")).strip()
+        req_text = str(req.get("requirement_text", "")).strip()
+        summary = f"{rid}: {title}" if rid else title
+        if req_text:
+            summary = f"{summary}. Requirement: {req_text}"
         items.append({
-            "section": _criterion_component_section(criterion, filename),
+            "section": _criterion_component_section(req, filename),
             "summary": f"File-specific requirement for {filename}: {summary}",
             "entry_id": "",
-            "criterion_id": cid,
+            "criterion_id": rid,
             "importance": "critical",
-            "source": "file_criteria",
+            "source": "file_reqs",
         })
     return items
 
@@ -1116,14 +1136,14 @@ def _file_format_guidance(filename: str) -> str:
 def _draft_file_deliverable(
     blackboard: Blackboard,
     filename: str,
-    file_criteria: list[dict],
+    file_reqs: list[dict],
     selected_items: list[dict],
     artifact_contract: dict,
     caller: ModelCaller,
 ) -> tuple[str, int]:
     if len(selected_items) > SECTION_THRESHOLD:
         return _sectioned_file_deliverable(
-            blackboard, filename, file_criteria, selected_items,
+            blackboard, filename, file_reqs, selected_items,
             artifact_contract, caller,
         )
 
@@ -1148,7 +1168,7 @@ ARTIFACT CONTRACT:
 {contract_text}
 
 OPTIONAL FILE-SPECIFIC ACCEPTANCE HINTS:
-{_format_criteria(file_criteria)}
+{_format_file_requirements(file_reqs)}
 
 SELECTED MANDATORY ITEMS FOR THIS FILE:
 {_format_selected_items(selected_items)}
@@ -1174,7 +1194,7 @@ CRITICAL INSTRUCTIONS:
 def _sectioned_file_deliverable(
     blackboard: Blackboard,
     filename: str,
-    file_criteria: list[dict],
+    file_reqs: list[dict],
     selected_items: list[dict],
     artifact_contract: dict,
     caller: ModelCaller,
@@ -1203,7 +1223,7 @@ def _sectioned_file_deliverable(
             evidence = _selected_evidence_text(
                 items, active, max_chars=SECTION_EVIDENCE_CHARS,
                 include_remaining=any(
-                    isinstance(item, dict) and item.get("source") == "file_criteria"
+                    isinstance(item, dict) and item.get("source") == "file_reqs"
                     for item in items
                 ),
             )
@@ -1225,7 +1245,7 @@ ARTIFACT CONTRACT:
 {contract_text}
 
 OPTIONAL FILE-SPECIFIC ACCEPTANCE HINTS:
-{_format_criteria(file_criteria)}
+{_format_file_requirements(file_reqs)}
 
 ITEMS THIS SECTION OR SHEET MUST INCLUDE:
 {_format_selected_items(items)}

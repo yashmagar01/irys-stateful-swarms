@@ -8,13 +8,13 @@ from src.swarm.synthesis import (
     _assign_unassigned_items,
     _clean_assembled_deliverable,
     _compact_selected_item_summary,
-    _format_criteria,
+    _format_file_requirements,
     _format_item_pool,
     _format_selected_items,
     _plan_file_deliverable,
     _sectioned_synthesis,
     _selected_evidence_text,
-    _with_file_criteria_items,
+    _with_file_requirement_items,
     _verify_completeness,
     SECTION_DRAFT_MAX_TOKENS,
     synthesize_deliverable,
@@ -190,13 +190,13 @@ def test_file_deliverable_synthesis_creates_distinct_outputs():
         {
             "id": "C1",
             "title": "Memo explains issue",
-            "match_criteria": "Memo contains issue analysis",
+            "requirement_text": "Memo contains issue analysis",
             "deliverables": ["memo.docx"],
         },
         {
             "id": "C2",
             "title": "Workbook shows calculation",
-            "match_criteria": "Workbook contains calculation",
+            "requirement_text": "Workbook contains calculation",
             "deliverables": ["model.xlsx"],
         },
     ]
@@ -304,19 +304,19 @@ def test_artifact_contract_planner_does_not_read_file_criteria():
     assert "OPTIONAL FILE-SPECIFIC ACCEPTANCE HINTS" not in caller.prompts[0]
 
 
-def test_file_criteria_become_mandatory_file_items():
-    items = _with_file_criteria_items(
+def test_file_requirements_become_mandatory_file_items():
+    items = _with_file_requirement_items(
         [{"section": "Memo", "summary": "Explain existing issue.", "entry_id": "e1"}],
         [
             {
                 "id": "C-001",
                 "title": "Deck includes Strategic Rationale section",
-                "match_criteria": "At least three slides cover pipeline fit.",
+                "requirement_text": "At least three slides cover pipeline fit.",
             },
             {
                 "id": "C-002",
                 "title": "Deck includes Valuation Analysis section",
-                "match_criteria": "DCF and comparable-company analysis included.",
+                "requirement_text": "DCF and comparable-company analysis included.",
             },
         ],
         "board-presentation-deck-outline.docx",
@@ -330,7 +330,7 @@ def test_file_criteria_become_mandatory_file_items():
     assert "At least three slides cover pipeline fit." in summaries
     assert "Strategic Rationale" in sections
     assert "Valuation Analysis" in sections
-    assert items[-1]["source"] == "file_criteria"
+    assert items[-1]["source"] == "file_reqs"
 
 
 def test_file_synthesis_prompt_includes_file_criteria_items():
@@ -342,13 +342,13 @@ def test_file_synthesis_prompt_includes_file_criteria_items():
         {
             "id": "C-001",
             "title": "Deck includes Strategic Rationale section",
-            "match_criteria": "At least three slides cover pipeline fit.",
+            "requirement_text": "At least three slides cover pipeline fit.",
             "deliverables": ["deck.docx"],
         },
         {
             "id": "C-002",
             "title": "Memo includes recommendation",
-            "match_criteria": "Memo recommends approval.",
+            "requirement_text": "Memo recommends approval.",
             "deliverables": ["memo.docx"],
         },
     ]
@@ -437,7 +437,7 @@ def test_file_specific_repair_keeps_filename_and_format_guidance():
         blackboard,
         must_include,
         {"model": "model.xlsx"},
-        [{"id": "C1", "title": "EBITDA", "match_criteria": "Shows EBITDA", "deliverables": ["model.xlsx"]}],
+        [{"id": "C1", "title": "EBITDA", "requirement_text": "Shows EBITDA", "deliverables": ["model.xlsx"]}],
         caller,
     )
 
@@ -491,8 +491,8 @@ def test_unassigned_items_are_assigned_across_files_before_drafting():
         must_include,
         {"memo": "memo.docx", "model": "model.xlsx"},
         [
-            {"id": "C1", "title": "Memo", "match_criteria": "Memo", "deliverables": ["memo.docx"]},
-            {"id": "C2", "title": "Model", "match_criteria": "Model", "deliverables": ["model.xlsx"]},
+            {"id": "C1", "title": "Memo", "requirement_text": "Memo", "deliverables": ["memo.docx"]},
+            {"id": "C2", "title": "Model", "requirement_text": "Model", "deliverables": ["model.xlsx"]},
         ],
         caller,
     )
@@ -512,8 +512,8 @@ def test_unassigned_assignment_is_batched_without_omitting_tail_items():
         for i in range(1, 56)
     ]
     criteria = [
-        {"id": "C1", "title": "Memo", "match_criteria": "Memo", "deliverables": ["memo.docx"]},
-        {"id": "C2", "title": "Model", "match_criteria": "Model", "deliverables": ["model.xlsx"]},
+        {"id": "C1", "title": "Memo", "requirement_text": "Memo", "deliverables": ["memo.docx"]},
+        {"id": "C2", "title": "Model", "requirement_text": "Model", "deliverables": ["model.xlsx"]},
     ]
     caller = FakeCaller([
         '{"assignments":[' + ",".join(
@@ -565,8 +565,8 @@ def test_assignment_audit_corrects_wrong_single_file_assignment():
         must_include,
         {"memo": "memo.docx", "notice": "notice.docx"},
         [
-            {"id": "C1", "title": "Memo background", "match_criteria": "Memo analyzes background.", "deliverables": ["memo.docx"]},
-            {"id": "C2", "title": "Notice content", "match_criteria": "Notice sends notice to counterparty.", "deliverables": ["notice.docx"]},
+            {"id": "C1", "title": "Memo background", "requirement_text": "Memo analyzes background.", "deliverables": ["memo.docx"]},
+            {"id": "C2", "title": "Notice content", "requirement_text": "Notice sends notice to counterparty.", "deliverables": ["notice.docx"]},
         ],
         caller,
     )
@@ -604,8 +604,8 @@ def test_unassigned_items_do_not_fallback_flood_one_file_when_assignment_fails()
         must_include,
         {"memo": "memo.docx", "model": "model.xlsx"},
         [
-            {"id": "C1", "title": "Memo", "match_criteria": "Memo", "deliverables": ["memo.docx"]},
-            {"id": "C2", "title": "Model", "match_criteria": "Model", "deliverables": ["model.xlsx"]},
+            {"id": "C1", "title": "Memo", "requirement_text": "Memo", "deliverables": ["memo.docx"]},
+            {"id": "C2", "title": "Model", "requirement_text": "Model", "deliverables": ["model.xlsx"]},
         ],
         caller,
     )
@@ -646,8 +646,8 @@ def test_overassigned_file_plans_are_rebalanced_before_drafting():
         must_include,
         {"memo": "memo.docx", "model": "model.xlsx"},
         [
-            {"id": "C1", "title": "Memo", "match_criteria": "Memo", "deliverables": ["memo.docx"]},
-            {"id": "C2", "title": "Model", "match_criteria": "Model", "deliverables": ["model.xlsx"]},
+            {"id": "C1", "title": "Memo", "requirement_text": "Memo", "deliverables": ["memo.docx"]},
+            {"id": "C2", "title": "Model", "requirement_text": "Model", "deliverables": ["model.xlsx"]},
         ],
         caller,
     )
@@ -667,11 +667,11 @@ def test_overassigned_file_plans_are_rebalanced_before_drafting():
 
 def test_file_specific_criteria_are_not_silently_capped():
     criteria = [
-        {"id": f"C{i}", "title": f"Criterion {i}", "match_criteria": "match"}
+        {"id": f"C{i}", "title": f"Criterion {i}", "requirement_text": "match"}
         for i in range(1, 106)
     ]
 
-    rendered = _format_criteria(criteria)
+    rendered = _format_file_requirements(criteria)
 
     assert "C1" in rendered
     assert "C105" in rendered
@@ -681,8 +681,8 @@ def test_file_specific_criteria_are_not_silently_capped():
 def test_file_specific_criteria_include_full_match_text():
     long_match = "A" * 650 + "TAIL_SENTINEL"
 
-    rendered = _format_criteria([
-        {"id": "C1", "title": "Long criterion", "match_criteria": long_match}
+    rendered = _format_file_requirements([
+        {"id": "C1", "title": "Long criterion", "requirement_text": long_match}
     ])
 
     assert "TAIL_SENTINEL" in rendered
@@ -697,7 +697,7 @@ def test_unassigned_assignment_prompt_includes_late_file_criteria():
         {
             "id": f"C{i}",
             "title": f"Criterion {i}",
-            "match_criteria": "match",
+            "requirement_text": "match",
             "deliverables": ["memo.docx"],
         }
         for i in range(1, 36)
@@ -825,7 +825,7 @@ def test_file_deliverable_uses_sectioned_drafting_for_large_item_sets():
         blackboard,
         must_include,
         {"model": "model.xlsx"},
-        [{"id": "C1", "title": "Workbook", "match_criteria": "Workbook", "deliverables": ["model.xlsx"]}],
+        [{"id": "C1", "title": "Workbook", "requirement_text": "Workbook", "deliverables": ["model.xlsx"]}],
         caller,
     )
 
@@ -864,7 +864,7 @@ def test_file_deliverable_chunks_large_single_section_and_tracks_aggregate_usage
         blackboard,
         must_include,
         {"model": "model.xlsx"},
-        [{"id": "C1", "title": "Workbook", "match_criteria": "Workbook", "deliverables": ["model.xlsx"]}],
+        [{"id": "C1", "title": "Workbook", "requirement_text": "Workbook", "deliverables": ["model.xlsx"]}],
         caller,
     )
 
@@ -933,7 +933,7 @@ def test_criteria_only_deliverables_are_not_used_for_generation():
     assert _deliverables_for_task(task_data) == {}
 
 
-def test_sectioned_file_deliverable_includes_tail_criteria():
+def test_sectioned_file_deliverable_includes_tail_requirements():
     blackboard = Blackboard(task_instruction="Prepare a large memo.")
     must_include = [
         {"section": "Analysis", "summary": f"Discuss item {i}.", "entry_id": f"e{i}"}
@@ -943,7 +943,7 @@ def test_sectioned_file_deliverable_includes_tail_criteria():
         {
             "id": f"C{i}",
             "title": f"Criterion {i}",
-            "match_criteria": f"Match detail {i}",
+            "requirement_text": f"Match detail {i}",
             "deliverables": ["memo.docx"],
         }
         for i in range(1, 102)
