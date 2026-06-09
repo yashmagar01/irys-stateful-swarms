@@ -187,3 +187,16 @@ def test_consolidate_does_not_merge_across_sections():
     ]
     result = consolidate_items(items)
     assert len(result) == 2
+
+
+def test_consolidate_does_not_merge_across_target_files():
+    items = [
+        {"entry_id": "e1", "section": "Revenue", "importance": "high",
+         "target_file": "memo.docx",
+         "summary": "Revenue increased from $10M to $15M in fiscal year 2024"},
+        {"entry_id": "e2", "section": "Revenue", "importance": "high",
+         "target_file": "spreadsheet.xlsx",
+         "summary": "Revenue increased from $10M to $15M in fiscal year 2024"},
+    ]
+    result = consolidate_items(items)
+    assert len(result) == 2, "Items targeting different files must not merge"

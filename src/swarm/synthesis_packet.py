@@ -183,15 +183,23 @@ def _significant_words(text: str) -> set[str]:
     return {w for w in words if len(w) >= 3 and w not in _STOP_WORDS}
 
 
+def _partition_key(item: dict) -> str:
+    sec = item.get("section", "General")
+    target = item.get("target_file", "")
+    source = item.get("source", "")
+    native = item.get("native_form", "")
+    return f"{sec}|{target}|{source}|{native}"
+
+
 def consolidate_items(items: list[dict], similarity_threshold: float = 0.65) -> list[dict]:
-    """Merge semantically similar items within same section via word-set overlap."""
-    by_section: dict[str, list[dict]] = {}
+    """Merge semantically similar items within same partition via word-set overlap."""
+    by_partition: dict[str, list[dict]] = {}
     for item in items:
-        sec = item.get("section", "General")
-        by_section.setdefault(sec, []).append(item)
+        key = _partition_key(item)
+        by_partition.setdefault(key, []).append(item)
 
     result = []
-    for _sec, group in by_section.items():
+    for _key, group in by_partition.items():
         group.sort(key=lambda x: len(x.get("summary", "")), reverse=True)
         fingerprints = [_significant_words(item.get("summary", "")) for item in group]
         absorbed = [False] * len(group)
