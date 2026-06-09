@@ -84,6 +84,8 @@ def curate_entries(blackboard: Blackboard, caller: ModelCaller) -> tuple[list[di
             if eid:
                 seen_ids.add(eid)
 
+    must_include_all = _coverage_safety_net(must_include_all, active)
+
     set_last_call_usage(usage_by_model)
     return must_include_all, total_tokens
 
@@ -187,3 +189,54 @@ Return: {{"must_include": [{{"entry_id": "e1", "importance": "critical|high|medi
     if not isinstance(items, list):
         items = []
     return items, tokens
+
+
+COVERAGE_CONFIDENCE_THRESHOLD = 0.6
+MAX_AUTOINCLUDES_PER_DOC = 3
+
+
+def _coverage_safety_net(
+    must_include: list[dict],
+    active: list[Entry],
+) -> list[dict]:
+    """Auto-include high-confidence entries from documents with zero curation coverage."""
+    curated_ids = set()
+    for m in must_include:
+        if isinstance(m, dict):
+            eid = m.get("entry_id", "")
+            if eid:
+                for part in str(eid).split(","):
+                    curated_ids.add(part.strip())
+
+    by_doc: dict[str, list[Entry]] = {}
+    for e in active:
+        if e.id in curated_ids:
+            continue
+        doc = e.source.document if e.source else "cross_cutting"
+        by_doc.setdefault(doc or "cross_cutting", []).append(e)
+
+    curated_docs = set()
+    for e in active:
+        if e.id in curated_ids:
+            doc = e.source.document if e.source else "cross_cutting"
+            curated_docs.add(doc or "cross_cutting")
+
+    added = 0
+    for doc, entries in by_doc.items():
+        if doc in curated_docs:
+            continue
+        best = sorted(
+            [e for e in entries if e.confidence >= COVERAGE_CONFIDENCE_THRESHOLD],
+            key=lambda e: (-e.confidence, e.id),
+        )
+        for e in best[:MAX_AUTOINCLUDES_PER_DOC]:
+            must_include.append({
+                "entry_id": e.id,
+                "importance": "high",
+                "section": e.source.section if e.source and e.source.section else "Additional Findings",
+                "summary": (e.content or "")[:500],
+                "source": "coverage_safety_net",
+            })
+            added += 1
+
+    return must_include

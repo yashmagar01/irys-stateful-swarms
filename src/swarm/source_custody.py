@@ -60,12 +60,17 @@ def enforce_source_custody(
         quarantined_ids.add(entry.id)
         items.append(_item(entry, stage, "invalid_source_document", invalid, []))
 
-    # Cascade once through derived/cross-cutting entries that rely on invalid
-    # source entries or restate fake document names without a valid direct source.
+    # Cascade through derived/cross-cutting entries that rely on invalid sources.
+    active_count = sum(1 for e in blackboard.entries if e.status == "active")
+    cascade_cap = max(20, int(active_count * 0.15))
     if not audit_only:
         for _ in range(3):
+            if len(items) >= cascade_cap:
+                break
             changed = False
             for entry in list(blackboard.entries):
+                if len(items) >= cascade_cap:
+                    break
                 if entry.status != "active":
                     continue
                 supported_bad = [
@@ -75,7 +80,7 @@ def enforce_source_custody(
                 mentioned_bad = _mentioned_invalid_documents(entry, invalid_doc_names)
                 if not supported_bad and not mentioned_bad:
                     continue
-                if _has_valid_direct_source(entry, valid_docs) and not mentioned_bad:
+                if _has_valid_direct_source(entry, valid_docs):
                     continue
                 _quarantine_entry(entry)
                 quarantined_ids.add(entry.id)
@@ -260,7 +265,13 @@ def _mentioned_invalid_documents(entry: Entry, invalid_docs: set[str]) -> list[s
     ]).lower()
     mentioned = []
     for doc in invalid_docs:
-        if doc and doc.lower() in haystack:
+        if not doc:
+            continue
+        needle = doc.lower()
+        if len(needle) < 4:
+            continue
+        pattern = r"\b" + re.escape(needle) + r"\b"
+        if re.search(pattern, haystack):
             mentioned.append(doc)
     return mentioned
 

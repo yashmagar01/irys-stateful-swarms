@@ -5,6 +5,7 @@ from src.swarm.models import DocumentStatus, Entry, EntrySource
 from src.swarm.source_custody import (
     _document_name_aliases,
     _is_synthetic_source,
+    _mentioned_invalid_documents,
     enforce_source_custody,
     source_document_is_valid,
 )
@@ -274,3 +275,83 @@ def test_source_custody_audit_only_logs_but_preserves_status(tmp_path, monkeypat
     assert report["audit_only"] is True
     assert report["summary"]["entries_flagged"] == 1
     assert report["summary"]["entries_quarantined"] == 0
+
+
+def test_mentioned_invalid_documents_requires_word_boundary():
+    entry = Entry(
+        id="e1", type="observation",
+        content="All parties installed the software actually.",
+        source=EntrySource(document="ops_report.md", evidence=""),
+    )
+    result = _mentioned_invalid_documents(entry, {"All"})
+    assert result == [], "Short names (<4 chars) should be skipped"
+
+    result2 = _mentioned_invalid_documents(entry, {"installed"})
+    assert "installed" in result2, "Longer names matching on word boundary should hit"
+
+    entry2 = Entry(
+        id="e2", type="observation",
+        content="The Formal Default Notice covers obligations.",
+        source=EntrySource(document="ops_report.md", evidence=""),
+    )
+    result3 = _mentioned_invalid_documents(entry2, {"formal default notice"})
+    assert "formal default notice" in result3
+
+
+def test_cascade_does_not_quarantine_valid_direct_source_entries(tmp_path):
+    blackboard = Blackboard(
+        task_instruction="Analyze docs.",
+        output_dir=str(tmp_path),
+        documents=[
+            DocumentStatus(id="d1", name="ops_report.md"),
+            DocumentStatus(id="d2", name="summary.md"),
+        ],
+        entries=[
+            Entry(
+                id="e1", type="observation",
+                content="Fake Report says X.",
+                source=EntrySource(document="Fake Report", evidence="X"),
+            ),
+            Entry(
+                id="e2", type="analysis",
+                content="Cross-ref with Fake Report shows discrepancy in ops_report.md data.",
+                source=EntrySource(document="ops_report.md", evidence="discrepancy"),
+            ),
+        ],
+    )
+
+    report = enforce_source_custody(blackboard, "test")
+
+    assert blackboard.find_entry("e1").status == "source_quarantined"
+    assert blackboard.find_entry("e2").status == "active", \
+        "Entry with valid direct source should survive cascade even if mentioning invalid doc"
+
+
+def test_cascade_cap_limits_quarantine_count(tmp_path):
+    entries = [
+        Entry(
+            id=f"e{i}", type="observation",
+            content=f"Entry {i} references Hallucinated Document.",
+            source=EntrySource(document="cross_cutting", evidence=""),
+            supports_entries=["e0"],
+        )
+        for i in range(1, 50)
+    ]
+    entries.insert(0, Entry(
+        id="e0", type="observation",
+        content="From hallucinated source.",
+        source=EntrySource(document="Hallucinated Document", evidence=""),
+    ))
+
+    blackboard = Blackboard(
+        task_instruction="Test cascade cap.",
+        output_dir=str(tmp_path),
+        documents=[DocumentStatus(id="d1", name="real.md")],
+        entries=entries,
+    )
+
+    report = enforce_source_custody(blackboard, "test")
+
+    quarantined = sum(1 for e in blackboard.entries if e.status == "source_quarantined")
+    assert quarantined <= max(20, int(50 * 0.15)) + 1, \
+        f"Cascade cap should limit quarantine to ~15% of active entries, got {quarantined}"
