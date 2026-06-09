@@ -13,6 +13,7 @@ from .placement_verifier import (
     get_repair_candidates,
     repair_placements,
 )
+from .synthesis_packet import filter_evidence_entries
 from .worker_dispatch import (
     begin_call_model_usage,
     call_model,
@@ -1467,8 +1468,9 @@ Write ONLY a supplemental addition for {filename} covering the missing items abo
 
 def _draft_synthesis(blackboard: Blackboard, must_include: list[dict],
                      active: list[Entry], caller: ModelCaller) -> tuple[str, int]:
-    gaps = [e.content for e in active if e.type == "gap"]
     strategies = [e for e in active if e.type == "strategy"]
+
+    evidence_entries, open_issue_items = filter_evidence_entries(must_include, active)
 
     items_text_parts = []
     for i, m in enumerate(must_include, 1):
@@ -1477,6 +1479,8 @@ def _draft_synthesis(blackboard: Blackboard, must_include: list[dict],
             continue
         if not isinstance(m, dict):
             continue
+        if m.get("open_issue_only"):
+            continue
         imp = m.get("importance", "high")
         section = m.get("section", "General")
         summary = m.get("summary", "")
@@ -1484,12 +1488,18 @@ def _draft_synthesis(blackboard: Blackboard, must_include: list[dict],
         items_text_parts.append(f"{i}. [{imp}] [{section}] {summary} (ref: {entry_id})")
 
     items_text = "\n".join(items_text_parts) or "No curated items available."
-    n_items = len(must_include)
-    gaps_text = "\n".join(f"- {g}" for g in gaps) if gaps else "None identified."
+    n_items = len(items_text_parts)
+
+    gaps_from_entries = [e.content for e in active if e.type == "gap"]
+    open_issue_parts = [f"- {g}" for g in gaps_from_entries]
+    for oi in open_issue_items:
+        open_issue_parts.append(f"- [OPEN ISSUE] {oi.get('summary', '')}")
+    gaps_text = "\n".join(open_issue_parts) if open_issue_parts else "None identified."
+
     strategy_text = strategies[-1].content if strategies else "Structure professionally."
 
     by_doc: dict[str, list[Entry]] = {}
-    for e in active:
+    for e in evidence_entries:
         doc = e.source.document if e.source else "cross_cutting"
         by_doc.setdefault(doc or "cross_cutting", []).append(e)
 
@@ -1510,10 +1520,10 @@ STRATEGY: {strategy_text}
 MANDATORY ITEMS ({n_items} items — EVERY one must appear):
 {items_text}
 
-COMPLETE FINDINGS BY DOCUMENT ({len(active)} total entries — use ALL of these):
+COMPLETE FINDINGS BY DOCUMENT ({len(evidence_entries)} evidence entries — use ALL of these):
 {all_entries_grouped[:200000]}
 
-KNOWN GAPS:
+KNOWN GAPS AND OPEN ISSUES (acknowledge these honestly — do NOT assert them as facts):
 {gaps_text}
 
 CRITICAL INSTRUCTIONS:
@@ -1527,7 +1537,7 @@ CRITICAL INSTRUCTIONS:
 8. Include ALL financial terms with exact amounts and conditions.
 9. Include ALL party names with full legal designations.
 10. Include ALL representations, warranties, covenants, conditions, and restrictions.
-11. Acknowledge gaps honestly where information is incomplete.
+11. Items listed under KNOWN GAPS AND OPEN ISSUES are unresolved — flag them as open questions or caveats, never as established facts.
 12. The deliverable must stand alone — a reader should get EVERY material fact without needing the source documents.
 13. For drafting tasks: produce the actual document content (not a memo about the document). Include all required sections, clauses, and provisions."""
 

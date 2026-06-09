@@ -67,6 +67,9 @@ def _normalize_item(item: dict, by_id: dict[str, Entry]) -> dict:
         "verification_terms": item.get("verification_terms", ""),
         "required_source_refs": source_refs,
         "open_issue_only": open_issue_only,
+        "artifact_function": item.get("artifact_function", ""),
+        "satisfaction_conditions": item.get("satisfaction_conditions", []),
+        "evidence_entry_ids": item.get("evidence_entry_ids", []),
     }
 
 
@@ -82,7 +85,8 @@ def _extract_entry_ids(item: dict) -> list[str]:
 
 def _dedup_key(row: dict) -> str:
     ids = ",".join(sorted(row.get("entry_ids", [])))
-    return f"{ids}|{row.get('summary', '')[:60].lower().strip()}"
+    target = row.get("target_file", "")
+    return f"{ids}|{target}|{row.get('summary', '')[:60].lower().strip()}"
 
 
 def packet_items_for_file(

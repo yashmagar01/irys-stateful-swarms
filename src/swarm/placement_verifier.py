@@ -29,14 +29,22 @@ def evaluate_placements(
         target_file = row.get("target_file", "")
         verification_terms = _verification_terms_from_row(row)
         if not verification_terms:
+            results.append({**row, "found": False, "failure_mode": "no_verification_terms"})
+            continue
+
+        if not target_file:
+            found_anywhere = any(
+                _any_term_found(verification_terms, text)
+                for text in artifact_texts.values()
+            )
             results.append({
                 **row,
-                "found": False,
-                "failure_mode": "no_verification_terms",
+                "found": found_anywhere,
+                "failure_mode": None if found_anywhere else "content_missing",
             })
             continue
 
-        target_text = artifact_texts.get(target_file, "") if target_file else ""
+        target_text = artifact_texts.get(target_file, "")
         found_in_target = _any_term_found(verification_terms, target_text)
 
         found_elsewhere = False
@@ -50,7 +58,7 @@ def evaluate_placements(
             results.append({**row, "found": True, "failure_mode": None})
         elif found_elsewhere:
             results.append({**row, "found": False, "failure_mode": "wrong_file"})
-        elif target_file and target_file not in artifact_texts:
+        elif target_file not in artifact_texts:
             results.append({**row, "found": False, "failure_mode": "artifact_missing"})
         else:
             results.append({**row, "found": False, "failure_mode": "content_missing"})
