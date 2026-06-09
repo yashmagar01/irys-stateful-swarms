@@ -223,17 +223,17 @@ def _document_name_aliases(raw: str | None) -> set[str]:
 
 _LEGAL_CITATION_RE = re.compile(
     r"§"
-    r"|\bu\.?\s*s\.?\s*c\.?\b"
-    r"|\bc\.?\s*f\.?\s*r\.?\b"
-    r"|\bilcs\b"
-    r"|\bgen\.?\s*stat"
+    r"|\bu\.?\s*s\.?\s*c\.?\s*§"
+    r"|\bc\.?\s*f\.?\s*r\.?\s*§"
+    r"|\bilcs\s+\d"
+    r"|\bgen\.?\s*stat\.?\s*§"
     r"|\brev\.?\s*stat"
-    r"|\bn\.?\s*c\.?\s*gen"
-    r"|\ba\.?\s*r\.?\s*s\.?\b"
-    r"|\bo\.?\s*r\.?\s*s\.?\b"
-    r"|\btreas\.?\s*reg"
-    r"|^\d+\s+cfr\b"
-    r"|^\d+\s+u\.?\s*s\.?\s*c\.?\b",
+    r"|\bn\.?\s*c\.?\s*gen\.?\s*stat"
+    r"|\ba\.?\s*r\.?\s*s\.?\s*§"
+    r"|\bo\.?\s*r\.?\s*s\.?\s+\d"
+    r"|\btreas\.?\s*reg\.?\s*§"
+    r"|^\d+\s+cfr\s+\d"
+    r"|^\d+\s+u\.?\s*s\.?\s*c\.?\s+§",
     re.IGNORECASE,
 )
 
@@ -256,10 +256,15 @@ def _invalid_source_documents(entry: Entry, valid_docs: set[str]) -> list[str]:
     if not entry.source or not entry.source.document:
         return []
     full_aliases = _document_name_aliases(entry.source.document)
-    if full_aliases & valid_docs or _is_synthetic_source(entry.source.document):
+    if full_aliases & valid_docs:
+        return []
+    parts = _source_document_parts(entry.source.document)
+    if not parts and _is_synthetic_source(entry.source.document):
+        return []
+    if len(parts) == 1 and _is_synthetic_source(parts[0]):
         return []
     invalid = []
-    for part in _source_document_parts(entry.source.document):
+    for part in (parts or [entry.source.document]):
         part_aliases = _document_name_aliases(part)
         if not part_aliases:
             continue

@@ -221,6 +221,10 @@ def test_legal_citations_recognized_as_synthetic():
     assert _is_synthetic_source("28 U.S.C. § 1826")
     assert not _is_synthetic_source("ops_report.md")
     assert not _is_synthetic_source("Incident Report Q3")
+    assert not _is_synthetic_source("USC Lease.pdf")
+    assert not _is_synthetic_source("CFR Analysis.xlsx")
+    assert not _is_synthetic_source("ARS aging.xlsx")
+    assert not _is_synthetic_source("ORS report.md")
 
 
 def test_source_custody_quarantines_fake_file_named_like_synthetic(tmp_path, monkeypatch):
@@ -290,6 +294,54 @@ def test_source_custody_audit_only_logs_but_preserves_status(tmp_path, monkeypat
     assert report["audit_only"] is True
     assert report["summary"]["entries_flagged"] == 1
     assert report["summary"]["entries_quarantined"] == 0
+
+
+def test_default_is_audit_only(tmp_path, monkeypatch):
+    monkeypatch.delenv("SWARM_SOURCE_CUSTODY_AUDIT_ONLY", raising=False)
+    blackboard = Blackboard(
+        task_instruction="Analyze docs.",
+        output_dir=str(tmp_path),
+        documents=[DocumentStatus(id="d1", name="real-doc.docx")],
+        entries=[
+            Entry(
+                id="e1",
+                type="observation",
+                content="Found something in a fake file.",
+                source=EntrySource(document="fake-doc.pdf", evidence="fake"),
+            ),
+        ],
+    )
+
+    report = enforce_source_custody(blackboard, "test")
+
+    assert blackboard.entries[0].status == "active", "Default should be audit-only"
+    assert report["audit_only"] is True
+    assert report["summary"]["entries_flagged"] == 1
+    assert report["summary"]["entries_quarantined"] == 0
+
+
+def test_compound_source_with_legal_citation_still_checks_parts(tmp_path, monkeypatch):
+    monkeypatch.setenv("SWARM_SOURCE_CUSTODY_AUDIT_ONLY", "0")
+    blackboard = Blackboard(
+        task_instruction="Analyze compliance.",
+        output_dir=str(tmp_path),
+        documents=[DocumentStatus(id="d1", name="real-doc.docx")],
+        entries=[
+            Entry(
+                id="e1",
+                type="observation",
+                content="Per 20 CFR 656.17 and Hallucinated Report.",
+                source=EntrySource(
+                    document="20 CFR 656.17; Hallucinated Report",
+                    evidence="some text",
+                ),
+            ),
+        ],
+    )
+
+    report = enforce_source_custody(blackboard, "test")
+
+    assert report["items"][0]["invalid_documents"] == ["Hallucinated Report"]
 
 
 def test_mentioned_invalid_documents_requires_word_boundary():

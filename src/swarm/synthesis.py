@@ -396,7 +396,7 @@ PRECISION RULES:
 1. For each item, state the EXACT fact: specific dollar amounts, percentages, dates, party names, statutory citations, defined terms. Never paraphrase a number or date — use the original value.
 2. One concise paragraph or bullet per item. Do not pad with background, context, or restating the task.
 3. If two items cover the same fact, merge them into one statement with the most specific version.
-4. Omit generic observations that any expert would already know. Only include information derived from the specific documents.
+4. Omit generic observations not listed as required items above and not supported by specific documents.
 5. This is one section of a larger document — focus only on this section's items."""
 
 
@@ -1311,7 +1311,9 @@ CRITICAL INSTRUCTIONS:
 1. Write only this section or sheet for {filename}.
 2. Include every selected item for this section with exact values, dates, party names, citations, and calculations.
 3. Keep the content appropriate for {filename}; spreadsheets should use Markdown tables and '# Sheet: ...' headings.
-4. Write densely and do not repeat unrelated global analysis."""
+4. One concise paragraph or bullet per item. Do not pad with background or restating the task.
+5. If two items cover the same fact, merge them into one statement with the most specific version.
+6. Omit generic observations not listed as required items and not supported by specific documents."""
 
             _write_sectioned_synthesis_progress(
                 blackboard, len(section_drafts), total_sections,
