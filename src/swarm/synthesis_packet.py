@@ -164,3 +164,61 @@ def _count_by_key(items: list[dict], key: str) -> dict[str, int]:
         val = str(item.get(key, "unknown"))
         counts[val] = counts.get(val, 0) + 1
     return counts
+
+
+_STOP_WORDS = frozenset({
+    "the", "a", "an", "is", "are", "was", "were", "be", "been", "being",
+    "have", "has", "had", "do", "does", "did", "will", "would", "could",
+    "should", "may", "might", "shall", "can", "to", "of", "in", "for",
+    "on", "with", "at", "by", "from", "as", "into", "through", "during",
+    "before", "after", "above", "below", "between", "and", "but", "or",
+    "not", "no", "nor", "so", "yet", "both", "either", "neither", "each",
+    "this", "that", "these", "those", "it", "its", "their", "our", "your",
+})
+_IMPORTANCE_RANK = {"critical": 0, "high": 1, "medium": 2, "low": 3}
+
+
+def _significant_words(text: str) -> set[str]:
+    words = set(text.lower().split())
+    return {w for w in words if len(w) >= 3 and w not in _STOP_WORDS}
+
+
+def consolidate_items(items: list[dict], similarity_threshold: float = 0.65) -> list[dict]:
+    """Merge semantically similar items within same section via word-set overlap."""
+    by_section: dict[str, list[dict]] = {}
+    for item in items:
+        sec = item.get("section", "General")
+        by_section.setdefault(sec, []).append(item)
+
+    result = []
+    for _sec, group in by_section.items():
+        group.sort(key=lambda x: len(x.get("summary", "")), reverse=True)
+        fingerprints = [_significant_words(item.get("summary", "")) for item in group]
+        absorbed = [False] * len(group)
+
+        for i in range(len(group)):
+            if absorbed[i]:
+                continue
+            merged = dict(group[i])
+            merged_ids = set(_extract_entry_ids(merged))
+            for j in range(i + 1, len(group)):
+                if absorbed[j]:
+                    continue
+                fi, fj = fingerprints[i], fingerprints[j]
+                union = fi | fj
+                if not union:
+                    continue
+                overlap = len(fi & fj) / len(union)
+                if overlap >= similarity_threshold:
+                    absorbed[j] = True
+                    merged_ids.update(_extract_entry_ids(group[j]))
+                    j_imp = _IMPORTANCE_RANK.get(group[j].get("importance", "medium"), 2)
+                    m_imp = _IMPORTANCE_RANK.get(merged.get("importance", "medium"), 2)
+                    if j_imp < m_imp:
+                        merged["importance"] = group[j]["importance"]
+            merged["entry_ids"] = sorted(merged_ids)
+            if "entry_id" in merged:
+                merged["entry_id"] = ",".join(merged["entry_ids"])
+            result.append(merged)
+
+    return result

@@ -2,6 +2,7 @@ from src.swarm.blackboard import Blackboard
 from src.swarm.models import Entry, EntrySource
 from src.swarm.synthesis_packet import (
     build_synthesis_packet,
+    consolidate_items,
     filter_evidence_entries,
     packet_items_for_file,
 )
@@ -145,3 +146,44 @@ def test_artifact_contract_items_preserved():
     assert len(contract_rows) == 1
     assert contract_rows[0]["native_form"] == "table"
     assert contract_rows[0]["target_file"] == "memo.docx"
+
+
+def test_consolidate_merges_similar_items_in_same_section():
+    items = [
+        {"entry_id": "e1", "section": "Revenue", "importance": "high",
+         "summary": "Revenue increased from $10M to $15M in fiscal year 2024"},
+        {"entry_id": "e2", "section": "Revenue", "importance": "critical",
+         "summary": "Revenue increased from $10M to $15M during fiscal year 2024 period"},
+        {"entry_id": "e3", "section": "Costs", "importance": "medium",
+         "summary": "Operating costs decreased by 12% due to automation"},
+    ]
+    result = consolidate_items(items)
+    revenue_items = [r for r in result if r["section"] == "Revenue"]
+    cost_items = [r for r in result if r["section"] == "Costs"]
+    assert len(revenue_items) == 1, f"Expected 1 merged revenue item, got {len(revenue_items)}"
+    assert len(cost_items) == 1
+    assert "e1" in revenue_items[0].get("entry_ids", [])
+    assert "e2" in revenue_items[0].get("entry_ids", [])
+    assert revenue_items[0]["importance"] == "critical"
+
+
+def test_consolidate_keeps_distinct_items_separate():
+    items = [
+        {"entry_id": "e1", "section": "Analysis", "importance": "high",
+         "summary": "The merger creates significant antitrust concerns in the retail sector"},
+        {"entry_id": "e2", "section": "Analysis", "importance": "high",
+         "summary": "Environmental compliance costs exceed $2M annually for the facility"},
+    ]
+    result = consolidate_items(items)
+    assert len(result) == 2
+
+
+def test_consolidate_does_not_merge_across_sections():
+    items = [
+        {"entry_id": "e1", "section": "Revenue", "importance": "high",
+         "summary": "Revenue increased from $10M to $15M in fiscal year 2024"},
+        {"entry_id": "e2", "section": "Costs", "importance": "high",
+         "summary": "Revenue increased from $10M to $15M in fiscal year 2024"},
+    ]
+    result = consolidate_items(items)
+    assert len(result) == 2

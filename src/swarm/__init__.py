@@ -44,6 +44,7 @@ from .state_conversion import (
 from .artifact_contracts import build_artifact_contracts, contracts_to_signals
 from .synthesis_packet import (
     build_synthesis_packet,
+    consolidate_items,
     filter_evidence_entries,
     write_synthesis_packet_report,
 )
@@ -573,7 +574,8 @@ def run_swarm(task: Task, caller: ModelCaller, *,
                 must_include.insert(0, commitment)
                 seen.add(key)
 
-    # Phase 8b: build synthesis packet — normalize and filter
+    # Phase 8b: consolidate near-duplicate items, then build synthesis packet
+    must_include = consolidate_items(must_include)
     synthesis_packet = build_synthesis_packet(must_include, blackboard)
     write_synthesis_packet_report(synthesis_packet, blackboard.output_dir)
 
