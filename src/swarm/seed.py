@@ -17,20 +17,11 @@ def _build_grouped_catalog(documents) -> str:
     from collections import defaultdict
     groups = defaultdict(list)
     for d in documents:
-        path = ""
-        if hasattr(d, "_lazy_doc") and d._lazy_doc is not None:
-            path = d._lazy_doc.metadata.get("path", "")
-        if not path:
+        cat = d.path_category
+        if not cat:
             groups["(root)"].append(d)
             continue
-        parts = path.replace("\\", "/").split("/")
-        if len(parts) >= 3:
-            parent = "/".join(parts[-3:-1])
-        elif len(parts) >= 2:
-            parent = parts[-2]
-        else:
-            parent = "(root)"
-        groups[parent].append(d)
+        groups[cat].append(d)
 
     lines = []
     for group_name in sorted(groups.keys()):
@@ -66,12 +57,15 @@ def generate_seed(blackboard: Blackboard,
             f"shown in the catalog. The system will load matching files automatically.\n"
         )
     else:
-        doc_summary = "\n".join(
-            f"- {d.name}: {d.size_bytes} bytes, {d.read_status}, "
-            f"headings={d.headings[:20]}, "
-            f"profile={json.dumps(d.structural_profile or {})}"
-            for d in blackboard.documents
-        )
+        doc_lines = []
+        for d in blackboard.documents:
+            cat = f" [{d.path_category}]" if d.path_category else ""
+            doc_lines.append(
+                f"- {d.name}{cat}: {d.size_bytes} bytes, {d.read_status}, "
+                f"headings={d.headings[:20]}, "
+                f"profile={json.dumps(d.structural_profile or {})}"
+            )
+        doc_summary = "\n".join(doc_lines)
         corpus_note = ""
 
     prompt = f"""You are a senior analyst planning an investigation. Before any documents are read in detail, you need to create an analytical plan.

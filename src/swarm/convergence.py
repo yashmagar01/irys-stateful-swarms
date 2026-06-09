@@ -7,6 +7,12 @@ from .models import Entry, ModelCaller, Signal, gen_signal_id
 from .worker_dispatch import call_model
 
 
+def _doc_line(d: dict) -> str:
+    cat = f" [{d['path_category']}]" if d.get("path_category") else ""
+    return (f"- {d['name']}{cat}: {d['read_status']}, "
+            f"profile={json.dumps(d.get('structural_profile') or {})}")
+
+
 def check_convergence(blackboard: Blackboard, convergence_output: dict,
                       caller: ModelCaller) -> tuple[bool, int]:
     """Convergence check that runs every iteration."""
@@ -51,11 +57,7 @@ def check_convergence(blackboard: Blackboard, convergence_output: dict,
         if d.get("read_status") != "unread" or d.get("structural_profile")
     ]
     unloaded_count = len(summary["documents"]) - len(loaded_docs)
-    doc_profiles = "\n".join(
-        f"- {d['name']}: {d['read_status']}, "
-        f"profile={json.dumps(d.get('structural_profile') or {})}"
-        for d in loaded_docs
-    )
+    doc_profiles = "\n".join(_doc_line(d) for d in loaded_docs)
     if unloaded_count > 0:
         doc_profiles += f"\n(+ {unloaded_count} unloaded documents in corpus)"
 
@@ -125,11 +127,7 @@ def supervisor_review(blackboard: Blackboard,
         if d.get("read_status") != "unread" or d.get("structural_profile")
     ]
     _unloaded_count = len(summary["documents"]) - len(_loaded)
-    doc_summary = "\n".join(
-        f"- {d['name']}: {d['read_status']}, "
-        f"profile={json.dumps(d.get('structural_profile') or {})}"
-        for d in _loaded
-    )
+    doc_summary = "\n".join(_doc_line(d) for d in _loaded)
     if _unloaded_count > 0:
         doc_summary += f"\n(+ {_unloaded_count} unloaded documents in corpus)"
 
@@ -222,11 +220,7 @@ def analytical_steering(blackboard: Blackboard,
         if d.get("read_status") != "unread" or d.get("structural_profile")
     ]
     _steer_unloaded = len(_steer_all_docs) - len(_steer_loaded)
-    doc_summary = "\n".join(
-        f"- {d['name']}: {d['read_status']}, "
-        f"profile={json.dumps(d.get('structural_profile') or {})}"
-        for d in _steer_loaded
-    )
+    doc_summary = "\n".join(_doc_line(d) for d in _steer_loaded)
     if _steer_unloaded > 0:
         doc_summary += f"\n(+ {_steer_unloaded} unloaded documents in corpus)"
 

@@ -364,7 +364,9 @@ def execute_workers_parallel(worker_tasks: list[dict], blackboard: Blackboard,
                     text = resolve_section_text(
                         matched.text, matched.section_index, sec_name,
                     )
-                    doc_sections.append((f"{matched.name} — {sec_name}", text))
+                    cat = matched.path_category
+                    label = f"{matched.name} [{cat}] — {sec_name}" if cat else f"{matched.name} — {sec_name}"
+                    doc_sections.append((label, text))
                     sections_read.append((matched.name, sec_name))
 
         web_results = None

@@ -86,8 +86,9 @@ def _build_orchestrator_doc_list(blackboard: Blackboard, summary: dict) -> str:
 
         if is_loaded or actual > 0:
             coverage_pct = round(actual / max(expected, 1) * 100) if expected > 0 else 0
+            cat = f" [{ds.path_category}]" if ds and ds.path_category else ""
             loaded_lines.append(
-                f"- {doc_name}: {d['read_status']}, "
+                f"- {doc_name}{cat}: {d['read_status']}, "
                 f"extracted={actual} entries"
                 + (f" (expected ~{int(expected)}, coverage={coverage_pct}%)" if expected > 0 else "")
             )
@@ -98,11 +99,8 @@ def _build_orchestrator_doc_list(blackboard: Blackboard, summary: dict) -> str:
                     f"Need {int(expected - actual)} more."
                 )
         else:
-            path = ""
-            if ds and ds._lazy_doc is not None:
-                path = ds._lazy_doc.metadata.get("path", "")
-            parts = path.replace("\\", "/").split("/") if path else []
-            dir_key = "/".join(parts[-3:-1]) if len(parts) >= 3 else (parts[-2] if len(parts) >= 2 else "(root)")
+            cat = ds.path_category if ds else ""
+            dir_key = cat if cat else "(root)"
             unloaded_by_dir[dir_key].append(doc_name)
 
     lines = loaded_lines

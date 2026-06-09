@@ -198,6 +198,7 @@ class DocumentStatus:
     id: str = ""
     name: str = ""
     size_bytes: int = 0
+    source_path: str = ""
     headings: list[str] = field(default_factory=list)
     structural_profile: dict | None = None
     read_status: str = "unread"
@@ -231,13 +232,30 @@ class DocumentStatus:
             self.sections_unread.remove(section)
         self.read_status = "fully_read" if not self.sections_unread else "partially_read"
 
+    @property
+    def path_category(self) -> str:
+        """Derive document category from source path (e.g. 'sec/10-K', 'ir/news-releases')."""
+        if not self.source_path:
+            return ""
+        norm = self.source_path.replace("\\", "/")
+        parts = norm.split("/")
+        if len(parts) >= 3:
+            return "/".join(parts[-3:-1])
+        if len(parts) >= 2:
+            return parts[-2]
+        return ""
+
     def to_dict(self) -> dict:
-        return {
+        d = {
             "id": self.id, "name": self.name, "size_bytes": self.size_bytes,
             "headings": self.headings, "structural_profile": self.structural_profile,
             "read_status": self.read_status,
             "sections_read": self.sections_read, "sections_unread": self.sections_unread,
         }
+        if self.source_path:
+            d["source_path"] = self.source_path
+            d["path_category"] = self.path_category
+        return d
 
 
 # --- Worker Output ---

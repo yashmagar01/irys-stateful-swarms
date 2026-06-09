@@ -512,7 +512,7 @@ def _materialize_selected_docs(blackboard: Blackboard, seed_plan: dict | None) -
       2. Task instruction keywords matched against directory paths
       3. Read-request signals matched against document paths
     """
-    lazy_docs = [(ds, ds._lazy_doc.metadata.get("path", "") if ds._lazy_doc else "")
+    lazy_docs = [(ds, ds.source_path)
                  for ds in blackboard.documents if not ds.is_loaded]
     if not lazy_docs:
         return
@@ -628,9 +628,11 @@ def _build_doc_statuses(documents: list[Document]) -> list[DocumentStatus]:
     statuses = []
     large_corpus = len(documents) > PROFILE_THRESHOLD
     for doc in documents:
+        src_path = doc.metadata.get("path", "")
         if large_corpus and doc._loader is not None:
             statuses.append(DocumentStatus(
                 id=doc.id, name=doc.name, size_bytes=doc.size_bytes,
+                source_path=src_path,
                 headings=[], sections_unread=[],
                 section_index=None, text="",
                 read_status="unread",
@@ -640,6 +642,7 @@ def _build_doc_statuses(documents: list[Document]) -> list[DocumentStatus]:
             idx = build_section_index(doc.text)
             statuses.append(DocumentStatus(
                 id=doc.id, name=doc.name, size_bytes=doc.size_bytes,
+                source_path=src_path,
                 headings=[s.name for s in idx.sections],
                 sections_unread=[s.name for s in idx.sections],
                 section_index=idx, text=doc.text,
