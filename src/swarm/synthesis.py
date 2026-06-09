@@ -32,7 +32,7 @@ def shadow_judge_audit_enabled() -> bool:
 SECTION_THRESHOLD = int(os.getenv("SWARM_SYNTHESIS_SECTION_THRESHOLD", "15"))
 SECTION_CHUNK_SIZE = int(os.getenv("SWARM_SYNTHESIS_SECTION_CHUNK_SIZE", "25"))
 MAX_SECTIONS = int(os.getenv("SWARM_SYNTHESIS_MAX_SECTIONS", "20"))
-SECTION_DRAFT_MAX_TOKENS = int(os.getenv("SWARM_SYNTHESIS_SECTION_MAX_TOKENS", "16384"))
+SECTION_DRAFT_MAX_TOKENS = int(os.getenv("SWARM_SYNTHESIS_SECTION_MAX_TOKENS", "8192"))
 ASSIGNMENT_BATCH_SIZE = 50
 SECTION_EVIDENCE_CHARS = int(os.getenv("SWARM_SYNTHESIS_SECTION_EVIDENCE_CHARS", "24000"))
 SELECTED_ITEM_SUMMARY_CHARS = int(os.getenv("SWARM_SYNTHESIS_ITEM_SUMMARY_CHARS", "700"))
@@ -392,7 +392,12 @@ ITEMS THIS SECTION MUST INCLUDE ({len(chunk_items)} items):
 SUPPORTING EVIDENCE:
 {evidence}
 
-Write this section completely but densely. Include EVERY item listed above with exact specifics (numbers, dates, names, citations). This is one section of a larger document - focus only on this section's items and do not repeat unrelated material."""
+PRECISION RULES:
+1. For each item, state the EXACT fact: specific dollar amounts, percentages, dates, party names, statutory citations, defined terms. Never paraphrase a number or date — use the original value.
+2. One concise paragraph or bullet per item. Do not pad with background, context, or restating the task.
+3. If two items cover the same fact, merge them into one statement with the most specific version.
+4. Omit generic observations that any expert would already know. Only include information derived from the specific documents.
+5. This is one section of a larger document — focus only on this section's items."""
 
 
 def _draft_section_chunk(
