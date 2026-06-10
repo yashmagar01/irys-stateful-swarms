@@ -49,7 +49,6 @@ def run_state_conversion_review(
     framework = seed.get("analytical_framework", "")
     task_state_map = format_task_state_map(seed)
 
-    id_catalog = ", ".join(sorted(e.id for e in active)[:200])
     prompt = _build_state_conversion_prompt(
         task_instruction=blackboard.task_instruction,
         framework=framework,
@@ -60,7 +59,6 @@ def run_state_conversion_review(
         max_new_entries=max_new_entries,
         observations_label="source-balanced sample",
     )
-    prompt += f"\n\nVALID ENTRY IDS for source_entries (ONLY use these): [{id_catalog}]"
 
     payload, tokens = call_model(caller, prompt, max_tokens=16384)
 
