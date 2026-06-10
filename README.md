@@ -12,6 +12,8 @@
 > *Intelligence per dollar* = strict all-pass rate ÷ cost per task. Higher is better.
 > † Claude Fable 5 pipeline cost not yet published; intelligence per dollar will be updated when available.
 
+![Benchmark results](benchmark.png)
+
 The system doesn't just cost less — it returns dramatically more capability per unit of spend. And this is the *stateless* cost — every task starting from zero with no prior knowledge. With persistent state enabled, subsequent queries would cost a fraction of even this.
 
 For a technical discussion of the stateful swarm paradigm and the ideas behind this system, see [Stateful Swarms Make AI Agents Cheaper, Safer, Better](https://www.linkedin.com/pulse/stateful-swarms-make-ai-agents-cheaper-safer-better-devansh-devansh-8enxe).
@@ -42,6 +44,7 @@ irys-stateful-swarms completed the full public [Harvey Legal Agent Benchmark (LA
 ### Verification
 
 The complete outputs from the full benchmark run are available as downloadable archives in the [GitHub Releases](../../releases) section. You can score these outputs yourself using the [Harvey LAB scorer](https://github.com/harveyai/harvey-labs) to independently verify these numbers.
+
 
 ### Context
 
