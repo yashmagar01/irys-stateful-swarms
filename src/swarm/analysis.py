@@ -132,3 +132,114 @@ Produce 10-30 analytical outputs. Focus on quality — each output should contai
         ))
 
     return entries, tokens
+
+
+def run_comparison_enrichment(blackboard: Blackboard, seed: dict,
+                              caller: ModelCaller) -> tuple[list[Entry], int]:
+    """Dedicated pass to produce cross-document comparisons.
+
+    Targets the 'compare' work type deficit: many tasks require explicit
+    side-by-side analysis between documents but the main extraction loop
+    produces facts per-document without bridging them.
+    """
+    active = [e for e in blackboard.entries if e.status == "active"]
+    if len(active) < 5:
+        return [], 0
+
+    docs = set()
+    for e in active:
+        if e.source and e.source.document:
+            docs.add(e.source.document)
+    if len(docs) < 2:
+        return [], 0
+
+    by_doc: dict[str, list[str]] = {}
+    for e in active:
+        doc = e.source.document if e.source else "cross_cutting"
+        by_doc.setdefault(doc or "cross_cutting", []).append(
+            f"[{e.id}] ({e.type}) {e.content[:300]}"
+        )
+
+    doc_summaries = ""
+    for doc_name, items in sorted(by_doc.items()):
+        doc_summaries += f"\n=== {doc_name} ({len(items)} entries) ===\n"
+        for item in items[:50]:
+            doc_summaries += f"  {item}\n"
+
+    task_state_map = format_task_state_map(seed)
+
+    prompt = f"""You are a senior analyst specializing in CROSS-DOCUMENT COMPARISON. Your job: produce explicit comparisons between documents.
+
+TASK: {blackboard.task_instruction}
+
+TASK STATE MAP:
+{task_state_map}
+
+DOCUMENTS AND FINDINGS ({len(docs)} documents, {len(active)} entries):
+{doc_summaries[:400000]}
+
+YOUR SOLE FOCUS: Produce COMPARISONS between documents. For each comparison:
+- Name both documents being compared
+- State what is being compared (a term, obligation, value, date, threshold, provision)
+- State the specific difference, conflict, or alignment
+- Cite entry IDs from BOTH documents
+
+Types of comparisons to produce:
+1. TERM CONFLICTS: Same concept defined differently across documents
+2. NUMERICAL DELTAS: Different values for the same metric (calculate the difference)
+3. OBLIGATION MISMATCHES: One document requires X, another contradicts or omits it
+4. TEMPORAL CONFLICTS: Different dates, deadlines, or timelines for the same event
+5. DEFINITIONAL GAPS: A term used in one document but not defined, while defined in another
+6. COVERAGE GAPS: One document covers a topic the other omits entirely
+
+Return JSON with a "comparisons" array. Each:
+{{
+  "type": "analysis",
+  "content": "COMPARISON: [Doc A] vs [Doc B] — [specific finding with values/quotes]",
+  "source_entries": ["entry_from_doc_a", "entry_from_doc_b"],
+  "confidence": 0.0-1.0
+}}
+
+Produce 5-20 comparisons. Every output MUST reference at least 2 different documents. Single-document observations are REJECTED."""
+
+    payload, tokens = call_model(caller, prompt, max_tokens=12288)
+
+    comparisons = payload.get("comparisons", [])
+    if not isinstance(comparisons, list):
+        comparisons = []
+
+    entries = []
+    for c in comparisons:
+        if not isinstance(c, dict):
+            continue
+        content = str(c.get("content", "")).strip()
+        if not content or len(content) < 30:
+            continue
+
+        source_ids = c.get("source_entries", [])
+        if not isinstance(source_ids, list):
+            source_ids = []
+        valid_sources = [s for s in source_ids if any(e.id == s for e in active)]
+
+        source = None
+        if valid_sources:
+            ref = next((e for e in active if e.id == valid_sources[0]), None)
+            if ref and ref.source:
+                source = EntrySource(ref.source.document, ref.source.section, "")
+
+        try:
+            conf = float(c.get("confidence", 0.75))
+        except (ValueError, TypeError):
+            conf = 0.75
+
+        entries.append(Entry(
+            id=gen_entry_id(), type="analysis", content=content,
+            source=source,
+            epistemic=EpistemicStatus("inference", "unknown", ""),
+            created_by=WorkerRecord("flash35_analyst", "comparison_enrichment", blackboard.iteration),
+            confidence=conf,
+            tags=["comparison_enrichment"], status="active",
+            supports_entries=valid_sources,
+        ))
+
+    return entries, tokens

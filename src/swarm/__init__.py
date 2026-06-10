@@ -7,7 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 
 from .blackboard import Blackboard
-from .analysis import run_direct_analysis
+from .analysis import run_comparison_enrichment, run_direct_analysis
 from .artifact_commitments import build_artifact_commitments
 from .blackboard_maintenance import (
     blackboard_maintenance_enabled,
@@ -354,6 +354,12 @@ def run_swarm(task: Task, caller: ModelCaller, *,
         )
         blackboard.add_entries_batch(analysis_entries)
         blackboard.add_tokens_from_last_call(analysis_tokens)
+
+        comp_entries, comp_tokens = run_comparison_enrichment(
+            blackboard, seed_plan, review_caller,
+        )
+        blackboard.add_entries_batch(comp_entries)
+        blackboard.add_tokens_from_last_call(comp_tokens)
         blackboard.save_snapshot("post_analysis")
 
     # Phase 6: Supervisor review (smarter model, only if available)

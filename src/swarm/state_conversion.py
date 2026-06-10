@@ -123,16 +123,14 @@ def run_state_conversion_review(
         valid_sources = [s for s in source_ids if s in active_ids]
 
         if entry_type != "gap" and not valid_sources:
-            dropped += 1
-            continue
+            entry_type = "gap"
 
         has_grounded_source = any(
             e.source and e.source.document
             for e in active if e.id in valid_sources
-        )
+        ) if valid_sources else False
         if entry_type != "gap" and not has_grounded_source:
-            dropped += 1
-            continue
+            entry_type = "gap"
 
         source = None
         if valid_sources:
@@ -208,15 +206,13 @@ def run_state_conversion_review(
                     source_ids = []
                 valid_sources = [s for s in source_ids if s in active_ids]
                 if entry_type != "gap" and not valid_sources:
-                    dropped += 1
-                    continue
+                    entry_type = "gap"
                 has_grounded = any(
                     e.source and e.source.document
                     for e in active if e.id in valid_sources
-                )
+                ) if valid_sources else False
                 if entry_type != "gap" and not has_grounded:
-                    dropped += 1
-                    continue
+                    entry_type = "gap"
                 source = None
                 if valid_sources:
                     ref = next((e for e in active if e.id == valid_sources[0]), None)
@@ -492,8 +488,8 @@ def run_plan_coverage_state_repair(
             if entry_type in ("gap", "strategy"):
                 is_open_issue_repair = True
             else:
-                dropped += 1
-                continue
+                entry_type = "gap"
+                is_open_issue_repair = True
 
         try:
             conf = min(max(float(raw.get("confidence", 0.78)), 0.0), 1.0)
