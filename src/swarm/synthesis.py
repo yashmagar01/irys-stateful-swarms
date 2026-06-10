@@ -464,7 +464,10 @@ PRECISION RULES:
 4. One concise paragraph or bullet per item. Do not pad with background, context, or restating the task.
 5. If two items cover the same fact, merge them into one statement with the most specific version.
 6. Omit generic observations not listed as required items above and not supported by specific documents — but KEEP any required item even if it sounds generic.
-7. This is one section of a larger document — focus only on this section's items."""
+7. This is one section of a larger document — focus only on this section's items.
+8. Include STRATEGIC ASSESSMENTS: For each material risk, obligation, or finding in this section, state its practical significance — likelihood (high/medium/low), severity, negotiation leverage, and recommended action. Interpret, don't just list.
+9. CROSS-DOCUMENT ANALYSIS: When items or evidence reference multiple source documents on the same topic, EXPLICITLY flag conflicts, inconsistencies, or gaps between them and state the practical consequence.
+10. FORMAL ELEMENTS: If this section is the opening or closing of a professional deliverable, include appropriate formal elements (header, date, addressee, executive summary, signature block, confidentiality/privilege markings, rights-reservation language) as fitting for the document type."""
 
 
 def _draft_section_chunk(
@@ -1638,7 +1641,10 @@ CRITICAL INSTRUCTIONS:
 12. Include ALL representations, warranties, covenants, conditions, and restrictions.
 13. Items listed under KNOWN GAPS AND OPEN ISSUES are unresolved — flag them as open questions or caveats, never as established facts.
 14. The deliverable must stand alone — a reader should get EVERY material fact without needing the source documents.
-15. For drafting tasks: produce the actual document content (not a memo about the document). Include all required sections, clauses, and provisions."""
+15. For drafting tasks: produce the actual document content (not a memo about the document). Include all required sections, clauses, and provisions.
+16. Include STRATEGIC ASSESSMENTS: For each material risk, obligation, or finding, state its practical significance — likelihood of occurrence (high/medium/low), severity of impact, negotiation leverage implications, and recommended course of action. Do not merely list facts; INTERPRET them.
+17. CROSS-DOCUMENT ANALYSIS: When multiple source documents address the same topic, EXPLICITLY flag conflicts, inconsistencies, gaps, or reinforcing provisions between them. State which documents agree, which diverge, and the practical consequence of any divergence.
+18. FORMAL DOCUMENT ELEMENTS: Where the task calls for a professional deliverable (memo, letter, report, redline, draft agreement), include standard formal elements: title/header, date, addressee/recipient, subject line, executive summary, signature block or closing, confidentiality/privilege markings, and rights-reservation language as appropriate to the document type. Omit only elements that are clearly inapplicable."""
 
     payload, tokens = call_model(caller, prompt, max_tokens=32768, json_mode=False)
     deliverable = payload.get("text", "")
