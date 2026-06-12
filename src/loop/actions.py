@@ -92,11 +92,13 @@ def _read_jobs(action: dict, board: Board) -> list[tuple[str, dict]]:
             "target_ids": target_ids,
             "action_id": action.get("_id", ""),
         }
-        # Dual-lens extraction: a target-guided pass AND an exhaustive
-        # inventory pass. Guided extraction has tunnel vision — funnel
-        # analysis showed 58% of failed criteria were never extracted.
+        # Extraction depth is the controller's call: 'exhaustive' adds an
+        # inventory lens (funnel analysis: 58% of failed criteria were never
+        # extracted on completeness tasks), but the flood drowns drafting
+        # tasks — so the lens is chosen per read, not fixed policy.
         jobs.append(("read_chunk", {**base, "mode": "guided"}))
-        jobs.append(("read_chunk", {**base, "mode": "inventory"}))
+        if str(action.get("depth", "")).lower() == "exhaustive":
+            jobs.append(("read_chunk", {**base, "mode": "inventory"}))
     return jobs
 
 

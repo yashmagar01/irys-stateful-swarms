@@ -129,7 +129,7 @@ SOURCES:
 {catalog_summary(board)}
 
 AVAILABLE ACTION KINDS:
-- read {{source_id, focus, target_ids}} — extract evidence from a source (use focus to direct attention)
+- read {{source_id, focus, target_ids, depth}} — extract evidence from a source (use focus to direct attention). depth "exhaustive" adds a full-inventory pass capturing EVERY term/amount/date/exception — use it when the task is scored on completeness of specifics from this source (extractions, side-by-side comparisons, issue inventories, term-dense documents like policies/schedules/term sheets). depth "focused" (default) for drafting tasks where key provisions matter more than every detail.
 - search {{query, target_ids}} — web search for external knowledge (current law, standards, public facts not in sources)
 - bind {{}} — connect unbound claims to targets (dispatch when unbound count is high)
 - analyze {{target_id, instruction}} — promote a target's evidence into conclusions/calculations/issues/recommendations
@@ -140,7 +140,7 @@ DECISION RULES:
 - High unbound count → bind before anything else can be judged accurately.
 - Close a target ONLY when its derived claims genuinely answer the need. Waive with a reason if not worth pursuing. Block with a reason if it cannot be answered from available sources/budget.
 - Read unread "definite" sources early; pull "unlikely" sources in only if evidence demands it.
-- Converge when every critical/high target is closed/waived/blocked and another round would not materially improve the answer.
+- Converge when every critical/high target is closed/waived/blocked and another round would not materially improve the answer. Do NOT converge while many claims remain unbound — dispatch bind first so closure judgments see all the evidence.
 
 Return JSON:
 {{"reasoning": "<2-4 sentences>",
