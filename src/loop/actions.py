@@ -83,7 +83,7 @@ def _read_jobs(action: dict, board: Board) -> list[tuple[str, dict]]:
     target_ids = [str(t) for t in action.get("target_ids", [])]
     jobs = []
     for i in range(0, len(text), _CHUNK_CHARS):
-        jobs.append(("read_chunk", {
+        base = {
             "source": source,
             "chunk": text[i:i + _CHUNK_CHARS],
             "chunk_no": i // _CHUNK_CHARS + 1,
@@ -91,26 +91,37 @@ def _read_jobs(action: dict, board: Board) -> list[tuple[str, dict]]:
             "focus": focus,
             "target_ids": target_ids,
             "action_id": action.get("_id", ""),
-        }))
+        }
+        # Dual-lens extraction: a target-guided pass AND an exhaustive
+        # inventory pass. Guided extraction has tunnel vision — funnel
+        # analysis showed 58% of failed criteria were never extracted.
+        jobs.append(("read_chunk", {**base, "mode": "guided"}))
+        jobs.append(("read_chunk", {**base, "mode": "inventory"}))
     return jobs
 
 
 def _run_read_chunk(job: dict, board: Board, caller) -> dict:
     source: Source = job["source"]
-    targets_text = _targets_brief(board, job["target_ids"])
     chunk_note = (
         f" (part {job['chunk_no']}/{job['chunks_total']})"
         if job["chunks_total"] > 1 else ""
     )
     focus_note = f"\nFOCUS: {job['focus']}" if job["focus"] else ""
 
-    prompt = f"""You are extracting evidence from a document for a research task. Extract every specific, citable fact: amounts, dates, parties, defined terms, obligations, conditions, numbers, named provisions. Exact values, never paraphrased approximations.
+    if job.get("mode") == "inventory":
+        # Breadth lens: no target framing — inventory everything citable.
+        framing = """You are building a complete factual inventory of a document. Ignore any notion of relevance — extract EVERY specific, citable fact: every amount, date, deadline, party, defined term, obligation, condition, exception, threshold, percentage, cross-reference, schedule item, and named provision. Exact values, never paraphrased approximations. A fact you skip is a fact the system permanently lacks."""
+    else:
+        targets_text = _targets_brief(board, job["target_ids"])
+        framing = f"""You are extracting evidence from a document for a research task. Extract every specific, citable fact: amounts, dates, parties, defined terms, obligations, conditions, numbers, named provisions. Exact values, never paraphrased approximations.
 
 TASK CONTEXT:
 {board.instruction[:1500]}
 
 QUESTIONS THIS READ SERVES:
-{targets_text}{focus_note}
+{targets_text}{focus_note}"""
+
+    prompt = f"""{framing}
 
 DOCUMENT: {source.name}{chunk_note}
 ---
@@ -129,9 +140,12 @@ Rules:
 - proposed_targets only for genuinely new material questions, not restatements. A target must be a QUESTION answerable from the sources or web search — advice or actions for the client ("negotiate X", "obtain Y") are claims (recommendation/gap), never targets."""
 
     parsed = call_json(caller, board, prompt, kind="read", max_tokens=16384)
+    if job.get("mode") == "inventory" and isinstance(parsed, dict):
+        parsed.pop("proposed_targets", None)  # breadth lens has no task context
+    tag = "read_inv" if job.get("mode") == "inventory" else "read"
     return _ingest_claims(
         parsed, board, source=source,
-        created_by=f"read:{job.get('action_id', '')}",
+        created_by=f"{tag}:{job.get('action_id', '')}",
     )
 
 
@@ -394,9 +408,9 @@ def _ingest_claims(parsed, board: Board, *, source: Source | None,
             iteration=board.iteration,
             created_by=created_by,
         )
-        board.add_claim(claim)
-        added += 1
-        added_ids.append(claim.id)
+        if board.add_claim(claim):
+            added += 1
+            added_ids.append(claim.id)
 
     proposed = 0
     for pt in parsed.get("proposed_targets", []):

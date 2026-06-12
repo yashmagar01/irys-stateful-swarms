@@ -223,16 +223,28 @@ class Board:
             self.sources.append(source)
             self._source_index[source.id] = source
 
-    def add_claim(self, claim: Claim) -> None:
+    def add_claim(self, claim: Claim) -> bool:
+        """Add a claim; returns False if an exact-content duplicate exists.
+
+        Dedup is exact (normalized content key) — semantically-similar claims
+        are left for bind/maintenance judgment, not code heuristics.
+        """
         if not claim.id:
             claim.id = self.next_claim_id()
+        key = " ".join(claim.content.lower().split())[:160]
         with self._lock:
+            if not hasattr(self, "_content_index"):
+                self._content_index: dict[str, str] = {}
+            if key in self._content_index:
+                return False
+            self._content_index[key] = claim.id
             self.claims.append(claim)
             self._claim_index[claim.id] = claim
             for tid in claim.target_refs:
                 t = self._target_index.get(tid)
                 if t is not None and claim.id not in t.claim_refs:
                     t.claim_refs.append(claim.id)
+        return True
 
     def add_target(self, target: Target) -> None:
         if not target.id:
