@@ -213,16 +213,18 @@ def run_swarm(task: Task, caller: ModelCaller, *,
         blackboard.add_tokens(prioritize_signals(blackboard, unp, review_caller or caller))
 
     # Phase 6: Swarm loop
-    # Iteration-level model cycling: every 3rd iteration uses the premium
-    # caller (Opus 4.8 when SWARM_FABLE_MODEL is set) for orchestrator +
-    # workers. Otherwise uses review_caller (flash). This gives the expensive
-    # model periodic full-blackboard visibility to course-correct strategy.
-    loop_caller = review_caller or caller
+    # W13 revert: flash-lite (caller) for orchestrator+workers. W12 showed
+    # flash causes iteration stalling (80% stall rate) and 43-63% fewer
+    # analysis entries. Flash-lite produces tighter, more focused dispatches.
+    # Flash stays for reviewer/synthesis/signal-prioritization only.
+    loop_caller = caller
     _premium_caller_env = os.getenv("SWARM_FABLE_MODEL", "")
     _premium_caller = None
     if _premium_caller_env:
         from ..providers.anthropic import AnthropicCaller
         _premium_caller = AnthropicCaller(model=_premium_caller_env)
+
+    _entries_per_iter: list[int] = []
 
     for iteration in range(1, max_iter + 1):
         blackboard.iteration = iteration
@@ -256,8 +258,21 @@ def run_swarm(task: Task, caller: ModelCaller, *,
                     f"(4) What issues should be flagged based on findings so far?"
                 )
 
+        # Diminishing returns: if last 2 iterations each added ≤3 entries,
+        # nudge the orchestrator toward convergence
+        _diminishing = ""
+        if len(_entries_per_iter) >= 2 and all(c <= 3 for c in _entries_per_iter[-2:]):
+            _diminishing = (
+                f"DIMINISHING RETURNS: last 2 iterations added only "
+                f"{_entries_per_iter[-2]} and {_entries_per_iter[-1]} entries. "
+                f"Consider converging if analysis entries exist."
+            )
+        _combined_override = " ".join(
+            p for p in [analysis_mode_override, _diminishing] if p
+        )
+
         orch, orch_tokens = run_orchestrator(
-            blackboard, iter_caller, override=analysis_mode_override,
+            blackboard, iter_caller, override=_combined_override,
         )
         blackboard.add_tokens_from_last_call(orch_tokens)
 
@@ -290,6 +305,7 @@ def run_swarm(task: Task, caller: ModelCaller, *,
 
         tasks_list = orch.get("workers", [])
         if not tasks_list:
+            _entries_per_iter.append(0)
             continue
 
         if analysis_mode_override:
@@ -324,6 +340,7 @@ def run_swarm(task: Task, caller: ModelCaller, *,
                     tasks_list = _obs_tasks[:1]
 
         if not tasks_list:
+            _entries_per_iter.append(0)
             continue
 
         outputs = execute_workers_parallel(tasks_list, blackboard, iter_caller)
@@ -339,6 +356,7 @@ def run_swarm(task: Task, caller: ModelCaller, *,
                     if ds.name == doc_name:
                         ds.mark_section_read(sec_name)
         blackboard.add_entries_batch(new_entries)
+        _entries_per_iter.append(len(new_entries))
 
         new_sigs = [
             s for s in blackboard.signals

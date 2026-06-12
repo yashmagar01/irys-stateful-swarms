@@ -51,7 +51,7 @@ GUIDELINES:
   (c) Calculate revenue impacts, percentages, and financial exposure from the raw numbers
   (d) Identify what is MISSING from the documents that should be present
   (e) For comparison tasks: systematically compare each item across sources
-- Do NOT converge until analysis workers have reviewed the extracted facts
+- CONVERGE when analysis entries exist AND new iterations yield diminishing returns (few new findings). Do not converge if only observations exist with no analysis/calculation entries.
 - EXTRACTION GAPS: If a document has many more items than we've extracted, dispatch targeted re-extraction
 """
 

@@ -378,6 +378,10 @@ def execute_workers_parallel(worker_tasks: list[dict], blackboard: Blackboard,
         doc_sections: list[tuple[str, str]] = []
         sections_read: list[tuple[str, str]] = []
         for spec in task.get("reads_from_documents", []):
+            if isinstance(spec, str):
+                spec = {"document": spec, "sections": ["Full Document"]}
+            if not isinstance(spec, dict):
+                continue
             doc_name = spec.get("document", "")
             matched = None
             for ds in blackboard.documents:

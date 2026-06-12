@@ -994,6 +994,19 @@ def _source_tag(e: Entry) -> str:
     return ""
 
 
+def _build_id_catalog(analytical: list[Entry], observations: list[Entry]) -> str:
+    """Build a document-grouped catalog of valid entry IDs."""
+    by_doc: dict[str, list[str]] = {}
+    for e in analytical + observations:
+        doc = e.source.document if e.source and e.source.document else "(cross-cutting)"
+        by_doc.setdefault(doc, []).append(e.id)
+    lines = []
+    for doc in sorted(by_doc):
+        ids = by_doc[doc]
+        lines.append(f"  [{doc}] {', '.join(ids)}")
+    return "\n".join(lines)
+
+
 def _build_state_conversion_prompt(
     *,
     task_instruction: str,
@@ -1010,6 +1023,8 @@ def _build_state_conversion_prompt(
         for e in observations
     )
 
+    id_catalog = _build_id_catalog(analytical, observations)
+
     return f"""You are a senior analyst reviewing the blackboard state before synthesis. Your job is NOT to write the final deliverable — it is to ensure the blackboard contains enough analytical state for synthesis to succeed.
 
 TASK: {task_instruction}
@@ -1025,6 +1040,9 @@ EXISTING ANALYTICAL STATE ({len(analytical)} entries):
 RAW OBSERVATIONS ({len(observations)} {observations_label}):
 {obs_text[:200000]}
 
+VALID ENTRY IDs (you MUST use only these in source_entries):
+{id_catalog}
+
 YOUR JOB: Identify observations that should become analytical state but haven't been converted yet.
 
 Look for these conversion opportunities:
@@ -1037,7 +1055,7 @@ Look for these conversion opportunities:
 7. INCOMPLETE TASK-STATE ROWS: The task state map requires fields, relationships, or closure checks that are only partially populated
 8. WRONG RELATION / CLASSIFICATION / DERIVED VALUE / ARTIFACT FORM: The blackboard has nearby facts but has not bound them into the exact relationship, classification, calculation, or deliverable shape the task requires
 
-For each conversion, you MUST cite the source entry IDs that support it. Do NOT invent facts.
+For each conversion, you MUST cite the source entry IDs from the VALID ENTRY IDs list above. Do NOT invent or guess IDs.
 
 Return JSON:
 {{
