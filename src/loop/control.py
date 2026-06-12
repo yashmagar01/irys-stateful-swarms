@@ -272,3 +272,146 @@ def should_maintain(board: Board) -> bool:
     if board.iteration > 0 and board.iteration % MAINTENANCE_EVERY == 0:
         return True
     return len(board.open_targets()) > MAINTENANCE_OPEN_THRESHOLD
+
+
+# --- REFRAME (the blackboard rebuild) ---
+
+def reframe_ledger(smart_caller, board: Board) -> None:
+    """Rebuild the question ledger from everything now known.
+
+    The seed ran on metadata and zero understanding; workers propose
+    questions from local discoveries. Nobody else ever asks the global
+    question: knowing what we NOW know, what SHOULD the question set be?
+    This pass re-derives it — opening what is newly visible, splitting
+    coarse bundles into per-item questions, challenging stale closures,
+    and updating the living answer_shape. Closure is defeasible here.
+    """
+    all_targets = "\n".join(
+        f"{t.id} [{t.status}/{t.materiality}, {len(t.claim_refs)} claims]"
+        f" {t.need[:110]}"
+        + (f" | resolved: {t.reason[:60]}" if t.reason else "")
+        for t in board.targets
+        if not t.reason.startswith("merged into")
+        and not t.reason.startswith("split into")
+    )
+    derived = [c for c in board.claims if c.active and c.is_derived]
+    best_derived = "\n".join(
+        f"- [{c.kind}] {c.content[:140]}"
+        for c in sorted(derived, key=lambda c: -c.confidence)[:25]
+    )
+    sources_read = "\n".join(
+        f"- {s.name} ({s.read_status})" for s in board.sources[:40]
+    )
+    reopen = board.reopen_candidates()
+    reopen_text = "\n".join(
+        f"- {r['target_id']}: {r['need']} ({r['new_claims']} new claims,"
+        f" {r['disturbed_basis']} basis claims disturbed)"
+        for r in reopen[:15]
+    )
+
+    prompt = f"""You are REBUILDING the question ledger of an investigation mid-flight. The original questions were written before any document was read. The investigation has since built real understanding — your job is to re-derive what the question set SHOULD be, knowing everything now known, and fix the gap between that ideal and the current ledger.
+
+TASK:
+{board.instruction[:4000]}
+
+CURRENT UNDERSTANDING OF WHAT A GREAT ANSWER NEEDS:
+{board.metadata.get('answer_shape', '')[:800]}
+
+SOURCES (read state):
+{sources_read}
+
+CURRENT LEDGER (all questions, open and resolved):
+{all_targets}
+
+STRONGEST CONCLUSIONS SO FAR:
+{best_derived}
+
+CLOSED QUESTIONS DISTURBED BY LATER EVIDENCE (reopen candidates):
+{reopen_text or '(none)'}
+
+CLAIM BASE: {len(board.claims)} claims, {len(derived)} derived, {len(board.unbound_claims())} unbound.
+
+Rebuild operations available:
+1. SPLIT a coarse question into specific per-item questions. Comparison/reconciliation/issue-inventory questions that bundle many items ("compare X against Y", "identify all issues in Z") MUST be split into the concrete per-item questions that reading has made visible (per provision, per defined term, per discrepancy, per issue category). The answer is scored item by item — coarse questions produce coarse answers.
+2. OPEN a new question that the evidence has revealed but nobody asked.
+3. REOPEN a closed question whose closure later evidence undermines.
+4. REPRIORITIZE based on what understanding shows actually matters.
+5. UPDATE the answer_shape to reflect current understanding of excellence.
+
+Return JSON:
+{{"splits": [{{"target_id": "...", "into": [{{"need": "...", "materiality": "critical|high|medium|low"}}]}}],
+ "new_targets": [{{"need": "...", "materiality": "..."}}],
+ "reopens": [{{"target_id": "...", "reason": "..."}}],
+ "reprioritize": [{{"target_id": "...", "materiality": "..."}}],
+ "answer_shape": "<updated, 3-6 sentences>"}}
+
+Be aggressive on splits for comparison/inventory questions — that is where rebuilds create the most value. Do not split questions that are genuinely atomic."""
+
+    parsed = call_json(smart_caller, board, prompt, kind="reframe",
+                       max_tokens=16384)
+    if not isinstance(parsed, dict):
+        board.log("reframe", "parse failure — ledger unchanged")
+        return
+
+    splits = opens = reopens = 0
+    for sp in parsed.get("splits", []):
+        if not isinstance(sp, dict):
+            continue
+        parent = board.find_target(str(sp.get("target_id", "")))
+        subs = [s for s in sp.get("into", []) if isinstance(s, dict)
+                and str(s.get("need", "")).strip()]
+        if parent is None or len(subs) < 2:
+            continue
+        for s in subs:
+            m = str(s.get("materiality", parent.materiality))
+            if m not in ("critical", "high", "medium", "low"):
+                m = parent.materiality
+            child = Target(
+                need=str(s.get("need", "")).strip(),
+                materiality=m,
+                created_iteration=board.iteration, proposed_by="reframe",
+            )
+            board.add_target(child)
+            # children inherit the parent's evidence for re-binding/analysis
+            for cid in parent.claim_refs:
+                board.bind_claim(cid, [child.id])
+        board.resolve_target(parent.id, "waived", f"split into {len(subs)} by reframe")
+        splits += 1
+    for nt in parsed.get("new_targets", []):
+        if not isinstance(nt, dict):
+            continue
+        need = str(nt.get("need", "")).strip()
+        if not need:
+            continue
+        m = str(nt.get("materiality", "medium"))
+        if m not in ("critical", "high", "medium", "low"):
+            m = "medium"
+        board.add_target(Target(
+            need=need, materiality=m,
+            created_iteration=board.iteration, proposed_by="reframe",
+        ))
+        opens += 1
+    for ro in parsed.get("reopens", []):
+        if not isinstance(ro, dict):
+            continue
+        t = board.find_target(str(ro.get("target_id", "")))
+        if t is not None and t.status == "closed":
+            board.resolve_target(t.id, "open", "")
+            board.log("reopen", f"{t.id}: {str(ro.get('reason', ''))[:150]}")
+            reopens += 1
+    for rp in parsed.get("reprioritize", []):
+        if not isinstance(rp, dict):
+            continue
+        t = board.find_target(str(rp.get("target_id", "")))
+        m = str(rp.get("materiality", ""))
+        if t is not None and m in ("critical", "high", "medium", "low"):
+            t.materiality = m
+    new_shape = str(parsed.get("answer_shape", "")).strip()
+    if new_shape:
+        board.metadata["answer_shape"] = new_shape[:2000]
+
+    board.log(
+        "reframe",
+        f"rebuild: {splits} splits, {opens} new, {reopens} reopened",
+        detail={"splits": splits, "new": opens, "reopens": reopens},
+    )

@@ -11,7 +11,10 @@ from __future__ import annotations
 import os
 
 from .actions import execute_actions
-from .control import controller_decide, maintain_ledger, seed_targets, should_maintain
+from .control import (
+    controller_decide, maintain_ledger, reframe_ledger, seed_targets,
+    should_maintain,
+)
 from .state import Board, Source
 from .synthesis import plan_synthesis, synthesize, write_final_state
 from .triage import triage_sources
@@ -19,6 +22,11 @@ from .triage import triage_sources
 MAX_ITERATIONS = int(os.getenv("LOOP_MAX_ITERATIONS", "12"))
 BUDGET_STOP_PCT = float(os.getenv("LOOP_BUDGET_STOP_PCT", "85"))
 DIMINISHING_ROUNDS = 2
+# Iterations at which the blackboard is rebuilt (reframe pass): the ledger is
+# re-derived from accumulated understanding — splits, new questions, reopens.
+REFRAME_ITERATIONS = tuple(
+    int(x) for x in os.getenv("LOOP_REFRAME_ITERATIONS", "3,7").split(",") if x.strip()
+)
 
 
 def run_loop(task, worker_caller, smart_caller=None):
@@ -113,7 +121,13 @@ def run_loop(task, worker_caller, smart_caller=None):
             )
             break
 
-        if should_maintain(board) or closeout:
+        if board.iteration in REFRAME_ITERATIONS:
+            reframe_ledger(smart, board)
+            # Splits/reopens legitimately grow the open count — give the
+            # rebuilt ledger a fresh stagnation baseline.
+            open_history.clear()
+            closeout = False
+        elif should_maintain(board) or closeout:
             maintain_ledger(smart, board, closeout=closeout)
 
         board.snapshot()

@@ -86,6 +86,9 @@ class Target:
     created_iteration: int = 0
     resolved_iteration: int | None = None
     proposed_by: str = "seed"
+    # Claims that justified closure — closure is a defeasible verdict, not a
+    # tombstone. Later evidence touching the basis flags a reopen candidate.
+    closure_basis: list[str] = field(default_factory=list)
 
     @property
     def is_open(self) -> bool:
@@ -103,6 +106,7 @@ class Target:
             "created_iteration": self.created_iteration,
             "resolved_iteration": self.resolved_iteration,
             "proposed_by": self.proposed_by,
+            "closure_basis": self.closure_basis,
         }
 
 
@@ -280,8 +284,42 @@ class Board:
             return False
         target.status = status
         target.reason = reason
-        target.resolved_iteration = self.iteration if status != "open" else None
+        if status == "open":
+            target.resolved_iteration = None
+            target.closure_basis = []
+        else:
+            target.resolved_iteration = self.iteration
+            if status == "closed":
+                target.closure_basis = list(target.claim_refs)
         return True
+
+    def reopen_candidates(self) -> list[dict]:
+        """Closed targets whose closure basis later evidence has disturbed.
+
+        Structural facts only: new claims bound after closure, or basis
+        claims contradicted/superseded. Whether to actually reopen is a
+        judgment call — the reframe pass decides.
+        """
+        out = []
+        for t in self.targets:
+            if t.status != "closed":
+                continue
+            new_claims = [c for c in t.claim_refs if c not in t.closure_basis]
+            basis = [self._claim_index.get(cid) for cid in t.closure_basis]
+            disturbed = [
+                c.id for c in basis
+                if c is not None and (c.superseded or c.contradicts_refs or any(
+                    c.id in (o.contradicts_refs or [])
+                    for o in self.claims if o.active
+                ))
+            ]
+            if new_claims or disturbed:
+                out.append({
+                    "target_id": t.id, "need": t.need[:120],
+                    "new_claims": len(new_claims),
+                    "disturbed_basis": len(disturbed),
+                })
+        return out
 
     # --- Lookup ---
 
