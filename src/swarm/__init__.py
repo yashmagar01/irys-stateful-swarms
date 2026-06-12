@@ -158,18 +158,9 @@ def run_swarm(task: Task, caller: ModelCaller, *,
                 ))
         blackboard.save_snapshot("seed")
 
-    # Phase 3a: Domain Lens — professional-prior pseudo-criteria
+    # Phase 3a: Domain Lens — DISABLED (W12: unclear value, adds tokens without
+    # measurable improvement; seed plan + extraction depth check are sufficient)
     domain_lens = {}
-    if review_caller is not None and seed_plan:
-        domain_lens, lens_tokens = generate_domain_lens(
-            blackboard, seed_plan, review_caller,
-        )
-        blackboard.add_tokens_from_last_call(lens_tokens)
-        lens_entries = lens_to_entries(domain_lens, blackboard)
-        if lens_entries:
-            blackboard.add_entries_batch(lens_entries)
-        lens_to_signals(domain_lens, blackboard)
-        blackboard.save_snapshot("domain_lens")
 
     # Phase 3b: If no documents but web search is enabled, add a research signal
     from .web_search import web_search_enabled
@@ -222,11 +213,27 @@ def run_swarm(task: Task, caller: ModelCaller, *,
         blackboard.add_tokens(prioritize_signals(blackboard, unp, review_caller or caller))
 
     # Phase 6: Swarm loop
+    # Iteration-level model cycling: every 3rd iteration uses the premium
+    # caller (Opus 4.8 when SWARM_FABLE_MODEL is set) for orchestrator +
+    # workers. Otherwise uses review_caller (flash). This gives the expensive
+    # model periodic full-blackboard visibility to course-correct strategy.
+    loop_caller = review_caller or caller
+    _premium_caller_env = os.getenv("SWARM_FABLE_MODEL", "")
+    _premium_caller = None
+    if _premium_caller_env:
+        from ..providers.anthropic import AnthropicCaller
+        _premium_caller = AnthropicCaller(model=_premium_caller_env)
+
     for iteration in range(1, max_iter + 1):
         blackboard.iteration = iteration
         blackboard.expire_old_signals()
         if iteration == 1 or iteration % 4 == 0:
             blackboard.save_snapshot(f"pre_{iteration}")
+
+        # Iteration cycling: 2 flash, 1 Opus (iterations 3, 6, 9, 12, 15)
+        iter_caller = loop_caller
+        if _premium_caller is not None and iteration % 3 == 0:
+            iter_caller = _premium_caller
 
         # Analysis mode shift: after iteration 8, if obs:analysis ratio > 3:1,
         # force the orchestrator to stop extracting and start reasoning
@@ -250,12 +257,12 @@ def run_swarm(task: Task, caller: ModelCaller, *,
                 )
 
         orch, orch_tokens = run_orchestrator(
-            blackboard, caller, override=analysis_mode_override,
+            blackboard, iter_caller, override=analysis_mode_override,
         )
         blackboard.add_tokens_from_last_call(orch_tokens)
 
         if orch.get("action") == "converge" and iteration >= min_iter:
-            converged, conv_tokens = check_convergence(blackboard, orch, caller)
+            converged, conv_tokens = check_convergence(blackboard, orch, iter_caller)
             blackboard.add_tokens_from_last_call(conv_tokens)
             if converged:
                 blackboard.save_snapshot("converged")
@@ -264,11 +271,11 @@ def run_swarm(task: Task, caller: ModelCaller, *,
             if analysis_mode_override:
                 _reject += " " + analysis_mode_override
             orch, t = run_orchestrator(
-                blackboard, caller, override=_reject,
+                blackboard, iter_caller, override=_reject,
             )
             blackboard.add_tokens_from_last_call(t)
             if orch.get("action") == "converge":
-                converged2, t2 = check_convergence(blackboard, orch, caller)
+                converged2, t2 = check_convergence(blackboard, orch, iter_caller)
                 blackboard.add_tokens_from_last_call(t2)
                 if converged2:
                     blackboard.save_snapshot("converged_retry")
@@ -277,7 +284,7 @@ def run_swarm(task: Task, caller: ModelCaller, *,
                 if analysis_mode_override:
                     _force += " " + analysis_mode_override
                 orch, t3 = run_orchestrator(
-                    blackboard, caller, override=_force,
+                    blackboard, iter_caller, override=_force,
                 )
                 blackboard.add_tokens_from_last_call(t3)
 
@@ -304,7 +311,7 @@ def run_swarm(task: Task, caller: ModelCaller, *,
             else:
                 from .convergence import analytical_steering
                 _steering_tasks, _steer_tokens = analytical_steering(
-                    blackboard, caller,
+                    blackboard, iter_caller,
                 )
                 blackboard.add_tokens_from_last_call(_steer_tokens)
                 if _steering_tasks:
@@ -319,7 +326,7 @@ def run_swarm(task: Task, caller: ModelCaller, *,
         if not tasks_list:
             continue
 
-        outputs = execute_workers_parallel(tasks_list, blackboard, caller)
+        outputs = execute_workers_parallel(tasks_list, blackboard, iter_caller)
 
         new_entries = []
         for wo in outputs:
@@ -377,14 +384,14 @@ def run_swarm(task: Task, caller: ModelCaller, *,
                 blackboard.iteration += 1
                 if blackboard.budget_used_pct() >= 90:
                     break
-                orch, t = run_orchestrator(blackboard, caller)
+                orch, t = run_orchestrator(blackboard, loop_caller)
                 blackboard.add_tokens_from_last_call(t)
                 if orch.get("action") == "converge":
                     break
                 tasks_list = orch.get("workers", [])
                 if not tasks_list:
                     continue
-                outputs = execute_workers_parallel(tasks_list, blackboard, caller)
+                outputs = execute_workers_parallel(tasks_list, blackboard, loop_caller)
                 new_entries = []
                 for wo in outputs:
                     blackboard.add_tokens(wo.tokens_used, wo.tokens_input, wo.tokens_output, wo.model)
@@ -597,11 +604,7 @@ def run_swarm(task: Task, caller: ModelCaller, *,
         )
     blackboard.add_tokens_from_last_call(synth_tokens)
 
-    if shadow_judge_audit_enabled() and review_caller is not None:
-        deliverable, audit_tokens = shadow_judge_audit(
-            deliverable, blackboard, seed_plan, review_caller,
-        )
-        blackboard.add_tokens_from_last_call(audit_tokens)
+    # Shadow judge audit — DISABLED (W12: late-stage patching with unclear ROI)
 
     if source_claim_verification_enabled():
         deliverable, claim_tokens, _ = verify_source_claims(

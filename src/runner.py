@@ -85,15 +85,6 @@ def run_single_task(task_dir: Path, output_dir: Path, *,
     synthesis_caller = GeminiCaller(model=s_model) if s_model != w_model else worker_caller
     reviewer_caller = GeminiCaller(model=r_model) if r_model else None
 
-    f_model = os.getenv("SWARM_FABLE_MODEL", "")
-    if f_model and reviewer_caller is not None:
-        from .providers.anthropic import AnthropicCaller
-        from .providers.rotating import RotatingCaller
-        fable_caller = AnthropicCaller(model=f_model)
-        reviewer_caller = RotatingCaller(
-            [fable_caller, reviewer_caller], pattern=[0, 1, 1],
-        )
-
     out_dir = output_dir / task_id.replace("/", os.sep)
     out_dir.mkdir(parents=True, exist_ok=True)
     output_subdir = out_dir / "output"

@@ -171,15 +171,6 @@ class IrysSwarmBackend:
         )
         reviewer_caller = GeminiCaller(model=r_model) if r_model else None
 
-        f_model = os.getenv("SWARM_FABLE_MODEL", "")
-        if f_model and reviewer_caller is not None:
-            from .providers.anthropic import AnthropicCaller
-            from .providers.rotating import RotatingCaller
-            fable_caller = AnthropicCaller(model=f_model)
-            reviewer_caller = RotatingCaller(
-                [fable_caller, reviewer_caller], pattern=[0, 1, 1],
-            )
-
         with tempfile.TemporaryDirectory(prefix="irys_bench_") as tmp:
             task = Task(
                 instruction=query,
