@@ -88,6 +88,13 @@ def main():
     analyze_p = sub.add_parser("analyze", help="Analyze scored results")
     analyze_p.add_argument("results_dir", type=Path, help="Results directory")
 
+    # Funnel analysis: localize where failed criteria's facts died (loop runs)
+    funnel_p = sub.add_parser(
+        "funnel", help="Funnel-analyze failed criteria of a loop batch",
+    )
+    funnel_p.add_argument("results_dir", type=Path, help="Results directory")
+    funnel_p.add_argument("--judge-model", default="gemini-3.1-flash-lite")
+
     # Summarize derived-work sidecars
     derived_p = sub.add_parser(
         "summarize-derived-work",
@@ -123,6 +130,9 @@ def main():
         _cmd_score(args)
     elif args.command == "analyze":
         _cmd_analyze(args)
+    elif args.command == "funnel":
+        from .loop.funnel import analyze_batch
+        analyze_batch(str(args.results_dir), judge_model=args.judge_model)
     elif args.command == "summarize-derived-work":
         _cmd_summarize_derived_work(args)
     elif args.command == "summarize-lifecycle":
