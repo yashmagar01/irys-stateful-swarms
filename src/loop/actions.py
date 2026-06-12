@@ -121,6 +121,7 @@ Return JSON:
 
 Rules:
 - kind is usually "observation". Use "contradiction" if this text conflicts with itself, "gap" if something expected is conspicuously absent, "issue" for a clear defect/risk stated in the text.
+- kind "requirement" for anything that constrains the DELIVERABLE itself: addressee/recipient and addresses, who submits it, length minimums, deadlines, required structure or elements, mandatory references, procedural requests that must be made. Engagement letters, assignment emails, and notices often carry these — extract EVERY one verbatim.
 - Be exhaustive on facts relevant to the questions; include other clearly material facts too.
 - Dense term-bearing text (policy declarations, schedules, fee tables, defined-term lists) demands EVERY term: every limit, sublimit, deductible, retention, date, exclusion, endorsement, and amount — completeness over brevity.
 - proposed_targets only for genuinely new material questions, not restatements. A target must be a QUESTION answerable from the sources or web search — advice or actions for the client ("negotiate X", "obtain Y") are claims (recommendation/gap), never targets."""

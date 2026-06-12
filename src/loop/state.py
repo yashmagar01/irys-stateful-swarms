@@ -21,6 +21,7 @@ from typing import Any
 CLAIM_KINDS = (
     "observation", "analysis", "calculation", "comparison", "issue",
     "recommendation", "gap", "uncertainty", "contradiction", "decision",
+    "requirement",
 )
 DERIVED_KINDS = (
     "analysis", "calculation", "comparison", "issue",

@@ -56,6 +56,19 @@ def target_packet(board: Board, target: Target) -> dict:
     }
 
 
+def requirement_block(board: Board) -> str:
+    """All requirement claims — deliverable constraints discovered in sources.
+
+    These bypass packet caps: a requirement is binding regardless of which
+    target it is bound to.
+    """
+    reqs = [c for c in board.claims if c.active and c.kind == "requirement"]
+    return "\n".join(
+        f"- {c.content[:300]}" + (f" (Source: {c.source_doc})" if c.source_doc else "")
+        for c in reqs
+    )
+
+
 def plan_synthesis(smart_caller, board: Board) -> dict:
     """Allocate targets to deliverables — form is decided late, by judgment."""
     deliverables = board.metadata.get("deliverables", {})
@@ -79,6 +92,9 @@ OUTPUT FILES REQUIRED: {json.dumps(files)}
 RESOLVED AND OPEN QUESTIONS:
 {target_lines}
 
+{f'''DELIVERABLE REQUIREMENTS DISCOVERED IN SOURCES (binding — the plan must satisfy every one):
+{requirement_block(board)}
+''' if requirement_block(board) else ''}
 Rules:
 - The same question can feed multiple files DIFFERENTLY (summary in a memo, full table in a spreadsheet, clause edits in a redline). Allocate accordingly.
 - .xlsx files need data-shaped sections (tables); .docx files need prose/structured documents. Match form to file type and to what the request actually asks for.
@@ -189,6 +205,10 @@ ORIGINAL REQUEST:
 
 FILE: {filename} — {file_plan.get('form', 'document')}
 {format_rules}
+
+{f'''BINDING REQUIREMENTS discovered in the sources — satisfy EVERY one (addressees, length minimums, mandatory elements, required references, procedural requests). If a length minimum exists, meet it with substance, not padding:
+{requirement_block(board)}
+''' if requirement_block(board) else ''}
 
 ANALYSIS (per section, with resolved questions and their claims):
 {json.dumps(packet_blocks, indent=1, default=str)[:400_000]}
