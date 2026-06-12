@@ -44,3 +44,4 @@ codex_*.md
 # Environment
 .env
 .env.local
+.env.anthropic

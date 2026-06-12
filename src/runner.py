@@ -98,11 +98,17 @@ def run_single_task(task_dir: Path, output_dir: Path, *,
     )
 
     try:
-        deliverable, blackboard = run_swarm(
-            task, worker_caller,
-            synthesis_caller=synthesis_caller,
-            reviewer_caller=reviewer_caller,
-        )
+        if os.getenv("SWARM_ARCH", "").strip().lower() == "loop":
+            from .loop import run_loop
+            deliverable, blackboard = run_loop(
+                task, worker_caller, smart_caller=synthesis_caller,
+            )
+        else:
+            deliverable, blackboard = run_swarm(
+                task, worker_caller,
+                synthesis_caller=synthesis_caller,
+                reviewer_caller=reviewer_caller,
+            )
     except Exception as e:
         return RunResult(task_id=task_id, error=f"swarm error: {e}")
 
