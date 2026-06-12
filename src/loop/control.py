@@ -83,7 +83,8 @@ Return JSON:
 
 # --- CONTROLLER ---
 
-def controller_decide(smart_caller, board: Board, last_summary: dict) -> dict:
+def controller_decide(smart_caller, board: Board, last_summary: dict, *,
+                      max_iterations: int = 12, closeout: bool = False) -> dict:
     """One iteration's decision: target updates + actions + converge flag."""
     open_cards = [board.target_card(t) for t in board.open_targets()[:25]]
     resolved = [
@@ -106,7 +107,10 @@ TASK:
 
 ANSWER SHAPE: {board.metadata.get('answer_shape', '')[:600]}
 
-ITERATION {board.iteration} | budget used {board.budget_used_pct()}%
+ITERATION {board.iteration} of {max_iterations} | budget used {board.budget_used_pct()}%
+{'''
+CLOSE-OUT MODE: Open material targets have stopped shrinking and iterations are finite. This round you MUST resolve every open target: CLOSE it if its claims defensibly answer it; WAIVE it with a reason if resolving it would not materially change the answer; BLOCK it with a reason if it cannot be answered from available sources (e.g. it requires a document that is not in the corpus — "obtain document X" targets are blocked, never left open). You may keep at most 2 targets open, each with exactly one final action dispatched this round.
+''' if closeout else ''}
 
 OPEN TARGETS (cards with computed blockers):
 {json.dumps(open_cards, indent=1)}
@@ -186,7 +190,7 @@ Max {MAX_ACTIONS_PER_ITERATION} actions. Actions run in parallel — make them i
 
 # --- LEDGER MAINTENANCE ---
 
-def maintain_ledger(smart_caller, board: Board) -> None:
+def maintain_ledger(smart_caller, board: Board, *, closeout: bool = False) -> None:
     """Groom the target ledger: merge duplicates, waive low-value, reprioritize.
 
     Workers propose targets freely; this is where sprawl gets cleaned up
@@ -208,7 +212,9 @@ TASK:
 
 OPEN QUESTIONS:
 {listing}
-
+{'''
+The investigation is CLOSING: waive any open question that will not materially change the final answer (with a reason). Keep only what genuinely blocks a professional deliverable.
+''' if closeout else ''}
 Return JSON:
 {{"ops": [
   {{"op": "merge", "keep": "<id>", "merge_ids": ["<ids absorbed into keep>"], "need": "<sharpened need for keep, optional>"}},

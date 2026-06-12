@@ -1,0 +1,11 @@
+{
+  "bench_root": "C:\\Users\\devan\\OneDrive\\Desktop\\Projects\\harvey-labs",
+  "purpose": "Loop architecture A/B vs W13: 2 worst, 2 middle, 1 best",
+  "tasks": [
+    {"task_id": "capital-markets/draft-registration-statement-on-form-s"},
+    {"task_id": "trusts-estates-private-client/draft-petition-for-final-distribution"},
+    {"task_id": "insurance/extract-insurance-policy-terms"},
+    {"task_id": "environmental-esg/draft-comment-letter-on-proposed-npdes-permit"},
+    {"task_id": "antitrust-competition/compare-proposed-merger-remedies-against-precedent-commitment-decisions"}
+  ]
+}

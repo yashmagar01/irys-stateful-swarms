@@ -119,7 +119,7 @@ Return JSON:
 Rules:
 - kind is usually "observation". Use "contradiction" if this text conflicts with itself, "gap" if something expected is conspicuously absent, "issue" for a clear defect/risk stated in the text.
 - Be exhaustive on facts relevant to the questions; include other clearly material facts too.
-- proposed_targets only for genuinely new material questions, not restatements."""
+- proposed_targets only for genuinely new material questions, not restatements. A target must be a QUESTION answerable from the sources or web search — advice or actions for the client ("negotiate X", "obtain Y") are claims (recommendation/gap), never targets."""
 
     parsed = call_json(caller, board, prompt, kind="read", max_tokens=16384)
     return _ingest_claims(parsed, board, source=source, created_by="read")
@@ -260,6 +260,7 @@ Rules:
 - Every derived claim MUST cite support_refs from the evidence above.
 - Calculations show the arithmetic. Comparisons name both sides. Issues state impact.
 - If evidence is insufficient, emit a "gap" claim saying exactly what is missing.
+- Advice for the client ("negotiate X", "request Y") is a "recommendation" claim, NOT a proposed target. Targets are questions answerable from sources or search.
 - recommend_close only if the question is genuinely answerable from the derived claims."""
 
     parsed = call_json(caller, board, prompt, kind="analyze", max_tokens=16384)

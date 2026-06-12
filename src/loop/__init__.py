@@ -49,14 +49,27 @@ def run_loop(task, worker_caller, smart_caller=None):
 
     last_summary: dict = {}
     quiet_rounds = 0
+    open_history: list[int] = []
+    closeout = False
 
     while True:
         board.iteration += 1
 
-        decision = controller_decide(smart, board, last_summary)
+        decision = controller_decide(
+            smart, board, last_summary,
+            max_iterations=MAX_ITERATIONS, closeout=closeout,
+        )
 
         # --- convergence policy ---
         material_open = board.material_open_targets()
+        open_history.append(len(material_open))
+        closeout = (
+            board.iteration >= MAX_ITERATIONS // 2
+            and len(open_history) >= 2
+            and open_history[-1] >= open_history[-2] > 0
+        )
+        if closeout:
+            board.log("closeout", f"{len(material_open)} material targets not shrinking")
         if decision["converge"]:
             if not material_open:
                 board.stop_reason = f"converged: {decision['converge_reason']}"
@@ -100,8 +113,8 @@ def run_loop(task, worker_caller, smart_caller=None):
             )
             break
 
-        if should_maintain(board):
-            maintain_ledger(smart, board)
+        if should_maintain(board) or closeout:
+            maintain_ledger(smart, board, closeout=closeout)
 
         board.snapshot()
 
