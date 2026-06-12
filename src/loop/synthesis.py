@@ -218,6 +218,7 @@ ANALYSIS (per section, with resolved questions and their claims):
 
 Write the COMPLETE deliverable. Professional, specific, decision-ready. Every conclusion traceable to the analysis. No meta-commentary about the process."""
 
+        _dump_packets(board, filename, packet_blocks)
         text = call_text(
             smart_caller, board, prompt, kind="synthesize",
             max_tokens=32768, temperature=0.25,
@@ -226,6 +227,22 @@ Write the COMPLETE deliverable. Professional, specific, decision-ready. Every co
         board.log("synthesize", f"{filename}: {len(text)} chars")
 
     return results
+
+
+def _dump_packets(board: Board, filename: str, packet_blocks: list) -> None:
+    """Persist exactly what synthesis saw — the funnel analyzer needs this
+    to answer 'did this claim survive packet selection?' without inference."""
+    if not board.output_dir:
+        return
+    try:
+        d = Path(board.output_dir) / "loop"
+        d.mkdir(parents=True, exist_ok=True)
+        safe = filename.replace("/", "_").replace("\\", "_")
+        (d / f"packets_{safe}.json").write_text(
+            json.dumps(packet_blocks, indent=1, default=str), encoding="utf-8",
+        )
+    except OSError:
+        pass
 
 
 def write_final_state(board: Board) -> None:

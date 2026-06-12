@@ -27,7 +27,8 @@ _BIND_BATCH = 60
 def execute_actions(actions: list[dict], board: Board, worker_caller) -> dict:
     """Run an iteration's actions in parallel. Returns summary counts."""
     jobs = []
-    for action in actions:
+    for idx, action in enumerate(actions):
+        action["_id"] = f"a{board.iteration}.{idx}"
         kind = action.get("kind", "")
         if kind == "read":
             jobs.extend(_read_jobs(action, board))
@@ -89,6 +90,7 @@ def _read_jobs(action: dict, board: Board) -> list[tuple[str, dict]]:
             "chunks_total": (len(text) - 1) // _CHUNK_CHARS + 1,
             "focus": focus,
             "target_ids": target_ids,
+            "action_id": action.get("_id", ""),
         }))
     return jobs
 
@@ -127,7 +129,10 @@ Rules:
 - proposed_targets only for genuinely new material questions, not restatements. A target must be a QUESTION answerable from the sources or web search — advice or actions for the client ("negotiate X", "obtain Y") are claims (recommendation/gap), never targets."""
 
     parsed = call_json(caller, board, prompt, kind="read", max_tokens=16384)
-    return _ingest_claims(parsed, board, source=source, created_by="read")
+    return _ingest_claims(
+        parsed, board, source=source,
+        created_by=f"read:{job.get('action_id', '')}",
+    )
 
 
 # --- SEARCH ---
@@ -168,12 +173,15 @@ Return JSON:
 External claims need lower default confidence than primary documents unless from an authoritative source."""
 
     parsed = call_json(caller, board, prompt, kind="search", max_tokens=8192)
-    out = _ingest_claims(parsed, board, source=src, created_by="search")
+    out = _ingest_claims(
+        parsed, board, source=src,
+        created_by=f"search:{action.get('_id', '')}",
+    )
     # Search results serve specific targets — bind directly.
     tids = [str(t) for t in action.get("target_ids", [])]
     if tids:
         for c in board.claims:
-            if c.created_by == "search" and c.source_doc == src.name and not c.target_refs:
+            if c.created_by.startswith("search") and c.source_doc == src.name and not c.target_refs:
                 board.bind_claim(c.id, tids)
                 out["bound"] = out.get("bound", 0) + 1
     return out
@@ -270,7 +278,8 @@ Rules:
 
     parsed = call_json(caller, board, prompt, kind="analyze", max_tokens=16384)
     out = _ingest_claims(
-        parsed, board, source=None, created_by="analyze",
+        parsed, board, source=None,
+        created_by=f"analyze:{action.get('_id', '')}",
         bind_to=[target.id], valid_support={c.id for c in bound},
     )
     if isinstance(parsed, dict) and parsed.get("recommend_close"):
@@ -351,6 +360,7 @@ def _ingest_claims(parsed, board: Board, *, source: Source | None,
     if not isinstance(parsed, dict):
         return {"claims": 0}
     added = 0
+    added_ids: list[str] = []
     seen: set[str] = set()
     for item in parsed.get("claims", []):
         if not isinstance(item, dict):
@@ -386,6 +396,7 @@ def _ingest_claims(parsed, board: Board, *, source: Source | None,
         )
         board.add_claim(claim)
         added += 1
+        added_ids.append(claim.id)
 
     proposed = 0
     for pt in parsed.get("proposed_targets", []):
@@ -403,6 +414,12 @@ def _ingest_claims(parsed, board: Board, *, source: Source | None,
         ))
         proposed += 1
 
+    if added or proposed:
+        board.log(
+            "action_output",
+            f"{created_by}: {added} claims, {proposed} targets",
+            detail={"by": created_by, "claim_ids": added_ids},
+        )
     return {"claims": added, "targets_proposed": proposed}
 
 
