@@ -171,6 +171,15 @@ class IrysSwarmBackend:
         )
         reviewer_caller = GeminiCaller(model=r_model) if r_model else None
 
+        f_model = os.getenv("SWARM_FABLE_MODEL", "")
+        if f_model and reviewer_caller is not None:
+            from .providers.anthropic import AnthropicCaller
+            from .providers.rotating import RotatingCaller
+            fable_caller = AnthropicCaller(model=f_model)
+            reviewer_caller = RotatingCaller(
+                [fable_caller, reviewer_caller], pattern=[0, 1, 1],
+            )
+
         with tempfile.TemporaryDirectory(prefix="irys_bench_") as tmp:
             task = Task(
                 instruction=query,
@@ -212,6 +221,7 @@ def _estimate_cost(blackboard) -> float:
         "gemini-3-flash-preview": {"input": 0.50, "output": 3.00},
         "gemini-3.5-flash": {"input": 1.50, "output": 9.00},
         "gemini-3.1-pro-preview": {"input": 2.00, "output": 12.00},
+        "claude-fable-5": {"input": 10.00, "output": 50.00},
     }
     DEFAULT_PRICING = {"input": 0.25, "output": 1.50}
     cost = 0.0

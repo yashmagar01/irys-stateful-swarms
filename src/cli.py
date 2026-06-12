@@ -187,6 +187,17 @@ def _cmd_ask(args):
             if args.verbose:
                 print(f"  Reviewer model: {r_model}")
 
+    f_model = os.getenv("SWARM_FABLE_MODEL", "")
+    if f_model and reviewer_caller is not None:
+        from .providers.anthropic import AnthropicCaller
+        from .providers.rotating import RotatingCaller
+        fable_caller = AnthropicCaller(model=f_model)
+        reviewer_caller = RotatingCaller(
+            [fable_caller, reviewer_caller], pattern=[0, 1, 1],
+        )
+        if args.verbose:
+            print(f"  Fable rotation: {f_model} → {r_model} → {r_model}")
+
     out_dir = args.output or Path("irys-output")
     out_dir.mkdir(parents=True, exist_ok=True)
 

@@ -219,7 +219,7 @@ def run_swarm(task: Task, caller: ModelCaller, *,
     # Phase 5: Prioritize initial signals
     unp = [s for s in blackboard.signals if s.status == "open"]
     if unp:
-        blackboard.add_tokens(prioritize_signals(blackboard, unp, caller))
+        blackboard.add_tokens(prioritize_signals(blackboard, unp, review_caller or caller))
 
     # Phase 6: Swarm loop
     for iteration in range(1, max_iter + 1):
@@ -338,7 +338,7 @@ def run_swarm(task: Task, caller: ModelCaller, *,
             if s.status == "open" and s.iteration_created == iteration
         ]
         if new_sigs:
-            blackboard.add_tokens(prioritize_signals(blackboard, new_sigs, caller))
+            blackboard.add_tokens(prioritize_signals(blackboard, new_sigs, review_caller or caller))
 
         if blackboard.budget_used_pct() >= 85:
             blackboard.save_snapshot("budget_exhausted")
