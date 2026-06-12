@@ -56,6 +56,48 @@ def target_packet(board: Board, target: Target) -> dict:
     }
 
 
+def unit_packets(board: Board, obligation_ids: list[str] | None = None) -> list[dict]:
+    """Unit-preserving packets: every non-waived unit survives into
+    synthesis. Within-unit summarization is allowed; unit omission is not.
+    """
+    packets = []
+    for ob in board.obligations:
+        if not ob.set_valued or ob.status == "waived":
+            continue
+        if obligation_ids is not None and ob.id not in obligation_ids:
+            continue
+        units = [u for u in board.units_for(ob.id) if u.status != "waived"]
+        if not units:
+            continue
+        # Per-unit claim budget shrinks as unit count grows — units are
+        # never dropped, their evidence is just summarized harder.
+        per_unit = max(3, min(8, 240 // max(len(units), 1)))
+        rows = []
+        for u in units:
+            claims = [
+                c for c in (board.find_claim(cid) for cid in u.claim_refs)
+                if c is not None and c.active
+            ]
+            claims.sort(key=lambda c: (not c.is_derived, -c.confidence))
+            rows.append({
+                "unit": u.name,
+                "anchor": u.anchor,
+                "status": u.status,
+                "claims": [
+                    {"kind": c.kind, "content": c.content[:300],
+                     "evidence": c.evidence[:150], "source": c.source_doc}
+                    for c in claims[:per_unit]
+                ] or [{"kind": "gap", "content": "no evidence gathered for this unit"}],
+            })
+        packets.append({
+            "obligation": ob.text,
+            "obligation_id": ob.id,
+            "coverage": ob.coverage,
+            "units": rows,
+        })
+    return packets
+
+
 def requirement_block(board: Board) -> str:
     """All requirement claims — deliverable constraints discovered in sources.
 
@@ -79,6 +121,11 @@ def plan_synthesis(smart_caller, board: Board) -> dict:
         f" ({len(t.claim_refs)} claims)"
         for t in board.targets
     )
+    ob_lines = "\n".join(
+        f"{o.id} [{o.status}/{o.coverage}/{'mandatory' if o.mandatory else 'optional'}]"
+        f" {o.text[:120]} | {len([u for u in board.units_for(o.id) if u.status != 'waived'])} units"
+        for o in board.obligations
+    )
 
     prompt = f"""You are planning the final deliverable(s) of a completed investigation. All analytical work is done — your job is allocation and structure: which resolved questions feed which file, in what order, at what depth, in what form.
 
@@ -88,6 +135,9 @@ REQUEST:
 ANSWER SHAPE: {board.metadata.get('answer_shape', '')[:600]}
 
 OUTPUT FILES REQUIRED: {json.dumps(files)}
+
+ANSWER CONTRACT (obligations the deliverables must satisfy; set-valued ones track units):
+{ob_lines or '(none)'}
 
 RESOLVED AND OPEN QUESTIONS:
 {target_lines}
@@ -99,17 +149,39 @@ Rules:
 - The same question can feed multiple files DIFFERENTLY (summary in a memo, full table in a spreadsheet, clause edits in a redline). Allocate accordingly.
 - .xlsx files need data-shaped sections (tables); .docx files need prose/structured documents. Match form to file type and to what the request actually asks for.
 - Closed targets carry the substance. Waived/blocked/open targets with critical/high materiality must appear in a limitations note, never silently dropped.
+- COVERAGE PLAN: every mandatory exhaustive/material/native-complete obligation MUST be placed — say where its units are rendered (one row/subsection/clause per unit, in the source's own order/numbering when one exists), and list the required slots each unit must carry IF the obligation demands repeated fields (e.g. identifier, both sources' positions, difference, severity, quantified impact, recommendation). Derive slots from what the obligation's language demands — never invent ceremony for a summary obligation.
 
 Return JSON:
 {{"files": [{{
   "filename": "<exact filename>",
   "form": "<what kind of document this is, in plain words>",
-  "sections": [{{"title": "...", "target_ids": ["..."], "guidance": "<depth/form for this section>"}}]
+  "sections": [{{"title": "...", "target_ids": ["..."], "guidance": "<depth/form for this section>"}}],
+  "coverage": [{{"obligation_id": "...", "section": "<which section renders its units>", "unit_mode": "row|subsection|clause|inline", "required_slots": ["..."]}}]
 }}]}}
-Every required file must appear."""
+Every required file must appear. Every mandatory set-valued obligation must appear in some file's coverage list."""
 
     parsed = call_json(smart_caller, board, prompt, kind="synthesis_plan",
                        max_tokens=8192)
+    # Coverage guard: a mandatory set-valued obligation with units may not be
+    # left unplaced — fail loudly into the plan, never silently.
+    if isinstance(parsed, dict) and parsed.get("files"):
+        covered = {
+            str(c.get("obligation_id", ""))
+            for f in parsed["files"] if isinstance(f, dict)
+            for c in f.get("coverage", []) if isinstance(c, dict)
+        }
+        for ob in board.obligations:
+            if (ob.set_valued and ob.mandatory and ob.status != "waived"
+                    and board.units_for(ob.id) and ob.id not in covered):
+                first = parsed["files"][0]
+                first.setdefault("coverage", []).append({
+                    "obligation_id": ob.id,
+                    "section": "Coverage Appendix",
+                    "unit_mode": "subsection",
+                    "required_slots": [],
+                })
+                board.log("synthesis_plan",
+                          f"coverage guard: {ob.id} unplaced — appended fallback")
     if not isinstance(parsed, dict) or not parsed.get("files"):
         # Fallback: all material targets into each file, flat.
         closed_ids = [t.id for t in board.targets if t.status == "closed"]
@@ -172,6 +244,7 @@ def synthesize(smart_caller, board: Board, plan: dict) -> dict[str, str]:
         filename = str(file_plan.get("filename", "output.docx"))
         is_xlsx = filename.lower().endswith(".xlsx")
         sections = file_plan.get("sections", [])
+        coverage = [c for c in file_plan.get("coverage", []) if isinstance(c, dict)]
 
         packet_blocks = []
         for sec in sections:
@@ -185,6 +258,25 @@ def synthesize(smart_caller, board: Board, plan: dict) -> dict[str, str]:
                 "guidance": str(sec.get("guidance", "")),
                 "packets": packets,
             })
+
+        coverage_block = ""
+        if coverage:
+            ob_ids = [str(c.get("obligation_id", "")) for c in coverage]
+            upackets = unit_packets(board, obligation_ids=ob_ids)
+            plan_lines = "\n".join(
+                f"- {c.get('obligation_id')}: render units in section "
+                f"'{c.get('section')}' as {c.get('unit_mode', 'subsection')}"
+                + (f", each unit carrying: {', '.join(str(s) for s in c.get('required_slots', []))}"
+                   if c.get("required_slots") else "")
+                for c in coverage
+            )
+            coverage_block = f"""
+COVERAGE PLAN (binding structure — fill it, do not reorganize it):
+{plan_lines}
+
+UNIT PACKETS (every unit below MUST appear in the deliverable exactly once, in the source's own order/numbering; a unit without evidence appears with an explicit gap note, never silently dropped):
+{json.dumps(upackets, indent=1, default=str)[:200_000]}
+"""
 
         format_rules = (
             "FORMAT: Spreadsheet content. Use '## Sheet: <name>' to start each "
@@ -212,13 +304,21 @@ FILE: {filename} — {file_plan.get('form', 'document')}
 
 ANALYSIS (per section, with resolved questions and their claims):
 {json.dumps(packet_blocks, indent=1, default=str)[:400_000]}
+{coverage_block}
 
 {f'''UNRESOLVED MATERIAL QUESTIONS (disclose honestly in a final Limitations note):
 {residual_note}''' if residual_note else ''}
 
 Write the COMPLETE deliverable. Professional, specific, decision-ready. Every conclusion traceable to the analysis. No meta-commentary about the process."""
 
-        _dump_packets(board, filename, packet_blocks)
+        _dump_packets(board, filename, {
+            "sections": packet_blocks,
+            "coverage_plan": coverage,
+            "unit_packets": unit_packets(
+                board,
+                obligation_ids=[str(c.get("obligation_id", "")) for c in coverage],
+            ) if coverage else [],
+        })
         text = call_text(
             smart_caller, board, prompt, kind="synthesize",
             max_tokens=32768, temperature=0.25,
@@ -229,7 +329,7 @@ Write the COMPLETE deliverable. Professional, specific, decision-ready. Every co
     return results
 
 
-def _dump_packets(board: Board, filename: str, packet_blocks: list) -> None:
+def _dump_packets(board: Board, filename: str, packet_blocks) -> None:
     """Persist exactly what synthesis saw — the funnel analyzer needs this
     to answer 'did this claim survive packet selection?' without inference."""
     if not board.output_dir:
@@ -269,6 +369,19 @@ def write_final_state(board: Board) -> None:
             "total": len(board.claims),
             "derived": sum(1 for c in board.claims if c.is_derived),
             "unbound": len(board.unbound_claims()),
+        },
+        "contract": {
+            "obligations": len(board.obligations),
+            "satisfied": sum(1 for o in board.obligations if o.status == "satisfied"),
+            "waived": sum(1 for o in board.obligations if o.status == "waived"),
+            "open_mandatory_at_stop": [
+                {"id": o.id, "text": o.text[:120], "coverage": o.coverage}
+                for o in board.open_mandatory_obligations()
+            ],
+            "units": len(board.units),
+            "units_evidenced": sum(
+                1 for u in board.units if u.status in ("evidenced", "analyzed")
+            ),
         },
         "tokens": board.total_tokens_used,
         "cost_by_model": board.cost_by_model,

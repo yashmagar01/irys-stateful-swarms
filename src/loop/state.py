@@ -111,6 +111,61 @@ class Target:
 
 
 @dataclass
+class Obligation:
+    """What the final answer owes — derived from the user's instruction
+    (and corpus-discovered requirements), never from a task taxonomy.
+
+    Coverage standard is a property of the instruction's language:
+    "compare every provision" demands exhaustive; "main risks" demands
+    summary. Targets answer questions; obligations bind the answer.
+    """
+    id: str = ""
+    text: str = ""
+    origin: str = "instruction"
+    coverage: str = "material"
+    mandatory: bool = True
+    status: str = "open"
+    reason: str = ""
+
+    @property
+    def set_valued(self) -> bool:
+        return self.coverage in ("exhaustive", "material", "native-complete")
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id, "text": self.text, "origin": self.origin,
+            "coverage": self.coverage, "mandatory": self.mandatory,
+            "status": self.status, "reason": self.reason,
+        }
+
+
+@dataclass
+class Unit:
+    """A repeated item the answer must account for under an obligation —
+    request category, provision, discrepancy, policy term, issue.
+
+    Units are coverage rows, not investigation questions: they are never
+    scheduled individually, never get controller cards, and are serviced
+    by batch (bind/analysis) and preserved by packets.
+    """
+    id: str = ""
+    name: str = ""
+    obligation_ref: str = ""
+    anchor: str = ""
+    claim_refs: list[str] = field(default_factory=list)
+    status: str = "discovered"
+    reason: str = ""
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id, "name": self.name,
+            "obligation_ref": self.obligation_ref, "anchor": self.anchor,
+            "claim_refs": self.claim_refs,
+            "status": self.status, "reason": self.reason,
+        }
+
+
+@dataclass
 class Source:
     """A document or web result that can ground claims.
 
@@ -190,6 +245,8 @@ class Board:
     sources: list[Source] = field(default_factory=list)
     claims: list[Claim] = field(default_factory=list)
     targets: list[Target] = field(default_factory=list)
+    obligations: list[Obligation] = field(default_factory=list)
+    units: list[Unit] = field(default_factory=list)
     events: list[Event] = field(default_factory=list)
     iteration: int = 0
     stop_reason: str = ""
@@ -204,9 +261,14 @@ class Board:
         self._lock = threading.Lock()
         self._claim_counter = 0
         self._target_counter = 0
+        self._obligation_counter = 0
+        self._unit_counter = 0
         self._claim_index: dict[str, Claim] = {}
         self._target_index: dict[str, Target] = {}
         self._source_index: dict[str, Source] = {}
+        self._obligation_index: dict[str, Obligation] = {}
+        self._unit_index: dict[str, Unit] = {}
+        self._unit_name_index: dict[tuple[str, str], str] = {}
 
     # --- IDs ---
 
@@ -256,6 +318,84 @@ class Board:
         with self._lock:
             self.targets.append(target)
             self._target_index[target.id] = target
+
+    def add_obligation(self, ob: Obligation) -> None:
+        with self._lock:
+            if not ob.id:
+                self._obligation_counter += 1
+                ob.id = f"o{self._obligation_counter}"
+            self.obligations.append(ob)
+            self._obligation_index[ob.id] = ob
+
+    def add_unit(self, unit: Unit) -> Unit:
+        """Add a unit, deduped by (obligation, normalized name).
+
+        Returns the canonical unit (existing one on dedup hit)."""
+        key = (unit.obligation_ref, " ".join(unit.name.lower().split())[:80])
+        with self._lock:
+            existing_id = self._unit_name_index.get(key)
+            if existing_id is not None:
+                canonical = self._unit_index[existing_id]
+                for cid in unit.claim_refs:
+                    if cid not in canonical.claim_refs:
+                        canonical.claim_refs.append(cid)
+                if canonical.status == "discovered" and canonical.claim_refs:
+                    canonical.status = "evidenced"
+                return canonical
+            if not unit.id:
+                self._unit_counter += 1
+                unit.id = f"u{self._unit_counter}"
+            if unit.claim_refs and unit.status == "discovered":
+                unit.status = "evidenced"
+            self.units.append(unit)
+            self._unit_index[unit.id] = unit
+            self._unit_name_index[key] = unit.id
+            return unit
+
+    def bind_claim_to_units(self, claim_id: str, unit_ids: list[str]) -> int:
+        claim = self.find_claim(claim_id)
+        if claim is None:
+            return 0
+        bound = 0
+        with self._lock:
+            for uid in unit_ids:
+                unit = self._unit_index.get(uid)
+                if unit is None:
+                    continue
+                if claim_id not in unit.claim_refs:
+                    unit.claim_refs.append(claim_id)
+                    bound += 1
+                if unit.status == "discovered":
+                    unit.status = "evidenced"
+        return bound
+
+    def find_obligation(self, ob_id: str) -> Obligation | None:
+        return self._obligation_index.get(ob_id)
+
+    def find_unit(self, unit_id: str) -> Unit | None:
+        return self._unit_index.get(unit_id)
+
+    def units_for(self, obligation_id: str) -> list[Unit]:
+        return [u for u in self.units if u.obligation_ref == obligation_id]
+
+    def open_mandatory_obligations(self) -> list[Obligation]:
+        return [o for o in self.obligations if o.mandatory and o.status == "open"]
+
+    def obligation_card(self, ob: Obligation) -> dict:
+        """Aggregate counts only — units never appear individually to the
+        controller."""
+        units = self.units_for(ob.id)
+        active = [u for u in units if u.status != "waived"]
+        return {
+            "id": ob.id,
+            "text": ob.text[:140],
+            "coverage": ob.coverage,
+            "mandatory": ob.mandatory,
+            "status": ob.status,
+            "units": len(active),
+            "evidenced": sum(1 for u in active if u.status in ("evidenced", "analyzed")),
+            "unevidenced": sum(1 for u in active if u.status == "discovered"),
+        }
 
     def bind_claim(self, claim_id: str, target_ids: list[str]) -> bool:
         """Attach a claim to targets. Returns True if anything changed."""
@@ -471,6 +611,8 @@ class Board:
                 {**t.to_dict(), "blockers": self.target_blockers(t)}
                 for t in self.targets
             ],
+            "obligations": [o.to_dict() for o in self.obligations],
+            "units": [u.to_dict() for u in self.units],
             "total_tokens_used": self.total_tokens_used,
             "token_budget": self.token_budget,
             "budget_used_pct": self.budget_used_pct(),

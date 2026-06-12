@@ -70,22 +70,29 @@ def run_loop(task, worker_caller, smart_caller=None):
 
         # --- convergence policy ---
         material_open = board.material_open_targets()
-        open_history.append(len(material_open))
+        open_mandatory = board.open_mandatory_obligations()
+        open_history.append(len(material_open) + len(open_mandatory))
         closeout = (
             board.iteration >= MAX_ITERATIONS // 2
             and len(open_history) >= 2
             and open_history[-1] >= open_history[-2] > 0
         )
         if closeout:
-            board.log("closeout", f"{len(material_open)} material targets not shrinking")
+            board.log(
+                "closeout",
+                f"{len(material_open)} material targets + "
+                f"{len(open_mandatory)} mandatory obligations not shrinking",
+            )
         if decision["converge"]:
-            if not material_open:
+            if not material_open and not open_mandatory:
                 board.stop_reason = f"converged: {decision['converge_reason']}"
                 break
             board.log(
                 "converge_denied",
-                f"{len(material_open)} material targets still open",
-                detail={"open": [t.id for t in material_open]},
+                f"{len(material_open)} material targets, "
+                f"{len(open_mandatory)} mandatory obligations still open",
+                detail={"targets": [t.id for t in material_open],
+                        "obligations": [o.id for o in open_mandatory]},
             )
         if board.iteration >= MAX_ITERATIONS:
             board.stop_reason = (

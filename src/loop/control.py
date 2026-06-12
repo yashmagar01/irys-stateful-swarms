@@ -13,7 +13,7 @@ from __future__ import annotations
 import json
 
 from .llm import call_json
-from .state import Board, Target
+from .state import Board, Obligation, Target, Unit
 from .triage import catalog_summary
 
 MAX_ACTIONS_PER_ITERATION = 6
@@ -48,12 +48,23 @@ REQUEST:
 AVAILABLE SOURCES (metadata only — nothing has been read yet):
 {doc_lines}{more}
 
-Produce the target ledger: 5-14 targets. Each target is a question or obligation the answer must close. Good targets are semantic ("reconcile the share counts across documents", "determine total 10-year cost including escalations"), never formatting ("include a table").
+Produce two things:
+
+1. The target ledger: 5-14 targets. Each target is a question the investigation must close. Good targets are semantic ("reconcile the share counts across documents", "determine total 10-year cost including escalations"), never formatting ("include a table").
+
+2. The answer contract: what the final answer OWES the user, derived from the instruction's own words. Each obligation has a coverage standard read from the language:
+   - "exhaustive": the instruction demands accounting for EVERY repeated item ("compare each provision", "identify all issues", "extract the terms") — missing one item fails the user.
+   - "material": every material item, with omissions explained.
+   - "representative": examples suffice.
+   - "native-complete": a complete work product (a full draft/agreement/letter), not an item ledger.
+   - "summary": a concise synthesis is what was asked.
+   An instruction can mix obligations with different standards. If an obligation covers repeated items, name the unit of account in the task's own language (provision, request category, policy term, issue, claim, section) — units themselves will be discovered during reading.
 
 Also state what would make the answer excellent (answer_shape) — depth, rigor, what a demanding expert reader would check first.
 
 Return JSON:
 {{"targets": [{{"need": "...", "materiality": "critical|high|medium|low"}}],
+ "obligations": [{{"text": "<what the answer owes, in the instruction's words>", "coverage": "exhaustive|material|representative|native-complete|summary", "mandatory": true/false, "unit_kind": "<the repeated item, or empty>"}}],
  "answer_shape": "<3-5 sentences>"}}"""
 
     parsed = call_json(smart_caller, board, prompt, kind="seed", max_tokens=8192)
@@ -70,6 +81,23 @@ Return JSON:
             board.add_target(Target(
                 need=need, materiality=materiality,
                 created_iteration=0, proposed_by="seed",
+            ))
+        for ob in parsed.get("obligations", []):
+            if not isinstance(ob, dict):
+                continue
+            text = str(ob.get("text", "")).strip()
+            if not text:
+                continue
+            coverage = str(ob.get("coverage", "material"))
+            if coverage not in ("exhaustive", "material", "representative",
+                                "native-complete", "summary"):
+                coverage = "material"
+            unit_kind = str(ob.get("unit_kind", "")).strip()
+            if unit_kind:
+                text = f"{text} [unit: {unit_kind}]"
+            board.add_obligation(Obligation(
+                text=text, origin="instruction", coverage=coverage,
+                mandatory=bool(ob.get("mandatory", True)),
             ))
         board.metadata["answer_shape"] = str(parsed.get("answer_shape", ""))[:2000]
     if not board.targets:
@@ -112,6 +140,9 @@ ITERATION {board.iteration} of {max_iterations} | budget used {board.budget_used
 CLOSE-OUT MODE: Open material targets have stopped shrinking and iterations are finite. This round you MUST resolve every open target: CLOSE it if its claims defensibly answer it; WAIVE it with a reason if resolving it would not materially change the answer; BLOCK it with a reason if it cannot be answered from available sources (e.g. it requires a document that is not in the corpus — "obtain document X" targets are blocked, never left open). You may keep at most 2 targets open, each with exactly one final action dispatched this round.
 ''' if closeout else ''}
 
+ANSWER CONTRACT (what the final answer owes the user; units are repeated items being tracked under each obligation):
+{json.dumps([board.obligation_card(o) for o in board.obligations], indent=1) if board.obligations else '(no obligations derived)'}
+
 OPEN TARGETS (cards with computed blockers):
 {json.dumps(open_cards, indent=1)}
 
@@ -129,7 +160,7 @@ SOURCES:
 {catalog_summary(board)}
 
 AVAILABLE ACTION KINDS:
-- read {{source_id, focus, target_ids, depth}} — extract evidence from a source (use focus to direct attention). depth "exhaustive" adds a full-inventory pass capturing EVERY term/amount/date/exception — use it when the task is scored on completeness of specifics from this source (extractions, side-by-side comparisons, issue inventories, term-dense documents like policies/schedules/term sheets). depth "focused" (default) for drafting tasks where key provisions matter more than every detail.
+- read {{source_id, focus, target_ids, depth}} — extract evidence from a source (use focus to direct attention). depth "exhaustive" adds a full-inventory pass capturing EVERY term/amount/date/exception — use it when an obligation's coverage standard requires accounting for every repeated item this source contains (exhaustive/material obligations over term-dense documents: policies, schedules, term sheets, request lists). depth "focused" (default) when key provisions matter more than every detail.
 - search {{query, target_ids}} — web search for external knowledge (current law, standards, public facts not in sources)
 - bind {{}} — connect unbound claims to targets (dispatch when unbound count is high)
 - analyze {{target_id, instruction}} — promote a target's evidence into conclusions/calculations/issues/recommendations
@@ -140,11 +171,13 @@ DECISION RULES:
 - High unbound count → bind before anything else can be judged accurately.
 - Close a target ONLY when its derived claims genuinely answer the need. Waive with a reason if not worth pursuing. Block with a reason if it cannot be answered from available sources/budget.
 - Read unread "definite" sources early; pull "unlikely" sources in only if evidence demands it.
-- Converge when every critical/high target is closed/waived/blocked and another round would not materially improve the answer. Do NOT converge while many claims remain unbound — dispatch bind first so closure judgments see all the evidence.
+- Converge when every critical/high target is closed/waived/blocked AND every mandatory obligation is satisfied or explicitly waived, and another round would not materially improve the answer. Do NOT converge while many claims remain unbound — dispatch bind first so closure judgments see all the evidence.
+- Mark an obligation "satisfied" only when its units are evidenced (or it is not set-valued and its substance is covered by closed targets). Waive only with a reason the user would accept. An exhaustive obligation with unevidenced units is NOT satisfied — dispatch reads/bind for those units instead.
 
 Return JSON:
 {{"reasoning": "<2-4 sentences>",
  "target_updates": [{{"target_id": "...", "status": "closed|waived|blocked", "reason": "..."}}],
+ "obligation_updates": [{{"obligation_id": "...", "status": "satisfied|waived", "reason": "..."}}],
  "actions": [{{"kind": "read|search|bind|analyze|verify", ...params}}],
  "converge": true/false,
  "converge_reason": "<if converging>"}}
@@ -166,6 +199,16 @@ Max {MAX_ACTIONS_PER_ITERATION} actions. Actions run in parallel — make them i
             str(u.get("target_id", "")), status, str(u.get("reason", ""))[:300],
         ):
             updates += 1
+    for u in parsed.get("obligation_updates", []):
+        if not isinstance(u, dict):
+            continue
+        ob = board.find_obligation(str(u.get("obligation_id", "")))
+        status = str(u.get("status", ""))
+        if ob is None or status not in ("satisfied", "waived"):
+            continue
+        ob.status = status
+        ob.reason = str(u.get("reason", ""))[:300]
+        updates += 1
 
     actions = [
         a for a in parsed.get("actions", [])
@@ -309,7 +352,21 @@ def reframe_ledger(smart_caller, board: Board) -> None:
         for r in reopen[:15]
     )
 
-    prompt = f"""You are REBUILDING the question ledger of an investigation mid-flight. The original questions were written before any document was read. The investigation has since built real understanding — your job is to re-derive what the question set SHOULD be, knowing everything now known, and fix the gap between that ideal and the current ledger.
+    requirement_claims = [
+        c for c in board.claims if c.active and c.kind == "requirement"
+    ]
+    req_text = "\n".join(f"- [{c.id}] {c.content[:140]}" for c in requirement_claims[:20])
+    ob_lines = []
+    for o in board.obligations:
+        units = board.units_for(o.id)
+        unit_sample = ", ".join(u.name[:40] for u in units[:8])
+        ob_lines.append(
+            f"{o.id} [{o.status}/{o.coverage}/{'mandatory' if o.mandatory else 'optional'}]"
+            f" {o.text[:110]} | {len(units)} units"
+            + (f" (e.g. {unit_sample})" if unit_sample else "")
+        )
+
+    prompt = f"""You are REBUILDING the working state of an investigation mid-flight. The original questions and answer contract were written before any document was read. The investigation has since built real understanding — even what the answer NEEDS should evolve with that understanding. Your job: re-derive what the question set and the answer contract SHOULD be, knowing everything now known, and repair the gap.
 
 TASK:
 {board.instruction[:4000]}
@@ -320,7 +377,13 @@ CURRENT UNDERSTANDING OF WHAT A GREAT ANSWER NEEDS:
 SOURCES (read state):
 {sources_read}
 
-CURRENT LEDGER (all questions, open and resolved):
+ANSWER CONTRACT (obligations and their tracked units):
+{chr(10).join(ob_lines) or '(none)'}
+
+DELIVERABLE REQUIREMENTS DISCOVERED IN SOURCES (not yet folded into the contract):
+{req_text or '(none)'}
+
+CURRENT QUESTION LEDGER (open and resolved):
 {all_targets}
 
 STRONGEST CONCLUSIONS SO FAR:
@@ -331,21 +394,26 @@ CLOSED QUESTIONS DISTURBED BY LATER EVIDENCE (reopen candidates):
 
 CLAIM BASE: {len(board.claims)} claims, {len(derived)} derived, {len(board.unbound_claims())} unbound.
 
-Rebuild operations available:
-1. SPLIT a coarse question into specific per-item questions. Comparison/reconciliation/issue-inventory questions that bundle many items ("compare X against Y", "identify all issues in Z") MUST be split into the concrete per-item questions that reading has made visible (per provision, per defined term, per discrepancy, per issue category). The answer is scored item by item — coarse questions produce coarse answers.
-2. OPEN a new question that the evidence has revealed but nobody asked.
-3. REOPEN a closed question whose closure later evidence undermines.
-4. REPRIORITIZE based on what understanding shows actually matters.
-5. UPDATE the answer_shape to reflect current understanding of excellence.
+Repair operations:
+1. CONTRACT — what the answer owes should grow with understanding:
+   - add_obligation: an obligation the corpus has revealed (including folding in discovered requirements above).
+   - adjust_coverage: the corpus showed the real structure (e.g. the request asks to "review the agreement" but the source is organized as 18 numbered request categories — coverage becomes exhaustive over those units). Give the reason.
+   - waive_obligation: understanding shows it does not matter; reason required.
+2. UNITS — repair the coverage ledger: add units visible in source structure that reading missed, waive out-of-scope units (with reason). Units are source-native items (a numbered category, a named provision, a specific term), never speculative.
+3. QUESTIONS — open new questions evidence revealed; reopen closed questions whose closure later evidence undermines; reprioritize. Split a question ONLY if its parts genuinely need separate investigation AND remaining capacity can service them — coverage of repeated items is the units' job, not the question ledger's.
+4. UPDATE answer_shape to current understanding of excellence.
 
 Return JSON:
-{{"splits": [{{"target_id": "...", "into": [{{"need": "...", "materiality": "critical|high|medium|low"}}]}}],
- "new_targets": [{{"need": "...", "materiality": "..."}}],
+{{"add_obligations": [{{"text": "...", "coverage": "exhaustive|material|representative|native-complete|summary", "mandatory": true/false}}],
+ "adjust_coverage": [{{"obligation_id": "...", "coverage": "...", "reason": "..."}}],
+ "waive_obligations": [{{"obligation_id": "...", "reason": "..."}}],
+ "add_units": [{{"obligation_id": "...", "name": "...", "anchor": "<source/section>"}}],
+ "waive_units": [{{"unit_id": "...", "reason": "..."}}],
+ "new_targets": [{{"need": "...", "materiality": "critical|high|medium|low"}}],
  "reopens": [{{"target_id": "...", "reason": "..."}}],
  "reprioritize": [{{"target_id": "...", "materiality": "..."}}],
  "answer_shape": "<updated, 3-6 sentences>"}}
-
-Be aggressive on splits for comparison/inventory questions — that is where rebuilds create the most value. Do not split questions that are genuinely atomic."""
+Only ops that genuinely improve the state. Empty lists are valid."""
 
     parsed = call_json(smart_caller, board, prompt, kind="reframe",
                        max_tokens=16384)
@@ -353,30 +421,68 @@ Be aggressive on splits for comparison/inventory questions — that is where reb
         board.log("reframe", "parse failure — ledger unchanged")
         return
 
-    splits = opens = reopens = 0
-    for sp in parsed.get("splits", []):
-        if not isinstance(sp, dict):
+    ob_ops = opens = reopens = unit_ops = 0
+    for ao in parsed.get("add_obligations", []):
+        if not isinstance(ao, dict):
             continue
-        parent = board.find_target(str(sp.get("target_id", "")))
-        subs = [s for s in sp.get("into", []) if isinstance(s, dict)
-                and str(s.get("need", "")).strip()]
-        if parent is None or len(subs) < 2:
+        text = str(ao.get("text", "")).strip()
+        if not text:
             continue
-        for s in subs:
-            m = str(s.get("materiality", parent.materiality))
-            if m not in ("critical", "high", "medium", "low"):
-                m = parent.materiality
-            child = Target(
-                need=str(s.get("need", "")).strip(),
-                materiality=m,
-                created_iteration=board.iteration, proposed_by="reframe",
-            )
-            board.add_target(child)
-            # children inherit the parent's evidence for re-binding/analysis
-            for cid in parent.claim_refs:
-                board.bind_claim(cid, [child.id])
-        board.resolve_target(parent.id, "waived", f"split into {len(subs)} by reframe")
-        splits += 1
+        coverage = str(ao.get("coverage", "material"))
+        if coverage not in ("exhaustive", "material", "representative",
+                            "native-complete", "summary"):
+            coverage = "material"
+        board.add_obligation(Obligation(
+            text=text, origin=f"reframe_iter{board.iteration}",
+            coverage=coverage, mandatory=bool(ao.get("mandatory", True)),
+        ))
+        ob_ops += 1
+    for ac in parsed.get("adjust_coverage", []):
+        if not isinstance(ac, dict):
+            continue
+        ob = board.find_obligation(str(ac.get("obligation_id", "")))
+        coverage = str(ac.get("coverage", ""))
+        if ob is None or coverage not in (
+            "exhaustive", "material", "representative", "native-complete", "summary",
+        ):
+            continue
+        board.log(
+            "contract_change",
+            f"{ob.id} coverage {ob.coverage} -> {coverage}: "
+            f"{str(ac.get('reason', ''))[:150]}",
+        )
+        ob.coverage = coverage
+        ob_ops += 1
+    for wo in parsed.get("waive_obligations", []):
+        if not isinstance(wo, dict):
+            continue
+        ob = board.find_obligation(str(wo.get("obligation_id", "")))
+        if ob is None:
+            continue
+        ob.status = "waived"
+        ob.reason = str(wo.get("reason", ""))[:300]
+        ob_ops += 1
+    for au in parsed.get("add_units", []):
+        if not isinstance(au, dict):
+            continue
+        ob = board.find_obligation(str(au.get("obligation_id", "")))
+        name = str(au.get("name", "")).strip()
+        if ob is None or not name:
+            continue
+        board.add_unit(Unit(
+            name=name, obligation_ref=ob.id,
+            anchor=str(au.get("anchor", ""))[:120],
+        ))
+        unit_ops += 1
+    for wu in parsed.get("waive_units", []):
+        if not isinstance(wu, dict):
+            continue
+        unit = board.find_unit(str(wu.get("unit_id", "")))
+        if unit is None:
+            continue
+        unit.status = "waived"
+        unit.reason = str(wu.get("reason", ""))[:200]
+        unit_ops += 1
     for nt in parsed.get("new_targets", []):
         if not isinstance(nt, dict):
             continue
@@ -412,6 +518,8 @@ Be aggressive on splits for comparison/inventory questions — that is where reb
 
     board.log(
         "reframe",
-        f"rebuild: {splits} splits, {opens} new, {reopens} reopened",
-        detail={"splits": splits, "new": opens, "reopens": reopens},
+        f"contract repair: {ob_ops} obligation ops, {unit_ops} unit ops, "
+        f"{opens} new targets, {reopens} reopened",
+        detail={"obligation_ops": ob_ops, "unit_ops": unit_ops,
+                "new": opens, "reopens": reopens},
     )

@@ -14,7 +14,7 @@ import hashlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from .llm import call_json
-from .state import CLAIM_KINDS, Board, Claim, Source, Target
+from .state import CLAIM_KINDS, Board, Claim, Source, Target, Unit
 
 # Smaller chunks = more parallel extraction calls, each with the full output
 # budget — dense documents (policies, schedules, tables) lose their tail when
@@ -123,8 +123,20 @@ TASK CONTEXT:
 QUESTIONS THIS READ SERVES:
 {targets_text}{focus_note}"""
 
-    prompt = f"""{framing}
+    set_valued = [o for o in board.obligations if o.set_valued and o.status == "open"]
+    units_ask = ""
+    units_schema = ""
+    if set_valued:
+        ob_list = "\n".join(f"  {o.id}: {o.text[:120]}" for o in set_valued[:6])
+        units_ask = f"""
+COVERAGE OBLIGATIONS (the answer must account for every repeated item under these):
+{ob_list}
+If this text contains the repeated items an obligation tracks (numbered categories, named provisions, listed terms, schedule rows, enumerated issues), report each as a unit with its source anchor. Units are source-native names, never speculative."""
+        units_schema = """,
+ "units": [{"obligation_id": "...", "name": "<source-native item name>", "anchor": "<section/number/heading>"}]"""
 
+    prompt = f"""{framing}
+{units_ask}
 DOCUMENT: {source.name}{chunk_note}
 ---
 {job['chunk']}
@@ -132,7 +144,7 @@ DOCUMENT: {source.name}{chunk_note}
 
 Return JSON:
 {{"claims": [{{"kind": "observation", "content": "<the fact, specific and self-contained>", "section": "<section/heading it came from>", "evidence": "<short exact quote>", "confidence": 0.0-1.0}}],
- "proposed_targets": [{{"need": "<new question this document raises that the task must answer>", "materiality": "critical|high|medium|low"}}]}}
+ "proposed_targets": [{{"need": "<new question this document raises that the task must answer>", "materiality": "critical|high|medium|low"}}]{units_schema}}}
 
 Rules:
 - kind is usually "observation". Use "contradiction" if this text conflicts with itself, "gap" if something expected is conspicuously absent, "issue" for a clear defect/risk stated in the text.
@@ -224,17 +236,27 @@ def _run_bind_batch(job: dict, board: Board, caller) -> dict:
     claims_text = "\n".join(
         f"{c.id} [{c.kind}] {c.content[:220]}" for c in claims
     )
+    active_units = [u for u in board.units if u.status != "waived"]
+    units_text = ""
+    units_schema = ""
+    if active_units:
+        units_text = "\nCOVERAGE UNITS (repeated items the answer must account for; attach claims that evidence a specific unit):\n" + "\n".join(
+            f"{u.id} [{board.find_obligation(u.obligation_ref).text[:50] if board.find_obligation(u.obligation_ref) else ''}] {u.name[:80]}"
+            for u in active_units[:120]
+        )
+        units_schema = ', "unit_ids": ["..."]'
 
     prompt = f"""You are connecting extracted evidence to the questions it helps answer. A claim can serve multiple questions. A claim that serves no current question gets an empty list — do NOT force-fit.
 
 QUESTIONS (id, materiality, need):
 {targets_text}
+{units_text}
 
 CLAIMS (id, kind, content):
 {claims_text}
 
 Return JSON:
-{{"bindings": [{{"claim_id": "...", "target_ids": ["..."]}}]}}
+{{"bindings": [{{"claim_id": "...", "target_ids": ["..."]{units_schema}}}]}}
 Include every claim id. Bind on substance, not keyword overlap."""
 
     parsed = call_json(caller, board, prompt, kind="bind", max_tokens=16384)
@@ -244,9 +266,13 @@ Include every claim id. Bind on substance, not keyword overlap."""
     for b in parsed.get("bindings", []):
         if not isinstance(b, dict):
             continue
+        cid = str(b.get("claim_id", ""))
         tids = [str(t) for t in b.get("target_ids", []) if t]
-        if tids and board.bind_claim(str(b.get("claim_id", "")), tids):
+        if tids and board.bind_claim(cid, tids):
             bound += 1
+        uids = [str(u) for u in b.get("unit_ids", []) if u]
+        if uids:
+            board.bind_claim_to_units(cid, uids)
     return {"bound": bound}
 
 
@@ -430,13 +456,27 @@ def _ingest_claims(parsed, board: Board, *, source: Source | None,
         ))
         proposed += 1
 
-    if added or proposed:
+    units_added = 0
+    for un in parsed.get("units", []):
+        if not isinstance(un, dict):
+            continue
+        name = str(un.get("name", "")).strip()
+        ob = board.find_obligation(str(un.get("obligation_id", "")))
+        if not name or ob is None or not ob.set_valued:
+            continue
+        board.add_unit(Unit(
+            name=name, obligation_ref=ob.id,
+            anchor=str(un.get("anchor", ""))[:120],
+        ))
+        units_added += 1
+
+    if added or proposed or units_added:
         board.log(
             "action_output",
-            f"{created_by}: {added} claims, {proposed} targets",
+            f"{created_by}: {added} claims, {proposed} targets, {units_added} units",
             detail={"by": created_by, "claim_ids": added_ids},
         )
-    return {"claims": added, "targets_proposed": proposed}
+    return {"claims": added, "targets_proposed": proposed, "units": units_added}
 
 
 def _targets_brief(board: Board, target_ids: list[str]) -> str:
