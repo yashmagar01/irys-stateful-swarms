@@ -15,7 +15,10 @@ from pathlib import Path
 from .llm import call_json, call_text
 from .state import Board, Target
 
-_CLAIMS_PER_TARGET = 14
+# Completeness-driven tasks (extractions, schedules, term sheets) are scored
+# on the long tail of specifics — packets must carry it. 3.5 flash takes 1M
+# input tokens; starving synthesis to save prompt space is a false economy.
+_CLAIMS_PER_TARGET = 48
 _CONTENT_CAP = 500
 _EVIDENCE_CAP = 220
 
@@ -188,7 +191,7 @@ FILE: {filename} — {file_plan.get('form', 'document')}
 {format_rules}
 
 ANALYSIS (per section, with resolved questions and their claims):
-{json.dumps(packet_blocks, indent=1, default=str)[:120_000]}
+{json.dumps(packet_blocks, indent=1, default=str)[:400_000]}
 
 {f'''UNRESOLVED MATERIAL QUESTIONS (disclose honestly in a final Limitations note):
 {residual_note}''' if residual_note else ''}

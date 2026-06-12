@@ -16,7 +16,10 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from .llm import call_json
 from .state import CLAIM_KINDS, Board, Claim, Source, Target
 
-_CHUNK_CHARS = 80_000
+# Smaller chunks = more parallel extraction calls, each with the full output
+# budget — dense documents (policies, schedules, tables) lose their tail when
+# one call must cover too much text.
+_CHUNK_CHARS = 40_000
 _MAX_PARALLEL = 8
 _BIND_BATCH = 60
 
@@ -119,6 +122,7 @@ Return JSON:
 Rules:
 - kind is usually "observation". Use "contradiction" if this text conflicts with itself, "gap" if something expected is conspicuously absent, "issue" for a clear defect/risk stated in the text.
 - Be exhaustive on facts relevant to the questions; include other clearly material facts too.
+- Dense term-bearing text (policy declarations, schedules, fee tables, defined-term lists) demands EVERY term: every limit, sublimit, deductible, retention, date, exclusion, endorsement, and amount — completeness over brevity.
 - proposed_targets only for genuinely new material questions, not restatements. A target must be a QUESTION answerable from the sources or web search — advice or actions for the client ("negotiate X", "obtain Y") are claims (recommendation/gap), never targets."""
 
     parsed = call_json(caller, board, prompt, kind="read", max_tokens=16384)
