@@ -12,6 +12,7 @@ from docx.shared import Pt
 
 from .ingestion import discover_documents
 from .providers.gemini import GeminiCaller
+from .providers.rotating import RotatingCaller
 from .swarm import run_swarm
 from .swarm.models import Task
 from .swarm.survival_trace import (
@@ -84,6 +85,12 @@ def run_single_task(task_dir: Path, output_dir: Path, *,
     worker_caller = GeminiCaller(model=w_model)
     synthesis_caller = GeminiCaller(model=s_model) if s_model != w_model else worker_caller
     reviewer_caller = GeminiCaller(model=r_model) if r_model else None
+
+    audit_model = os.getenv("SWARM_AUDIT_MODEL", "").strip()
+    if audit_model:
+        from .providers.anthropic import AnthropicCaller
+        audit_caller = AnthropicCaller(model=audit_model)
+        synthesis_caller = RotatingCaller([synthesis_caller, audit_caller])
 
     out_dir = output_dir / task_id.replace("/", os.sep)
     out_dir.mkdir(parents=True, exist_ok=True)
