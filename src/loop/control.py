@@ -214,6 +214,13 @@ DECISION RULES:
 - Converge when every critical/high target is closed/waived/blocked AND every mandatory obligation is satisfied or explicitly waived, and another round would not materially improve the answer. Do NOT converge while many claims remain unbound — dispatch bind first so closure judgments see all the evidence.
 - Mark an obligation "satisfied" only when its units are evidenced (or it is not set-valued and its substance is covered by closed targets). Waive only with a reason the user would accept. An exhaustive obligation with unevidenced units is NOT satisfied — dispatch reads/bind for those units instead.
 
+EFFICIENCY DISCIPLINE (critical — follow strictly):
+- BATCH CLOSURES: If multiple targets have analyst close recommendations or sufficient derived claims, close ALL of them in a single target_updates list this round. Never trickle closures one-per-iteration — that wastes iterations.
+- NO STUTTER: If a target received a close recommendation last round AND you are closing it, do NOT dispatch another analyze action for it. The analysis is done. Close it and move on.
+- TIGHT TARGET MANAGEMENT: Do not propose speculative targets you will likely waive later. Every target must serve a concrete gap in the answer. Fewer, sharper targets beat many vague ones.
+- STRATEGIC REASONING: In your reasoning, group open targets by theme and state what each group needs (evidence? analysis? closure?). Name specific target IDs. Do not give generic reasoning like "we need to gather more evidence" — state WHICH targets need WHAT.
+- NEGATIVE EVIDENCE: If a target asks about something and the sources contain no mention of it, that absence IS the finding. Close the target with the finding that it is not addressed in the sources, rather than leaving it open or dispatching more reads.
+
 Return JSON:
 {{"reasoning": "<2-4 sentences>",
  "target_updates": [{{"target_id": "...", "status": "closed|waived|blocked", "reason": "..."}}],
@@ -354,6 +361,142 @@ Only include ops that genuinely improve the ledger. An empty ops list is a valid
                 t.need = need
                 applied += 1
     board.log("maintenance", f"applied {applied} ledger ops")
+
+
+def blackboard_audit(audit_caller, board: Board) -> None:
+    """Strategic blackboard audit by a stronger model.
+
+    Runs periodically (not every iteration) to consolidate and improve
+    the board: close targets with sufficient evidence, open new leads
+    the controller missed, identify extraction gaps, and clean up sprawl.
+    """
+    open_targets = board.open_targets()
+    resolved = board.resolved_targets()
+    unbound = board.unbound_claims()
+    derived = [c for c in board.claims if c.active and c.is_derived]
+
+    target_detail = []
+    for t in open_targets:
+        bound = board.claims_for_target(t)
+        raw = sum(1 for c in bound if c.kind == "observation")
+        der = sum(1 for c in bound if c.is_derived)
+        recs = [
+            e.summary for e in board.events
+            if e.kind == "close_recommendation"
+            and e.detail.get("target_id") == t.id
+        ]
+        target_detail.append(
+            f"{t.id} [{t.materiality}] {t.need}\n"
+            f"  {raw} raw claims, {der} derived, {len(recs)} close recommendations"
+            + (f"\n  Latest recommendation: {recs[-1][:200]}" if recs else "")
+        )
+
+    resolved_detail = "\n".join(
+        f"{t.id} [{t.status}] {t.need}" for t in resolved
+    )
+
+    sources_read = "\n".join(
+        f"- {s.name} ({s.read_status}, {s.reads_done} reads)" for s in board.sources
+    )
+
+    prompt = f"""You are a senior investigator auditing the state of a blackboard mid-investigation. Your job is to look at the entire board with fresh eyes and make strategic improvements the iterative controller may have missed.
+
+TASK:
+{board.instruction}
+
+ITERATION: {board.iteration} | {len(board.claims)} total claims, {len(unbound)} unbound, {len(derived)} derived
+
+SOURCES:
+{sources_read}
+
+OPEN TARGETS (with evidence summary):
+{chr(10).join(target_detail) if target_detail else '(none)'}
+
+RESOLVED TARGETS:
+{resolved_detail if resolved_detail else '(none)'}
+
+ANSWER SHAPE: {board.metadata.get('answer_shape', '')}
+
+Your audit should:
+1. CLOSE targets that have close recommendations or sufficient derived evidence — batch all closures together
+2. WAIVE targets that are redundant, out of scope, or whose answers are already covered by other closed targets
+3. OPEN new targets for gaps you notice — things the task clearly needs that no target covers
+4. IDENTIFY extraction gaps — specific facts the task needs that no claim covers, and which source likely contains them
+5. MERGE duplicate or overlapping targets
+
+Return JSON:
+{{"audit_reasoning": "<your strategic assessment of the board state, 3-5 sentences>",
+ "close": [{{"target_id": "...", "reason": "..."}}],
+ "waive": [{{"target_id": "...", "reason": "..."}}],
+ "new_targets": [{{"need": "...", "materiality": "critical|high|medium|low"}}],
+ "extraction_gaps": [{{"description": "...", "likely_source": "...", "target_ids": ["..."]}}],
+ "merges": [{{"keep": "...", "absorb": ["..."], "need": "<sharpened need>"}}]}}
+Only include ops that genuinely improve the board. Empty lists are valid."""
+
+    parsed = call_json(audit_caller, board, prompt, kind="blackboard_audit",
+                       max_tokens=8192)
+    if not isinstance(parsed, dict):
+        board.log("blackboard_audit", "parse failure — board unchanged")
+        return
+
+    closes = waives = opens = merges = 0
+    for c in parsed.get("close", []):
+        if not isinstance(c, dict):
+            continue
+        if board.resolve_target(
+            str(c.get("target_id", "")), "closed",
+            str(c.get("reason", "audit: sufficient evidence"))[:300],
+        ):
+            closes += 1
+    for w in parsed.get("waive", []):
+        if not isinstance(w, dict):
+            continue
+        if board.resolve_target(
+            str(w.get("target_id", "")), "waived",
+            str(w.get("reason", "audit: not material"))[:300],
+        ):
+            waives += 1
+    for nt in parsed.get("new_targets", []):
+        if not isinstance(nt, dict):
+            continue
+        need = str(nt.get("need", "")).strip()
+        if not need:
+            continue
+        m = str(nt.get("materiality", "medium"))
+        if m not in ("critical", "high", "medium", "low"):
+            m = "medium"
+        board.add_target(Target(
+            need=need, materiality=m,
+            created_iteration=board.iteration, proposed_by="audit",
+        ))
+        opens += 1
+    for mg in parsed.get("merges", []):
+        if not isinstance(mg, dict):
+            continue
+        keep = board.find_target(str(mg.get("keep", "")))
+        if keep is None or not keep.is_open:
+            continue
+        for mid in mg.get("absorb", []):
+            merged = board.find_target(str(mid))
+            if merged is None or merged.id == keep.id or not merged.is_open:
+                continue
+            for cid in merged.claim_refs:
+                board.bind_claim(cid, [keep.id])
+            board.resolve_target(merged.id, "waived", f"audit: merged into {keep.id}")
+            merges += 1
+        new_need = str(mg.get("need", "")).strip()
+        if new_need:
+            keep.need = new_need
+
+    gaps = parsed.get("extraction_gaps", [])
+    reasoning = str(parsed.get("audit_reasoning", ""))[:500]
+
+    board.log(
+        "blackboard_audit",
+        f"audit: {closes} closed, {waives} waived, {opens} new, "
+        f"{merges} merged, {len(gaps)} gaps identified",
+        detail={"reasoning": reasoning, "gaps": gaps[:5]},
+    )
 
 
 def should_maintain(board: Board) -> bool:

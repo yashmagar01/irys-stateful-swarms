@@ -13,8 +13,8 @@ import os
 from .actions import execute_actions
 from .control import (
     _force_analysis_gate,
-    controller_decide, maintain_ledger, reframe_ledger, seed_targets,
-    should_maintain,
+    blackboard_audit, controller_decide, maintain_ledger, reframe_ledger,
+    seed_targets, should_maintain,
 )
 from .state import Board, Source
 from .synthesis import plan_synthesis, synthesize, write_final_state
@@ -32,13 +32,15 @@ DIMINISHING_ROUNDS = 2
 REFRAME_ITERATIONS = tuple(
     int(x) for x in os.getenv("LOOP_REFRAME_ITERATIONS", "3,7").split(",") if x.strip()
 )
+AUDIT_EVERY = int(os.getenv("LOOP_AUDIT_EVERY", "5"))
 
 
-def run_loop(task, worker_caller, smart_caller=None):
+def run_loop(task, worker_caller, smart_caller=None, audit_caller=None):
     """Run the loop on a task. Returns (deliverable, board).
 
     worker_caller: cheap tier — read/search/bind/analyze/verify executors.
     smart_caller: judgment tier — seed/triage/controller/maintenance/synthesis.
+    audit_caller: optional stronger model for periodic blackboard audit.
     """
     smart = smart_caller or worker_caller
     board = Board(
@@ -136,14 +138,18 @@ def run_loop(task, worker_caller, smart_caller=None):
 
         if board.iteration in REFRAME_ITERATIONS:
             reframe_ledger(smart, board)
-            # Splits/reopens legitimately grow the open count — give the
-            # rebuilt ledger a fresh stagnation baseline.
             open_history.clear()
             closeout = False
         elif should_maintain(board) or closeout:
             maintain_ledger(smart, board, closeout=closeout)
 
-        # Maintenance/reframe can waive targets — catch unanalyzed ones.
+        if (audit_caller and AUDIT_EVERY > 0
+                and board.iteration > 0
+                and board.iteration % AUDIT_EVERY == 0
+                and board.open_targets()):
+            blackboard_audit(audit_caller, board)
+
+        # Maintenance/reframe/audit can waive targets — catch unanalyzed ones.
         forced = []
         _force_analysis_gate(board, forced)
         if forced:
