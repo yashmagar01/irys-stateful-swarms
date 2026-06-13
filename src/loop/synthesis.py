@@ -10,6 +10,7 @@ analytical work.
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 from .llm import call_json, call_text
@@ -21,6 +22,25 @@ from .state import Board, Target
 _CLAIMS_PER_TARGET = 48
 _CONTENT_CAP = 500
 _EVIDENCE_CAP = 220
+_REPAIR_ENABLED = os.getenv("LOOP_SYNTHESIS_REPAIR", "1").strip() in (
+    "1", "true", "yes",
+)
+_REPAIR_PACKET_CAP = int(os.getenv("LOOP_SYNTHESIS_REPAIR_PACKET_CAP", "320000"))
+_REPAIR_DRAFT_CAP = int(os.getenv("LOOP_SYNTHESIS_REPAIR_DRAFT_CAP", "120000"))
+
+
+def _dedup_claims(claims, cap: int) -> list:
+    """Remove near-duplicate claims by content fingerprint, keep highest-confidence."""
+    seen: set[str] = set()
+    out = []
+    for c in claims:
+        key = c.content[:200].lower().strip()
+        if key not in seen:
+            seen.add(key)
+            out.append(c)
+        if len(out) >= cap:
+            break
+    return out
 
 
 def target_packet(board: Board, target: Target) -> dict:
@@ -34,7 +54,7 @@ def target_packet(board: Board, target: Target) -> dict:
         (c for c in bound if not c.is_derived),
         key=lambda c: -c.confidence,
     )
-    picked = (derived + raw)[:_CLAIMS_PER_TARGET]
+    picked = _dedup_claims(derived + raw, _CLAIMS_PER_TARGET)
     return {
         "id": target.id,
         "need": target.need,
@@ -108,6 +128,54 @@ def requirement_block(board: Board) -> str:
     return "\n".join(
         f"- {c.content[:300]}" + (f" (Source: {c.source_doc})" if c.source_doc else "")
         for c in reqs
+    )
+
+
+_SUPPLEMENTARY_PER_TARGET = 12
+_SUPPLEMENTARY_CAP = 200_000
+
+
+def _supplementary_evidence(board: Board) -> str:
+    """Claims from waived critical/high targets - facts the investigation
+    collected but whose parent questions were not formally resolved.
+    Synthesis should use these where relevant rather than leaving them
+    only in a limitations footnote.
+    """
+    blocks = []
+    for t in board.targets:
+        if t.status != "waived" or t.materiality not in ("critical", "high"):
+            continue
+        if t.reason.startswith("merged into"):
+            continue
+        bound = board.claims_for_target(t)
+        if not bound:
+            continue
+        derived = sorted(
+            (c for c in bound if c.is_derived), key=lambda c: -c.confidence)
+        raw = sorted(
+            (c for c in bound if not c.is_derived), key=lambda c: -c.confidence)
+        picked = _dedup_claims(derived + raw, _SUPPLEMENTARY_PER_TARGET)
+        if not picked:
+            continue
+        blocks.append({
+            "question": t.need[:200],
+            "status": "partially_investigated",
+            "materiality": t.materiality,
+            "claims": [
+                {"kind": c.kind, "content": c.content[:300],
+                 "evidence": c.evidence[:150], "source": c.source_doc}
+                for c in picked
+            ],
+        })
+    if not blocks:
+        return ""
+    serialized = json.dumps(blocks, indent=1, default=str)[:_SUPPLEMENTARY_CAP]
+    return (
+        "\n\nSUPPLEMENTARY EVIDENCE from partially investigated questions "
+        "(these facts were collected but their parent questions were not fully "
+        "resolved - use them where they add relevant detail, numbers, dates, "
+        "parties, or terms to the deliverable):\n"
+        + serialized
     )
 
 
@@ -290,12 +358,14 @@ UNIT PACKETS (every unit below MUST appear in the deliverable exactly once, in t
             "citations to source documents inline like (Source: <doc>, <section>)."
         )
 
+        supplementary_block = _supplementary_evidence(board)
+
         prompt = f"""You are writing the final deliverable of a completed expert investigation. The analysis below is your ONLY knowledge — write from it, never invent. Where claims carry evidence quotes and sources, use them for precision and citation.
 
 ORIGINAL REQUEST:
 {board.instruction[:4000]}
 
-FILE: {filename} — {file_plan.get('form', 'document')}
+FILE: {filename} - {file_plan.get('form', 'document')}
 {format_rules}
 
 {f'''BINDING REQUIREMENTS discovered in the sources — satisfy EVERY one (addressees, length minimums, mandatory elements, required references, procedural requests). If a length minimum exists, meet it with substance, not padding:
@@ -305,6 +375,7 @@ FILE: {filename} — {file_plan.get('form', 'document')}
 ANALYSIS (per section, with resolved questions and their claims):
 {json.dumps(packet_blocks, indent=1, default=str)[:400_000]}
 {coverage_block}
+{supplementary_block}
 
 {f'''UNRESOLVED MATERIAL QUESTIONS (disclose honestly in a final Limitations note):
 {residual_note}''' if residual_note else ''}
@@ -323,10 +394,94 @@ Write the COMPLETE deliverable. Professional, specific, decision-ready. Every co
             smart_caller, board, prompt, kind="synthesize",
             max_tokens=32768, temperature=0.25,
         )
+        if text and _REPAIR_ENABLED:
+            repaired = _repair_synthesis(
+                smart_caller, board,
+                filename=filename,
+                file_plan=file_plan,
+                format_rules=format_rules,
+                packet_blocks=packet_blocks,
+                coverage_block=coverage_block,
+                supplementary_block=supplementary_block,
+                residual_note=residual_note,
+                draft=text,
+            )
+            if _usable_repair(text, repaired):
+                board.log(
+                    "synthesis_repair",
+                    f"{filename}: {len(text)} -> {len(repaired)} chars",
+                )
+                text = repaired
+            else:
+                board.log(
+                    "synthesis_repair",
+                    f"{filename}: repair discarded",
+                    detail={"draft_chars": len(text),
+                            "repair_chars": len(repaired or "")},
+                )
         results[filename] = text or "(synthesis produced no content)"
         board.log("synthesize", f"{filename}: {len(text)} chars")
 
     return results
+
+
+def _usable_repair(draft: str, repaired: str | None) -> bool:
+    """Reject parse failures and obvious truncation from the repair pass."""
+    if not repaired:
+        return False
+    cleaned = repaired.strip()
+    if not cleaned:
+        return False
+    if len(draft) < 1200:
+        return len(cleaned) >= len(draft) * 0.5
+    return len(cleaned) >= max(1200, int(len(draft) * 0.6))
+
+
+def _repair_synthesis(smart_caller, board: Board, *, filename: str,
+                      file_plan: dict, format_rules: str,
+                      packet_blocks: list[dict], coverage_block: str,
+                      supplementary_block: str,
+                      residual_note: str, draft: str) -> str:
+    """Second-pass coverage editor.
+
+    The first synthesis call writes. This pass checks whether packet-supported
+    facts, numbers, issues, conflicts, recommendations, and required rows were
+    actually rendered in the final artifact shape.
+    """
+    prompt = f"""You are the final coverage editor for an expert work product. The draft below may be well written but incomplete. Compare it against the analysis packets and rewrite the COMPLETE file so packet-supported material survives into the deliverable.
+
+ORIGINAL REQUEST:
+{board.instruction[:4000]}
+
+FILE: {filename} - {file_plan.get('form', 'document')}
+{format_rules}
+
+EDITORIAL RULES:
+- Preserve correct draft content, names, dates, amounts, citations, and structure.
+- Do not invent outside the analysis packets.
+- Do not demote packet-supported material into limitations merely because a target status is waived, blocked, or open. Use limitations only for genuinely missing evidence or true blockers.
+- For issue, discrepancy, conflict, comparison, checklist, and due-diligence deliverables, render each material item in a scoring-friendly structure: unique identifier, exact source location(s), concrete issue/difference, severity or priority, legal/commercial impact, and recommended resolution when the packets support one.
+- For drafting deliverables, make the main draft incorporate all supported deal terms and make any separate issues list capture conflicts, open questions, and bracketed drafting choices explicitly.
+- Exact numbers, dates, thresholds, percentages, parties, defined terms, vote counts, deadlines, statutory/regulatory references, and document section names are high-risk facts. If they are in the packets and material, include them verbatim.
+- If the draft already covers an item, keep it. If the packets contain a material item the draft missed, add it in the proper section instead of appending a generic note.
+
+ANALYSIS PACKETS:
+{json.dumps(packet_blocks, indent=1, default=str)[:_REPAIR_PACKET_CAP]}
+{coverage_block[:80_000]}
+{supplementary_block[:100_000]}
+
+{f'''UNRESOLVED MATERIAL QUESTIONS:
+{residual_note}''' if residual_note else ''}
+
+DRAFT TO REPAIR:
+{draft[:_REPAIR_DRAFT_CAP]}
+
+Return only the complete revised deliverable. No commentary about the repair process."""
+
+    return call_text(
+        smart_caller, board, prompt, kind="synthesis_repair",
+        max_tokens=32768, temperature=0.15,
+    )
 
 
 def _dump_packets(board: Board, filename: str, packet_blocks) -> None:
