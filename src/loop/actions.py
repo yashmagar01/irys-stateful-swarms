@@ -91,6 +91,8 @@ def _read_jobs(action: dict, board: Board) -> list[tuple[str, dict]]:
         base = {
             "source": source,
             "chunk": text[i:i + _CHUNK_CHARS],
+            "chunk_start": i,
+            "chunk_end": min(i + _CHUNK_CHARS, len(text)),
             "chunk_no": i // _CHUNK_CHARS + 1,
             "chunks_total": (len(text) - 1) // _CHUNK_CHARS + 1,
             "focus": focus,
@@ -148,15 +150,19 @@ DOCUMENT: {source.name}{chunk_note}
 ---
 
 Return JSON:
-{{"claims": [{{"kind": "observation", "content": "<the fact, specific and self-contained>", "section": "<section/heading it came from>", "evidence": "<short exact quote>", "confidence": 0.0-1.0}}],
- "proposed_targets": [{{"need": "<new question this document raises that the task must answer>", "materiality": "critical|high|medium|low"}}]{units_schema}}}
+{{"claims": [{{"kind": "observation", "content": "<the fact, specific and self-contained>", "section": "<section/heading it came from>", "evidence": "<short exact quote copied verbatim from the document>", "confidence": 0.0-1.0}}],
+ "proposed_targets": [{{"need": "<new question this document raises that the task must answer>", "materiality": "critical|high|medium|low"}}],
+ "proposed_reads": [{{"source_hint": "<document/exhibit/schedule name, if stated>", "section_hint": "<section/page/clause to read next>", "reason": "<why this referenced material matters>", "target_ids": ["<target ids this would help, if known>"]}}]{units_schema}}}
 
 Rules:
 - kind is usually "observation". Use "contradiction" if this text conflicts with itself, "gap" if something expected is conspicuously absent, "issue" for a clear defect/risk stated in the text.
 - kind "requirement" ONLY for constraints on the work product being created (the document this task will produce): its addressee and submission address, who signs/submits it, its length or format, its filing deadline, elements it must contain, references it must make, procedural requests it must include. Obligations that documents impose on parties (notice duties, filing duties, contractual obligations of the insured/permittee/borrower) are "observation", NEVER "requirement".
 - Be exhaustive on facts relevant to the questions; include other clearly material facts too.
 - Dense term-bearing text (policy declarations, schedules, fee tables, defined-term lists) demands EVERY term: every limit, sublimit, deductible, retention, date, exclusion, endorsement, and amount — completeness over brevity.
-- proposed_targets only for genuinely new material questions, not restatements. A target must be a QUESTION answerable from the sources or web search — advice or actions for the client ("negotiate X", "obtain Y") are claims (recommendation/gap), never targets."""
+- proposed_targets only for genuinely new material questions, not restatements. A target must be a QUESTION answerable from the sources or web search — advice or actions for the client ("negotiate X", "obtain Y") are claims (recommendation/gap), never targets.
+- evidence must be copied verbatim from the document. It is used to locate the source span; do not paraphrase it.
+- proposed_reads are for explicit cross-references or clearly missing referenced materials, e.g. "Section 8.3", "Exhibit B", "Schedule 2.1". Do not propose generic extra research.
+- proposed_reads should be few and high-value; omit them if no specific referenced source/section is visible."""
 
     parsed = call_json(caller, board, prompt, kind="read", max_tokens=16384)
     if job.get("mode") == "inventory" and isinstance(parsed, dict):
@@ -165,6 +171,8 @@ Rules:
     return _ingest_claims(
         parsed, board, source=source,
         created_by=f"{tag}:{job.get('action_id', '')}",
+        span_text=job["chunk"],
+        span_start=int(job.get("chunk_start", 0)),
     )
 
 
@@ -469,12 +477,16 @@ def _find_quote_span(text: str, quote: str, base_offset: int = 0) -> tuple[int, 
 
 def _ingest_claims(parsed, board: Board, *, source: Source | None,
                    created_by: str, bind_to: list[str] | None = None,
-                   valid_support: set[str] | None = None) -> dict:
+                   valid_support: set[str] | None = None,
+                   span_text: str | None = None,
+                   span_start: int = 0) -> dict:
     if not isinstance(parsed, dict):
         return {"claims": 0}
     added = 0
     added_ids: list[str] = []
     seen: set[str] = set()
+    span_hits = 0
+    span_misses = 0
     for item in parsed.get("claims", []):
         if not isinstance(item, dict):
             continue
@@ -496,11 +508,22 @@ def _ingest_claims(parsed, board: Board, *, source: Source | None,
             conf = max(0.05, min(0.98, float(item.get("confidence", 0.6))))
         except (TypeError, ValueError):
             conf = 0.6
+        evidence_raw = str(item.get("evidence", "")).strip()
+        stored_evidence = evidence_raw[:500]
+        source_span = None
+        if source is not None and evidence_raw:
+            haystack = span_text if span_text is not None else source.text()
+            source_span = _find_quote_span(haystack, evidence_raw, span_start)
+            if source_span is not None:
+                span_hits += 1
+            else:
+                span_misses += 1
         claim = Claim(
             kind=kind, content=content,
             source_doc=source.name if source else None,
             source_section=str(item.get("section", "")) or None,
-            evidence=str(item.get("evidence", ""))[:500],
+            evidence=stored_evidence,
+            source_span=source_span,
             support_refs=support,
             target_refs=list(bind_to or []),
             confidence=conf,
@@ -541,13 +564,55 @@ def _ingest_claims(parsed, board: Board, *, source: Source | None,
         ))
         units_added += 1
 
+    proposed_reads_count = 0
+    for pr in parsed.get("proposed_reads", []):
+        if not isinstance(pr, dict):
+            continue
+        source_hint = str(pr.get("source_hint", "")).strip()[:160]
+        section_hint = str(pr.get("section_hint", "")).strip()[:160]
+        reason = str(pr.get("reason", "")).strip()[:240]
+        target_ids_pr = [str(t) for t in pr.get("target_ids", []) if t]
+        if not (source_hint or section_hint) or not reason:
+            continue
+        if proposed_reads_count == 0:
+            proposed_reads_list: list[dict] = []
+        proposed_reads_list.append({
+            "source_hint": source_hint,
+            "section_hint": section_hint,
+            "reason": reason,
+            "target_ids": target_ids_pr[:8],
+            "created_by": created_by,
+        })
+        proposed_reads_count += 1
+        if proposed_reads_count >= 10:
+            break
+
+    if proposed_reads_count > 0:
+        board.log(
+            "proposed_reads",
+            f"{created_by}: {proposed_reads_count} proposed reads",
+            detail={"items": proposed_reads_list},
+        )
+
     if added or proposed or units_added:
         board.log(
             "action_output",
             f"{created_by}: {added} claims, {proposed} targets, {units_added} units",
             detail={"by": created_by, "claim_ids": added_ids},
         )
-    return {"claims": added, "targets_proposed": proposed, "units": units_added}
+
+    if span_misses:
+        board.log(
+            "span_warning",
+            f"{created_by}: {span_misses} evidence quotes did not match source text",
+            detail={"by": created_by, "span_hits": span_hits, "span_misses": span_misses},
+        )
+
+    return {
+        "claims": added, "targets_proposed": proposed, "units": units_added,
+        "span_hits": span_hits, "span_misses": span_misses,
+        "proposed_reads": proposed_reads_count,
+    }
 
 
 def _targets_brief(board: Board, target_ids: list[str]) -> str:
