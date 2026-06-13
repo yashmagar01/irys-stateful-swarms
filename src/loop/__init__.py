@@ -12,6 +12,7 @@ import os
 
 from .actions import execute_actions
 from .control import (
+    _force_analysis_gate,
     controller_decide, maintain_ledger, reframe_ledger, seed_targets,
     should_maintain,
 )
@@ -141,6 +142,15 @@ def run_loop(task, worker_caller, smart_caller=None):
             closeout = False
         elif should_maintain(board) or closeout:
             maintain_ledger(smart, board, closeout=closeout)
+
+        # Maintenance/reframe can waive targets — catch unanalyzed ones.
+        forced = []
+        _force_analysis_gate(board, forced)
+        if forced:
+            extra = execute_actions(forced, board, worker_caller)
+            board.log("force_analyze_exec",
+                      f"executed {len(forced)} forced analyze actions",
+                      detail=extra)
 
         board.snapshot()
 
