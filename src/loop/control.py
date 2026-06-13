@@ -83,7 +83,7 @@ Return JSON:
                 need=need, materiality=materiality,
                 created_iteration=0, proposed_by="seed",
             ))
-        for ob in parsed.get("obligations", []):
+        for ob in parsed.get("obligations", []) if board.metadata.get("contract_enabled") else []:
             if not isinstance(ob, dict):
                 continue
             text = str(ob.get("text", "")).strip()
@@ -423,7 +423,8 @@ Only ops that genuinely improve the state. Empty lists are valid."""
         return
 
     ob_ops = opens = reopens = unit_ops = 0
-    for ao in parsed.get("add_obligations", []):
+    contract_on = bool(board.metadata.get("contract_enabled"))
+    for ao in parsed.get("add_obligations", []) if contract_on else []:
         if not isinstance(ao, dict):
             continue
         text = str(ao.get("text", "")).strip()

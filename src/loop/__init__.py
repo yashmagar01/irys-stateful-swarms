@@ -20,6 +20,10 @@ from .synthesis import plan_synthesis, synthesize, write_final_state
 from .triage import triage_sources
 
 MAX_ITERATIONS = int(os.getenv("LOOP_MAX_ITERATIONS", "12"))
+# Contract plane (obligations/units/coverage plan/gate). Default OFF: v5/v6
+# showed macro regressions; re-enable per-experiment until validated on its
+# target class with paired runs.
+CONTRACT_ENABLED = os.getenv("LOOP_CONTRACT", "0").strip() in ("1", "true", "yes")
 BUDGET_STOP_PCT = float(os.getenv("LOOP_BUDGET_STOP_PCT", "85"))
 DIMINISHING_ROUNDS = 2
 # Iterations at which the blackboard is rebuilt (reframe pass): the ledger is
@@ -42,6 +46,7 @@ def run_loop(task, worker_caller, smart_caller=None):
         output_dir=task.output_dir,
         token_budget=int(os.getenv("LOOP_TOKEN_BUDGET", "3000000")),
     )
+    board.metadata["contract_enabled"] = CONTRACT_ENABLED
     for doc in task.documents:
         board.add_source(Source(
             id=doc.id, name=doc.name,
