@@ -11,6 +11,7 @@ work, and rules would smuggle domain assumptions into the architecture.
 from __future__ import annotations
 
 import hashlib
+import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from .llm import call_json
@@ -22,6 +23,10 @@ from .state import CLAIM_KINDS, Board, Claim, Source, Target, Unit
 _CHUNK_CHARS = 40_000
 _MAX_PARALLEL = 8
 _BIND_BATCH = 60
+
+_ANALYZE_HYDRATE = os.getenv("LOOP_ANALYZE_HYDRATE", "0").strip().lower() in (
+    "1", "true", "yes",
+)
 
 
 def execute_actions(actions: list[dict], board: Board, worker_caller) -> dict:
@@ -408,6 +413,56 @@ Return JSON:
             pass
         verified += 1
     return {"verified": verified}
+
+
+# --- quote matching ---
+
+def _normalize_with_map(text: str) -> tuple[str, list[int]]:
+    chars: list[str] = []
+    mapping: list[int] = []
+    in_ws = False
+    for i, ch in enumerate(text):
+        if ch.isspace():
+            if chars and not in_ws:
+                chars.append(" ")
+                mapping.append(i)
+            in_ws = True
+        else:
+            chars.append(ch)
+            mapping.append(i)
+            in_ws = False
+    if chars and chars[-1] == " ":
+        chars.pop()
+        mapping.pop()
+    return "".join(chars), mapping
+
+
+def _find_quote_span(text: str, quote: str, base_offset: int = 0) -> tuple[int, int] | None:
+    quote = quote.strip()
+    if not text or not quote:
+        return None
+
+    pos = text.find(quote)
+    if pos >= 0:
+        return (base_offset + pos, base_offset + pos + len(quote))
+
+    norm_text, text_map = _normalize_with_map(text)
+    norm_quote, _ = _normalize_with_map(quote)
+    if not norm_quote:
+        return None
+
+    pos = norm_text.find(norm_quote)
+    if pos < 0:
+        pos = norm_text.lower().find(norm_quote.lower())
+    if pos < 0:
+        return None
+
+    start = text_map[pos]
+    end_norm_idx = pos + len(norm_quote) - 1
+    if end_norm_idx < 0 or end_norm_idx >= len(text_map):
+        return None
+    end = text_map[end_norm_idx] + 1
+    return (base_offset + start, base_offset + end)
 
 
 # --- shared ingestion ---
