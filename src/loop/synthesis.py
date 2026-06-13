@@ -425,7 +425,7 @@ Write the COMPLETE deliverable. Professional, specific, decision-ready. Every co
 
 
 def _usable_repair(draft: str, repaired: str | None) -> bool:
-    """Reject parse failures and obvious truncation from the repair pass."""
+    """Reject parse failures, truncation, and content shrinkage from repair."""
     if not repaired:
         return False
     cleaned = repaired.strip()
@@ -433,7 +433,7 @@ def _usable_repair(draft: str, repaired: str | None) -> bool:
         return False
     if len(draft) < 1200:
         return len(cleaned) >= len(draft) * 0.5
-    return len(cleaned) >= max(1200, int(len(draft) * 0.6))
+    return len(cleaned) >= max(1200, int(len(draft) * 0.9))
 
 
 def _repair_synthesis(smart_caller, board: Board, *, filename: str,
