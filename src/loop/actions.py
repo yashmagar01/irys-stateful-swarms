@@ -135,6 +135,10 @@ If this text contains the repeated items an obligation tracks (numbered categori
         units_schema = """,
  "units": [{"obligation_id": "...", "name": "<source-native item name>", "anchor": "<section/number/heading>"}]"""
 
+    target_ids_note = ""
+    if job.get("mode") != "inventory":
+        target_ids_note = ', "target_ids": ["<ids from QUESTIONS list>"]'
+
     prompt = f"""{framing}
 {units_ask}
 DOCUMENT: {source.name}{chunk_note}
@@ -143,23 +147,32 @@ DOCUMENT: {source.name}{chunk_note}
 ---
 
 Return JSON:
-{{"claims": [{{"kind": "observation", "content": "<the fact, specific and self-contained>", "section": "<section/heading it came from>", "evidence": "<short exact quote>", "confidence": 0.0-1.0}}],
- "proposed_targets": [{{"need": "<new question this document raises that the task must answer>", "materiality": "critical|high|medium|low"}}]{units_schema}}}
+{{"claims": [{{"kind": "observation", "content": "<the fact, specific and self-contained>", "section": "<section/heading it came from>", "evidence": "<short exact quote>", "confidence": 0.0-1.0{target_ids_note}}}],
+ "proposed_targets": [{{"need": "<new question this document raises that the task must answer>", "materiality": "critical|high|medium|low", "claim_indexes": [0, 2]}}]{units_schema}}}
 
 Rules:
 - kind is usually "observation". Use "contradiction" if this text conflicts with itself, "gap" if something expected is conspicuously absent, "issue" for a clear defect/risk stated in the text.
 - kind "requirement" ONLY for constraints on the work product being created (the document this task will produce): its addressee and submission address, who signs/submits it, its length or format, its filing deadline, elements it must contain, references it must make, procedural requests it must include. Obligations that documents impose on parties (notice duties, filing duties, contractual obligations of the insured/permittee/borrower) are "observation", NEVER "requirement".
 - Be exhaustive on facts relevant to the questions; include other clearly material facts too.
 - Dense term-bearing text (policy declarations, schedules, fee tables, defined-term lists) demands EVERY term: every limit, sublimit, deductible, retention, date, exclusion, endorsement, and amount — completeness over brevity.
-- proposed_targets only for genuinely new material questions, not restatements. A target must be a QUESTION answerable from the sources or web search — advice or actions for the client ("negotiate X", "obtain Y") are claims (recommendation/gap), never targets."""
+- proposed_targets only for genuinely new material questions, not restatements. A target must be a QUESTION answerable from the sources or web search — advice or actions for the client ("negotiate X", "obtain Y") are claims (recommendation/gap), never targets.
+- claim_indexes: zero-based indexes into this response's claims array that support the proposed target. Every proposed target MUST have at least one supporting claim index.{'''
+- target_ids: bind each claim to the question(s) it helps answer, using IDs from the QUESTIONS list. A claim can serve multiple questions. Leave empty ONLY if the claim is genuinely background/unrelated to any listed question.''' if job.get("mode") != "inventory" else ''}"""
 
     parsed = call_json(caller, board, prompt, kind="read", max_tokens=16384)
     if job.get("mode") == "inventory" and isinstance(parsed, dict):
         parsed.pop("proposed_targets", None)  # breadth lens has no task context
     tag = "read_inv" if job.get("mode") == "inventory" else "read"
+    valid_tids = None
+    if job.get("mode") != "inventory":
+        tids = set(job.get("target_ids", []))
+        if not tids:
+            tids = {t.id for t in board.material_open_targets()[:8]}
+        valid_tids = tids
     return _ingest_claims(
         parsed, board, source=source,
         created_by=f"{tag}:{job.get('action_id', '')}",
+        valid_target_ids=valid_tids,
     )
 
 
@@ -402,13 +415,16 @@ Return JSON:
 
 def _ingest_claims(parsed, board: Board, *, source: Source | None,
                    created_by: str, bind_to: list[str] | None = None,
-                   valid_support: set[str] | None = None) -> dict:
+                   valid_support: set[str] | None = None,
+                   valid_target_ids: set[str] | None = None) -> dict:
     if not isinstance(parsed, dict):
         return {"claims": 0}
     added = 0
     added_ids: list[str] = []
+    index_to_claim_id: dict[int, str] = {}
     seen: set[str] = set()
-    for item in parsed.get("claims", []):
+    extraction_bound = 0
+    for idx, item in enumerate(parsed.get("claims", [])):
         if not isinstance(item, dict):
             continue
         content = str(item.get("content", "")).strip()
@@ -429,13 +445,21 @@ def _ingest_claims(parsed, board: Board, *, source: Source | None,
             conf = max(0.05, min(0.98, float(item.get("confidence", 0.6))))
         except (TypeError, ValueError):
             conf = 0.6
+        local_targets = list(bind_to or [])
+        if valid_target_ids is not None:
+            for tid in item.get("target_ids", []):
+                tid = str(tid)
+                if tid in valid_target_ids and tid not in local_targets:
+                    local_targets.append(tid)
+        if local_targets:
+            extraction_bound += 1
         claim = Claim(
             kind=kind, content=content,
             source_doc=source.name if source else None,
             source_section=str(item.get("section", "")) or None,
             evidence=str(item.get("evidence", ""))[:500],
             support_refs=support,
-            target_refs=list(bind_to or []),
+            target_refs=local_targets,
             confidence=conf,
             iteration=board.iteration,
             created_by=created_by,
@@ -443,8 +467,10 @@ def _ingest_claims(parsed, board: Board, *, source: Source | None,
         if board.add_claim(claim):
             added += 1
             added_ids.append(claim.id)
+            index_to_claim_id[idx] = claim.id
 
     proposed = 0
+    proposal_bound = 0
     for pt in parsed.get("proposed_targets", []):
         if not isinstance(pt, dict):
             continue
@@ -454,10 +480,24 @@ def _ingest_claims(parsed, board: Board, *, source: Source | None,
         materiality = str(pt.get("materiality", "medium"))
         if materiality not in ("critical", "high", "medium", "low"):
             materiality = "medium"
-        board.add_target(Target(
+        target = Target(
             need=need, materiality=materiality,
             created_iteration=board.iteration, proposed_by=created_by,
-        ))
+        )
+        board.add_target(target)
+        claim_indexes = pt.get("claim_indexes", [])
+        bound_count = 0
+        for ci in claim_indexes:
+            try:
+                ci = int(ci)
+            except (TypeError, ValueError):
+                continue
+            cid = index_to_claim_id.get(ci)
+            if cid:
+                board.bind_claim(cid, [target.id])
+                bound_count += 1
+        if bound_count:
+            proposal_bound += 1
         proposed += 1
 
     units_added = 0
@@ -477,14 +517,18 @@ def _ingest_claims(parsed, board: Board, *, source: Source | None,
     if added or proposed or units_added:
         board.log(
             "action_output",
-            f"{created_by}: {added} claims, {proposed} targets, {units_added} units",
-            detail={"by": created_by, "claim_ids": added_ids},
+            f"{created_by}: {added} claims ({extraction_bound} bound at extraction), "
+            f"{proposed} targets ({proposal_bound} with evidence), {units_added} units",
+            detail={"by": created_by, "claim_ids": added_ids,
+                    "extraction_bound": extraction_bound,
+                    "proposal_bound": proposal_bound},
         )
-    return {"claims": added, "targets_proposed": proposed, "units": units_added}
+    return {"claims": added, "targets_proposed": proposed, "units": units_added,
+            "extraction_bound": extraction_bound}
 
 
 def _targets_brief(board: Board, target_ids: list[str]) -> str:
     targets = [t for t in (board.find_target(tid) for tid in target_ids) if t]
     if not targets:
         targets = board.material_open_targets()[:8]
-    return "\n".join(f"- [{t.materiality}] {t.need}" for t in targets) or "- (general extraction)"
+    return "\n".join(f"- {t.id} [{t.materiality}] {t.need}" for t in targets) or "- (general extraction)"
