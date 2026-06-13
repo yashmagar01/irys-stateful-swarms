@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import json
 import os
-import re
 from pathlib import Path
 
 from .llm import call_json, call_text
@@ -177,48 +176,6 @@ def _supplementary_evidence(board: Board) -> str:
         "resolved - use them where they add relevant detail, numbers, dates, "
         "parties, or terms to the deliverable):\n"
         + serialized
-    )
-
-
-_TERM_RE = re.compile(
-    r"\$[\d,.]+[BMKbmk]?"
-    r"|\d{1,2}[/-]\d{1,2}[/-]\d{2,4}"
-    r"|\d+(?:\.\d+)?%"
-    r"|\b\d[\d,.]{2,}\b"
-    r"|\b(?:Section|Article|Clause|Exhibit|Schedule|Annex)\s+\d+[\w.()]*"
-)
-_RENDER_CONTRACT_CAP = 8_000
-
-
-def _render_contract(packet_blocks: list[dict]) -> str:
-    """Compact checklist of exact terms extracted from packet claims.
-
-    This gives synthesis a deterministic 'must-include' ledger — specific
-    numbers, dates, amounts, and section references that scoring criteria
-    care about. Placed BEFORE evidence so the model sees requirements first.
-    """
-    rows: list[str] = []
-    for block in packet_blocks:
-        section = block.get("section", "")
-        terms_for_section: list[str] = []
-        for pkt in block.get("packets", []):
-            for claim in pkt.get("claims", []):
-                text = claim.get("content", "") + " " + claim.get("evidence", "")
-                found = _TERM_RE.findall(text)
-                terms_for_section.extend(
-                    t.strip() for t in found if len(t.strip()) > 2
-                )
-        unique = list(dict.fromkeys(terms_for_section))[:30]
-        if unique:
-            rows.append(f"  {section}: {', '.join(unique)}")
-    if not rows:
-        return ""
-    body = "\n".join(rows)[:_RENDER_CONTRACT_CAP]
-    return (
-        "\nRENDER CONTRACT — these exact terms MUST appear verbatim in the "
-        "corresponding sections (numbers, dates, amounts, references extracted "
-        "from evidence — do not paraphrase or omit them):\n"
-        + body + "\n"
     )
 
 
@@ -402,7 +359,6 @@ UNIT PACKETS (every unit below MUST appear in the deliverable exactly once, in t
         )
 
         supplementary_block = _supplementary_evidence(board)
-        contract_block = _render_contract(packet_blocks)
 
         prompt = f"""You are writing the final deliverable of a completed expert investigation. The analysis below is your ONLY knowledge — write from it, never invent. Where claims carry evidence quotes and sources, use them for precision and citation.
 
@@ -415,7 +371,6 @@ FILE: {filename} - {file_plan.get('form', 'document')}
 {f'''BINDING REQUIREMENTS discovered in the sources — satisfy EVERY one (addressees, length minimums, mandatory elements, required references, procedural requests). If a length minimum exists, meet it with substance, not padding:
 {requirement_block(board)}
 ''' if requirement_block(board) else ''}
-{contract_block}
 ANALYSIS (per section, with resolved questions and their claims):
 {json.dumps(packet_blocks, indent=1, default=str)[:400_000]}
 {coverage_block}
