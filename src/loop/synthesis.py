@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import json
 import os
-import re
 from pathlib import Path
 
 from .llm import call_json, call_text
@@ -21,12 +20,12 @@ from .state import Board, Target
 # on the long tail of specifics — packets must carry it. 3.5 flash takes 1M
 # input tokens; starving synthesis to save prompt space is a false economy.
 _CLAIMS_PER_TARGET = 48
-_CONTENT_CAP = 500
-_EVIDENCE_CAP = 220
+_CONTENT_CAP = 700
+_EVIDENCE_CAP = 350
 _REPAIR_ENABLED = os.getenv("LOOP_SYNTHESIS_REPAIR", "1").strip() in (
     "1", "true", "yes",
 )
-_REPAIR_PACKET_CAP = int(os.getenv("LOOP_SYNTHESIS_REPAIR_PACKET_CAP", "320000"))
+_REPAIR_PACKET_CAP = int(os.getenv("LOOP_SYNTHESIS_REPAIR_PACKET_CAP", "500000"))
 _REPAIR_DRAFT_CAP = int(os.getenv("LOOP_SYNTHESIS_REPAIR_DRAFT_CAP", "120000"))
 
 
@@ -374,7 +373,7 @@ FILE: {filename} - {file_plan.get('form', 'document')}
 ''' if requirement_block(board) else ''}
 
 ANALYSIS (per section, with resolved questions and their claims):
-{json.dumps(packet_blocks, indent=1, default=str)[:400_000]}
+{json.dumps(packet_blocks, indent=1, default=str)[:700_000]}
 {coverage_block}
 {supplementary_block}
 
@@ -396,10 +395,6 @@ Write the COMPLETE deliverable. Professional, specific, decision-ready. Every co
             max_tokens=32768, temperature=0.25,
         )
         if text and _REPAIR_ENABLED:
-            gap_block = _gap_report(packet_blocks, text, supplementary_block)
-            if gap_block:
-                board.log("synthesis_gap_report",
-                          f"{filename}: {gap_block.split(chr(10))[0]}")
             repaired = _repair_synthesis(
                 smart_caller, board,
                 filename=filename,
@@ -442,82 +437,6 @@ def _usable_repair(draft: str, repaired: str | None) -> bool:
     return len(cleaned) >= max(1200, int(len(draft) * 0.6))
 
 
-_TERM_RE = re.compile(
-    r"\$[\d,.]+[BMKbmk]?"
-    r"|\d{1,2}[/-]\d{1,2}[/-]\d{2,4}"
-    r"|\d+(?:\.\d+)?%"
-    r"|\b\d[\d,.]{2,}\b"
-    r"|\"[^\"]{4,60}\""
-    r"|'[^']{4,60}'"
-    r"|\b(?:Section|Article|Clause|Exhibit|Schedule|Annex)\s+\d+[\w.()]*"
-)
-
-
-def _extract_terms(text: str) -> set[str]:
-    """Extract high-value tokens: numbers, dates, amounts, percentages,
-    quoted strings, section references. These are the terms that scored
-    criteria care most about preserving."""
-    return {m.strip("\"' ").lower() for m in _TERM_RE.findall(text) if len(m) > 2}
-
-
-def _gap_report(packet_blocks: list[dict], draft: str,
-                supplementary_text: str, cap: int = 60_000) -> str:
-    """Compare packet claims against the draft and return a focused list of
-    claims whose key terms are missing from the output.
-
-    This gives the repair pass a short, targeted hit-list instead of asking
-    it to re-read 400K of evidence to find what's missing."""
-    draft_lower = draft.lower()
-    draft_terms = _extract_terms(draft)
-    gaps = []
-
-    def _check_claim(claim: dict, section: str, target_need: str):
-        content = claim.get("content", "")
-        evidence = claim.get("evidence", "")
-        combined = content + " " + evidence
-        terms = _extract_terms(combined)
-        if not terms:
-            return
-        missing = {t for t in terms if t not in draft_terms
-                   and t not in draft_lower}
-        if len(missing) >= max(1, len(terms) * 0.4):
-            gaps.append({
-                "section": section,
-                "question": target_need[:120],
-                "claim": content[:400],
-                "evidence": evidence[:200],
-                "source": claim.get("source", ""),
-                "missing_terms": sorted(missing)[:8],
-            })
-
-    for block in packet_blocks:
-        section = block.get("section", "")
-        for pkt in block.get("packets", []):
-            target_need = pkt.get("need", "")
-            for claim in pkt.get("claims", []):
-                _check_claim(claim, section, target_need)
-
-    if supplementary_text:
-        try:
-            supp_data = json.loads(
-                supplementary_text.split("\n", 3)[-1] if "\n" in supplementary_text
-                else supplementary_text)
-            for block in (supp_data if isinstance(supp_data, list) else []):
-                for claim in block.get("claims", []):
-                    _check_claim(claim, "supplementary", block.get("question", ""))
-        except (json.JSONDecodeError, IndexError):
-            pass
-
-    if not gaps:
-        return ""
-
-    serialized = json.dumps(gaps, indent=1, default=str)[:cap]
-    return (
-        f"\n\nGAP REPORT — {len(gaps)} claims with key terms MISSING from the "
-        f"draft (prioritize adding these):\n{serialized}"
-    )
-
-
 def _repair_synthesis(smart_caller, board: Board, *, filename: str,
                       file_plan: dict, format_rules: str,
                       packet_blocks: list[dict], coverage_block: str,
@@ -527,12 +446,8 @@ def _repair_synthesis(smart_caller, board: Board, *, filename: str,
 
     The first synthesis call writes. This pass checks whether packet-supported
     facts, numbers, issues, conflicts, recommendations, and required rows were
-    actually rendered in the final artifact shape. A gap report identifies
-    specific claims with key terms missing from the draft so the editor can
-    focus on what was dropped rather than re-scanning all evidence.
+    actually rendered in the final artifact shape.
     """
-    gap_block = _gap_report(packet_blocks, draft, supplementary_block)
-
     prompt = f"""You are the final coverage editor for an expert work product. The draft below may be well written but incomplete. Compare it against the analysis packets and rewrite the COMPLETE file so packet-supported material survives into the deliverable.
 
 ORIGINAL REQUEST:
@@ -554,7 +469,6 @@ ANALYSIS PACKETS:
 {json.dumps(packet_blocks, indent=1, default=str)[:_REPAIR_PACKET_CAP]}
 {coverage_block[:80_000]}
 {supplementary_block[:100_000]}
-{gap_block}
 
 {f'''UNRESOLVED MATERIAL QUESTIONS:
 {residual_note}''' if residual_note else ''}
