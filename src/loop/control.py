@@ -83,7 +83,7 @@ Return JSON:
                 need=need, materiality=materiality,
                 created_iteration=0, proposed_by="seed",
             ))
-        for ob in parsed.get("obligations", []) if board.metadata.get("contract_enabled") else []:
+        for ob in parsed.get("obligations", []):
             if not isinstance(ob, dict):
                 continue
             text = str(ob.get("text", "")).strip()
@@ -170,14 +170,14 @@ AVAILABLE ACTION KINDS:
 DECISION RULES:
 - Evidence sitting unanalyzed beats reading more. If a target has raw claims and no derived claims, analyze it before dispatching new reads.
 - High unbound count → bind before anything else can be judged accurately.
-- Close a target ONLY when its derived claims genuinely answer the need. Waive with a reason if not worth pursuing. Block with a reason if it cannot be answered from available sources/budget.
+- Close a target when its derived claims substantially address the need — do not wait for exhaustive coverage; synthesis can enrich from all available claims. Waive with a reason if not worth pursuing. Block with a reason if it cannot be answered from available sources/budget.
 - Read unread "definite" sources early; pull "unlikely" sources in only if evidence demands it.
 - Converge when every critical/high target is closed/waived/blocked AND every mandatory obligation is satisfied or explicitly waived, and another round would not materially improve the answer. Do NOT converge while many claims remain unbound — dispatch bind first so closure judgments see all the evidence.
 - Mark an obligation "satisfied" only when its units are evidenced (or it is not set-valued and its substance is covered by closed targets). Waive only with a reason the user would accept. An exhaustive obligation with unevidenced units is NOT satisfied — dispatch reads/bind for those units instead.
 
 Return JSON:
 {{"reasoning": "<2-4 sentences>",
- "target_updates": [{{"target_id": "...", "status": "closed|waived|blocked", "reason": "..."}}],
+ "target_updates": [{{"target_id": "...", "status": "closed|waived|blocked", "reason": "...", "redirect_to": "<optional: target_id to redirect this target's claims to>"}}],
  "obligation_updates": [{{"obligation_id": "...", "status": "satisfied|waived", "reason": "..."}}],
  "actions": [{{"kind": "read|search|bind|analyze|verify", ...params}}],
  "converge": true/false,
@@ -196,9 +196,15 @@ Max {MAX_ACTIONS_PER_ITERATION} actions. Actions run in parallel — make them i
         status = str(u.get("status", ""))
         if status not in ("closed", "waived", "blocked"):
             continue
-        if board.resolve_target(
-            str(u.get("target_id", "")), status, str(u.get("reason", ""))[:300],
-        ):
+        tid = str(u.get("target_id", ""))
+        redirect = str(u.get("redirect_to", "")).strip()
+        if redirect and status in ("waived", "blocked"):
+            src_t = board.find_target(tid)
+            dst_t = board.find_target(redirect)
+            if src_t and dst_t and dst_t.is_open:
+                for cid in list(src_t.claim_refs):
+                    board.bind_claim(cid, [redirect])
+        if board.resolve_target(tid, status, str(u.get("reason", ""))[:300]):
             updates += 1
     for u in parsed.get("obligation_updates", []):
         if not isinstance(u, dict):
@@ -423,8 +429,7 @@ Only ops that genuinely improve the state. Empty lists are valid."""
         return
 
     ob_ops = opens = reopens = unit_ops = 0
-    contract_on = bool(board.metadata.get("contract_enabled"))
-    for ao in parsed.get("add_obligations", []) if contract_on else []:
+    for ao in parsed.get("add_obligations", []):
         if not isinstance(ao, dict):
             continue
         text = str(ao.get("text", "")).strip()

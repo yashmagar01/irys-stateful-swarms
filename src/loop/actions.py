@@ -69,6 +69,24 @@ def execute_actions(actions: list[dict], board: Board, worker_caller) -> dict:
     return summary
 
 
+def _cap_read_targets(parsed: dict, max_targets: int = 2):
+    """Cap and filter read target proposals: keep only critical/high, max N."""
+    pts = parsed.get("proposed_targets")
+    if not pts or not isinstance(pts, list):
+        parsed.pop("proposed_targets", None)
+        return
+    filtered = [
+        pt for pt in pts
+        if isinstance(pt, dict)
+        and str(pt.get("need", "")).strip()
+        and str(pt.get("materiality", "")).lower() in ("critical", "high")
+    ]
+    if filtered:
+        parsed["proposed_targets"] = filtered[:max_targets]
+    else:
+        parsed.pop("proposed_targets", None)
+
+
 # --- READ ---
 
 def _read_jobs(action: dict, board: Board) -> list[tuple[str, dict]]:
@@ -144,18 +162,18 @@ DOCUMENT: {source.name}{chunk_note}
 
 Return JSON:
 {{"claims": [{{"kind": "observation", "content": "<the fact, specific and self-contained>", "section": "<section/heading it came from>", "evidence": "<short exact quote>", "confidence": 0.0-1.0}}],
- "proposed_targets": [{{"need": "<new question this document raises that the task must answer>", "materiality": "critical|high|medium|low"}}]{units_schema}}}
+ "proposed_targets": [{{"need": "...", "materiality": "critical|high"}}]{units_schema}}}
 
 Rules:
 - kind is usually "observation". Use "contradiction" if this text conflicts with itself, "gap" if something expected is conspicuously absent, "issue" for a clear defect/risk stated in the text.
 - kind "requirement" ONLY for constraints on the work product being created (the document this task will produce): its addressee and submission address, who signs/submits it, its length or format, its filing deadline, elements it must contain, references it must make, procedural requests it must include. Obligations that documents impose on parties (notice duties, filing duties, contractual obligations of the insured/permittee/borrower) are "observation", NEVER "requirement".
 - Be exhaustive on facts relevant to the questions; include other clearly material facts too.
 - Dense term-bearing text (policy declarations, schedules, fee tables, defined-term lists) demands EVERY term: every limit, sublimit, deductible, retention, date, exclusion, endorsement, and amount — completeness over brevity.
-- proposed_targets only for genuinely new material questions, not restatements. A target must be a QUESTION answerable from the sources or web search — advice or actions for the client ("negotiate X", "obtain Y") are claims (recommendation/gap), never targets."""
+- proposed_targets: at most 2, only critical/high materiality. ONLY genuine analytical questions that the corpus can answer — never retrieval requests ("obtain X"), procedural tasks, or reformulations of existing questions."""
 
     parsed = call_json(caller, board, prompt, kind="read", max_tokens=16384)
-    if job.get("mode") == "inventory" and isinstance(parsed, dict):
-        parsed.pop("proposed_targets", None)  # breadth lens has no task context
+    if isinstance(parsed, dict):
+        _cap_read_targets(parsed, max_targets=2)
     tag = "read_inv" if job.get("mode") == "inventory" else "read"
     return _ingest_claims(
         parsed, board, source=source,
@@ -229,7 +247,14 @@ def _bind_jobs(action: dict, board: Board) -> list[tuple[str, dict]]:
 
 def _run_bind_batch(job: dict, board: Board, caller) -> dict:
     claims = job["claims"]
-    targets = board.open_targets()
+    recent_closed = [
+        t for t in board.resolved_targets()
+        if t.status == "closed"
+        and t.materiality in ("critical", "high")
+        and t.resolved_iteration is not None
+        and t.resolved_iteration >= board.iteration - 2
+    ]
+    targets = board.open_targets() + recent_closed
     if not targets:
         return {}
     targets_text = "\n".join(f"{t.id} [{t.materiality}] {t.need}" for t in targets)
@@ -325,11 +350,21 @@ Rules:
         bind_to=[target.id], valid_support={c.id for c in bound},
     )
     if isinstance(parsed, dict) and parsed.get("recommend_close"):
-        board.log(
-            "close_recommendation",
-            f"{target.id}: {str(parsed.get('close_reason', ''))[:200]}",
-            detail={"target_id": target.id},
+        reason = str(parsed.get("close_reason", ""))[:200]
+        has_derived = any(
+            c.is_derived for c in board.claims
+            if c.active and target.id in c.target_refs
         )
+        if has_derived and target.is_open:
+            board.resolve_target(target.id, "closed", reason)
+            board.log("auto_close", f"{target.id}: {reason}",
+                      detail={"target_id": target.id})
+        else:
+            board.log(
+                "close_recommendation",
+                f"{target.id}: {reason}",
+                detail={"target_id": target.id},
+            )
     return out
 
 
