@@ -168,6 +168,28 @@ def controller_decide(smart_caller, board: Board, last_summary: dict, *,
         if e.kind == "close_recommendation"
     ]
 
+    proposed_read_events = [
+        e for e in board.recent_events(board.iteration - 1)
+        if e.kind == "proposed_reads"
+    ]
+    proposed_reads = [
+        item
+        for e in proposed_read_events
+        for item in e.detail.get("items", [])
+        if isinstance(item, dict)
+    ]
+    proposed_reads_text = "\n".join(
+        "- "
+        + (f"source_hint={r.get('source_hint', '')}; " if r.get("source_hint") else "")
+        + (f"section_hint={r.get('section_hint', '')}; " if r.get("section_hint") else "")
+        + f"reason={r.get('reason', '')}"
+        + (
+            f"; target_ids={', '.join(str(t) for t in r.get('target_ids', []))}"
+            if r.get("target_ids") else ""
+        )
+        for r in proposed_reads[:20]
+    )
+
     prompt = f"""You are the controller of an investigation. Each round you decide: which questions to resolve (close/waive/block), and what work to dispatch next. You are a scheduler — workers do the deep reasoning; you allocate effort where it moves the answer most.
 
 TASK:
@@ -199,8 +221,11 @@ LAST ROUND RESULTS: {json.dumps(last_summary)}
 SOURCES:
 {catalog_summary(board)}
 
+PROPOSED READS FROM LAST ROUND:
+{proposed_reads_text if proposed_reads_text else '(none)'}
+
 AVAILABLE ACTION KINDS:
-- read {{source_id, focus, target_ids, depth}} — extract evidence from a source (use focus to direct attention). depth "exhaustive" adds a full-inventory pass capturing EVERY term/amount/date/exception — use it when an obligation's coverage standard requires accounting for every repeated item this source contains (exhaustive/material obligations over term-dense documents: policies, schedules, term sheets, request lists). depth "focused" (default) when key provisions matter more than every detail.
+- read {{source_id, focus, target_ids, depth}} — extract evidence from a source (use focus to direct attention). To follow a proposed read, choose the matching source_id and put the source/section hint in focus. depth "exhaustive" adds a full-inventory pass capturing EVERY term/amount/date/exception — use it when an obligation's coverage standard requires accounting for every repeated item this source contains (exhaustive/material obligations over term-dense documents: policies, schedules, term sheets, request lists). depth "focused" (default) when key provisions matter more than every detail.
 - search {{query, target_ids}} — web search for external knowledge (current law, standards, public facts not in sources)
 - bind {{}} — connect unbound claims to targets (dispatch when unbound count is high)
 - analyze {{target_id, instruction}} — promote a target's evidence into conclusions/calculations/issues/recommendations
