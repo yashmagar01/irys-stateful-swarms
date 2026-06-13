@@ -81,15 +81,20 @@ def run_single_task(task_dir: Path, output_dir: Path, *,
 
     r_model = os.getenv("SWARM_REVIEWER_MODEL", "gemini-3.5-flash")
 
-    worker_caller = GeminiCaller(model=w_model)
-    synthesis_caller = GeminiCaller(model=s_model) if s_model != w_model else worker_caller
-    reviewer_caller = GeminiCaller(model=r_model) if r_model else None
+    def _make_caller(model: str):
+        if model.startswith("claude-"):
+            from .providers.anthropic import AnthropicCaller
+            return AnthropicCaller(model=model)
+        return GeminiCaller(model=model)
+
+    worker_caller = _make_caller(w_model)
+    synthesis_caller = _make_caller(s_model) if s_model != w_model else worker_caller
+    reviewer_caller = _make_caller(r_model) if r_model else None
 
     audit_model = os.getenv("SWARM_AUDIT_MODEL", "").strip()
     audit_caller = None
     if audit_model:
-        from .providers.anthropic import AnthropicCaller
-        audit_caller = AnthropicCaller(model=audit_model)
+        audit_caller = _make_caller(audit_model)
 
     out_dir = output_dir / task_id.replace("/", os.sep)
     out_dir.mkdir(parents=True, exist_ok=True)
