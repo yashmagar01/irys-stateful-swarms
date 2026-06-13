@@ -147,7 +147,11 @@ def run_loop(task, worker_caller, smart_caller=None, audit_caller=None):
                 and board.iteration > 0
                 and board.iteration % AUDIT_EVERY == 0
                 and board.open_targets()):
-            blackboard_audit(audit_caller, board)
+            try:
+                blackboard_audit(audit_caller, board)
+            except Exception as exc:
+                board.log("blackboard_audit", f"audit failed: {exc}",
+                          detail={"error": str(exc)})
 
         # Maintenance/reframe/audit can waive targets — catch unanalyzed ones.
         forced = []
