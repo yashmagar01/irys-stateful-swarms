@@ -83,7 +83,7 @@ Return JSON:
                 need=need, materiality=materiality,
                 created_iteration=0, proposed_by="seed",
             ))
-        for ob in parsed.get("obligations", []):
+        for ob in parsed.get("obligations", []) if board.metadata.get("contract_enabled") else []:
             if not isinstance(ob, dict):
                 continue
             text = str(ob.get("text", "")).strip()
@@ -108,6 +108,45 @@ Return JSON:
             materiality="critical", proposed_by="seed_fallback",
         ))
     board.log("seed", f"{len(board.targets)} initial targets")
+
+
+def _force_analysis_gate(board: Board, actions: list[dict],
+                         max_reopen: int = 3) -> None:
+    """Reopen critical/high targets that were waived with unanalyzed evidence.
+
+    The controller sometimes waives targets to converge, but if the target
+    has raw observation claims that were never analyzed, the waive discards
+    evidence that could improve the deliverable. This gate reopens those
+    targets and injects analyze actions so the evidence gets processed
+    before the next convergence attempt.
+    """
+    already_forced = {
+        e.detail.get("target_id")
+        for e in board.events if e.kind == "force_analyze"
+    }
+    reopened = 0
+    for t in list(board.resolved_targets()):
+        if reopened >= max_reopen:
+            break
+        if t.status != "waived" or t.materiality not in ("critical", "high"):
+            continue
+        if t.resolved_iteration != board.iteration:
+            continue
+        if t.id in already_forced:
+            continue
+        bound = board.claims_for_target(t)
+        raw = sum(1 for c in bound if c.kind == "observation")
+        derived = sum(1 for c in bound if c.is_derived)
+        if raw >= 3 and derived == 0:
+            board.resolve_target(t.id, "open", "")
+            actions.append({
+                "kind": "analyze", "target_id": t.id,
+                "instruction": "synthesize available evidence",
+            })
+            board.log("force_analyze",
+                      f"reopened {t.id}: {raw} raw claims need analysis",
+                      detail={"target_id": t.id})
+            reopened += 1
 
 
 # --- CONTROLLER ---
@@ -170,14 +209,14 @@ AVAILABLE ACTION KINDS:
 DECISION RULES:
 - Evidence sitting unanalyzed beats reading more. If a target has raw claims and no derived claims, analyze it before dispatching new reads.
 - High unbound count → bind before anything else can be judged accurately.
-- Close a target when its derived claims substantially address the need — do not wait for exhaustive coverage; synthesis can enrich from all available claims. Waive with a reason if not worth pursuing. Block with a reason if it cannot be answered from available sources/budget.
+- Close a target ONLY when its derived claims genuinely answer the need. Waive with a reason if not worth pursuing. Block with a reason if it cannot be answered from available sources/budget.
 - Read unread "definite" sources early; pull "unlikely" sources in only if evidence demands it.
 - Converge when every critical/high target is closed/waived/blocked AND every mandatory obligation is satisfied or explicitly waived, and another round would not materially improve the answer. Do NOT converge while many claims remain unbound — dispatch bind first so closure judgments see all the evidence.
 - Mark an obligation "satisfied" only when its units are evidenced (or it is not set-valued and its substance is covered by closed targets). Waive only with a reason the user would accept. An exhaustive obligation with unevidenced units is NOT satisfied — dispatch reads/bind for those units instead.
 
 Return JSON:
 {{"reasoning": "<2-4 sentences>",
- "target_updates": [{{"target_id": "...", "status": "closed|waived|blocked", "reason": "...", "redirect_to": "<optional: target_id to redirect this target's claims to>"}}],
+ "target_updates": [{{"target_id": "...", "status": "closed|waived|blocked", "reason": "..."}}],
  "obligation_updates": [{{"obligation_id": "...", "status": "satisfied|waived", "reason": "..."}}],
  "actions": [{{"kind": "read|search|bind|analyze|verify", ...params}}],
  "converge": true/false,
@@ -196,15 +235,9 @@ Max {MAX_ACTIONS_PER_ITERATION} actions. Actions run in parallel — make them i
         status = str(u.get("status", ""))
         if status not in ("closed", "waived", "blocked"):
             continue
-        tid = str(u.get("target_id", ""))
-        redirect = str(u.get("redirect_to", "")).strip()
-        if redirect and status in ("waived", "blocked"):
-            src_t = board.find_target(tid)
-            dst_t = board.find_target(redirect)
-            if src_t and dst_t and dst_t.is_open:
-                for cid in list(src_t.claim_refs):
-                    board.bind_claim(cid, [redirect])
-        if board.resolve_target(tid, status, str(u.get("reason", ""))[:300]):
+        if board.resolve_target(
+            str(u.get("target_id", "")), status, str(u.get("reason", ""))[:300],
+        ):
             updates += 1
     for u in parsed.get("obligation_updates", []):
         if not isinstance(u, dict):
@@ -222,6 +255,11 @@ Max {MAX_ACTIONS_PER_ITERATION} actions. Actions run in parallel — make them i
         if isinstance(a, dict) and a.get("kind") in
         ("read", "search", "bind", "analyze", "verify")
     ][:MAX_ACTIONS_PER_ITERATION]
+
+    # Gate: critical/high targets with unanalyzed evidence must not be waived
+    # until at least one analyze pass has run. Reopens premature waives and
+    # injects the missing analyze action (capped at 3 per iteration).
+    _force_analysis_gate(board, actions)
 
     board.log(
         "controller",
@@ -429,7 +467,8 @@ Only ops that genuinely improve the state. Empty lists are valid."""
         return
 
     ob_ops = opens = reopens = unit_ops = 0
-    for ao in parsed.get("add_obligations", []):
+    contract_on = bool(board.metadata.get("contract_enabled"))
+    for ao in parsed.get("add_obligations", []) if contract_on else []:
         if not isinstance(ao, dict):
             continue
         text = str(ao.get("text", "")).strip()
