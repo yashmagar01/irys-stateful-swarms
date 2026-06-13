@@ -307,6 +307,119 @@ Include every claim id. Bind on substance, not keyword overlap."""
 
 # --- ANALYZE ---
 
+def _source_claims_for_hydration(
+    board: Board,
+    claim: Claim,
+) -> list[tuple[Claim, str]]:
+    leaves: list[tuple[Claim, str]] = []
+    emitted: set[str] = set()
+    visiting: set[str] = set()
+
+    def visit(c: Claim) -> None:
+        if c.id in visiting or c.id in emitted:
+            return
+        if c.source_doc and c.source_span is not None:
+            leaves.append((c, claim.id))
+            emitted.add(c.id)
+            return
+        visiting.add(c.id)
+        for ref in c.support_refs:
+            sup = board.find_claim(str(ref))
+            if sup is not None and sup.active:
+                visit(sup)
+        visiting.remove(c.id)
+        emitted.add(c.id)
+
+    visit(claim)
+    return leaves
+
+
+def build_evidence_context(board: Board, claims: list[Claim]) -> tuple[str, dict]:
+    candidate_windows: list[dict] = []
+    hydrated_claim_ids: set[str] = set()
+    missing_span = 0
+    missing_source = 0
+    invalid_span = 0
+
+    for bound_claim in claims:
+        source_claims = _source_claims_for_hydration(board, bound_claim)
+        if not source_claims:
+            if not bound_claim.source_span:
+                missing_span += 1
+            continue
+
+        for source_claim, via_claim_id in source_claims:
+            if not source_claim.source_doc or source_claim.source_span is None:
+                missing_span += 1
+                continue
+            src = next((s for s in board.sources if s.name == source_claim.source_doc), None)
+            if src is None:
+                missing_source += 1
+                continue
+            text = src.text()
+            start, end = source_claim.source_span
+            if start < 0 or end <= start or start >= len(text):
+                invalid_span += 1
+                continue
+            end = min(end, len(text))
+            candidate_windows.append({
+                "source": src.name,
+                "text": text,
+                "start": start,
+                "end": end,
+                "source_claim_ids": [source_claim.id],
+                "via_claim_ids": [via_claim_id],
+            })
+            hydrated_claim_ids.add(source_claim.id)
+
+    candidate_windows.sort(key=lambda w: (w["source"], w["start"], w["end"]))
+
+    merged: list[dict] = []
+    for w in candidate_windows:
+        if (
+            merged
+            and merged[-1]["source"] == w["source"]
+            and w["start"] <= merged[-1]["end"]
+        ):
+            merged[-1]["end"] = max(merged[-1]["end"], w["end"])
+            merged[-1]["source_claim_ids"].extend(w["source_claim_ids"])
+            merged[-1]["via_claim_ids"].extend(w["via_claim_ids"])
+        else:
+            merged.append(dict(w))
+
+    for w in merged:
+        w["source_claim_ids"] = sorted(set(w["source_claim_ids"]))
+        w["via_claim_ids"] = sorted(set(w["via_claim_ids"]))
+
+    blocks: list[str] = []
+    total_chars = 0
+    for idx, w in enumerate(merged, start=1):
+        excerpt = w["text"][w["start"]:w["end"]]
+        total_chars += len(excerpt)
+        blocks.append(
+            f"SOURCE EXCERPT E{idx}\n"
+            f"source: {w['source']}\n"
+            f"span: {w['start']}-{w['end']}\n"
+            f"source_claims: {', '.join(w['source_claim_ids'])}\n"
+            f"included_for_bound_claims: {', '.join(w['via_claim_ids'])}\n"
+            f"---\n"
+            f"{excerpt}\n"
+            f"---"
+        )
+
+    stats = {
+        "bound_claims": len(claims),
+        "source_windows": len(candidate_windows),
+        "merged_windows": len(merged),
+        "hydrated_claim_ids": sorted(hydrated_claim_ids),
+        "missing_span": missing_span,
+        "missing_source": missing_source,
+        "invalid_span": invalid_span,
+        "chars": total_chars,
+    }
+    return "\n\n".join(blocks), stats
+
+
 def _run_analyze(action: dict, board: Board, caller) -> dict:
     target = board.find_target(str(action.get("target_id", "")))
     if target is None:
@@ -319,10 +432,56 @@ def _run_analyze(action: dict, board: Board, caller) -> dict:
         f"{c.id} [{c.kind}, conf {c.confidence:.2f}] {c.content}"
         + (f" | evidence: {c.evidence}" if c.evidence else "")
         + (f" | source: {c.source_doc}" if c.source_doc else "")
+        + (f" | supports: {', '.join(c.support_refs)}" if c.support_refs else "")
         for c in bound
     )
 
-    prompt = f"""You are a top-tier expert doing the analytical work to close a specific question. Raw facts are inputs; your job is conclusions: calculations, comparisons, issue flags, recommendations, decisions. Show reasoning inside the claim content.
+    hydrated_claim_ids: set[str] = set()
+
+    if _ANALYZE_HYDRATE:
+        evidence_context, hydrate_stats = build_evidence_context(board, bound)
+        hydrated_claim_ids = set(hydrate_stats.get("hydrated_claim_ids", []))
+        board.log(
+            "analyze_hydrate",
+            f"{target.id}: {hydrate_stats['merged_windows']} source spans, "
+            f"{hydrate_stats['chars']} chars",
+            detail={"target_id": target.id, **hydrate_stats},
+        )
+
+        prompt = f"""You are a top-tier expert doing the analytical work to close a specific question. Raw facts are inputs; your job is conclusions: calculations, comparisons, issue flags, recommendations, decisions. Show reasoning inside the claim content.
+
+OVERALL TASK:
+{board.instruction}
+
+QUESTION TO CLOSE:
+[{target.materiality}] {target.need}
+{f'SPECIFIC INSTRUCTION: {instruction}' if instruction else ''}
+
+EVIDENCE CLAIM CARDS BOUND TO THIS QUESTION:
+{claims_text}
+
+PRIMARY SOURCE TEXT FOR CLAIMS BOUND TO THIS QUESTION:
+{evidence_context if evidence_context else '(no source spans available; rely on claim cards and evidence quotes)'}
+
+Return JSON:
+{{"claims": [{{"kind": "analysis|calculation|comparison|issue|recommendation|decision|gap|uncertainty|contradiction", "content": "<the conclusion, with reasoning and concrete numbers where applicable>", "support_refs": ["<ids of evidence claims used>"], "confidence": 0.0-1.0}}],
+ "proposed_targets": [{{"need": "...", "materiality": "critical|high|medium|low"}}],
+ "recommend_close": true/false,
+ "close_reason": "<if recommend_close: why this question is now answerable>"}}
+
+Rules:
+- PRIMARY SOURCE TEXT is authoritative.
+- Some source excerpts are included because they support prior derived claims bound to this question.
+- Do not blindly trust prior derived claims. Check them against their underlying source text when source text is provided.
+- Claim cards summarize what extraction or prior analysis believed; source text is the underlying evidence. If they conflict, trust the source text and emit a contradiction or uncertainty claim.
+- support_refs may cite bound claim ids and source-backed claim ids shown in the excerpts.
+- Every derived claim MUST cite support_refs from the evidence above.
+- Calculations show the arithmetic. Comparisons name both sides. Issues state impact.
+- If evidence is insufficient, emit a "gap" claim saying exactly what is missing.
+- Advice for the client ("negotiate X", "request Y") is a "recommendation" claim, NOT a proposed target. Targets are questions answerable from sources or search.
+- recommend_close only if the question is genuinely answerable from the derived claims."""
+    else:
+        prompt = f"""You are a top-tier expert doing the analytical work to close a specific question. Raw facts are inputs; your job is conclusions: calculations, comparisons, issue flags, recommendations, decisions. Show reasoning inside the claim content.
 
 OVERALL TASK:
 {board.instruction}
@@ -348,10 +507,13 @@ Rules:
 - recommend_close only if the question is genuinely answerable from the derived claims."""
 
     parsed = call_json(caller, board, prompt, kind="analyze", max_tokens=16384)
+    valid_support = {c.id for c in bound}
+    if _ANALYZE_HYDRATE:
+        valid_support |= hydrated_claim_ids
     out = _ingest_claims(
         parsed, board, source=None,
         created_by=f"analyze:{action.get('_id', '')}",
-        bind_to=[target.id], valid_support={c.id for c in bound},
+        bind_to=[target.id], valid_support=valid_support,
     )
     if isinstance(parsed, dict) and parsed.get("recommend_close"):
         board.log(
