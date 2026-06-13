@@ -214,12 +214,6 @@ DECISION RULES:
 - Converge when every critical/high target is closed/waived/blocked AND every mandatory obligation is satisfied or explicitly waived, and another round would not materially improve the answer. Do NOT converge while many claims remain unbound — dispatch bind first so closure judgments see all the evidence.
 - Mark an obligation "satisfied" only when its units are evidenced (or it is not set-valued and its substance is covered by closed targets). Waive only with a reason the user would accept. An exhaustive obligation with unevidenced units is NOT satisfied — dispatch reads/bind for those units instead.
 
-EFFICIENCY DISCIPLINE (critical — follow strictly):
-- BATCH CLOSURES: If multiple targets have analyst close recommendations or sufficient derived claims, close ALL of them in a single target_updates list this round. Never trickle closures one-per-iteration — that wastes iterations.
-- NO STUTTER: If a target received a close recommendation last round AND you are closing it, do NOT dispatch another analyze action for it. The analysis is done. Close it and move on.
-- TIGHT TARGET MANAGEMENT: Do not propose speculative targets you will likely waive later. Every target must serve a concrete gap in the answer. Fewer, sharper targets beat many vague ones.
-- STRATEGIC REASONING: In your reasoning, group open targets by theme and state what each group needs (evidence? analysis? closure?). Name specific target IDs. Do not give generic reasoning like "we need to gather more evidence" — state WHICH targets need WHAT.
-- NEGATIVE EVIDENCE: If a target asks about something and the sources contain no mention of it, that absence IS the finding. Close the target with the finding that it is not addressed in the sources, rather than leaving it open or dispatching more reads.
 
 Return JSON:
 {{"reasoning": "<2-4 sentences>",
@@ -364,74 +358,118 @@ Only include ops that genuinely improve the ledger. An empty ops list is a valid
 
 
 def blackboard_audit(audit_caller, board: Board) -> None:
-    """Strategic blackboard audit by a stronger model.
+    """Deep strategic blackboard audit by a stronger model.
 
-    Runs periodically (not every iteration) to consolidate and improve
-    the board: close targets with sufficient evidence, open new leads
-    the controller missed, identify extraction gaps, and clean up sprawl.
+    A heavyweight pass that reviews the entire investigation state,
+    cross-references evidence against the task requirements, identifies
+    systemic gaps, and restructures the target ledger for maximum
+    coverage in remaining iterations.
     """
     open_targets = board.open_targets()
     resolved = board.resolved_targets()
     unbound = board.unbound_claims()
     derived = [c for c in board.claims if c.active and c.is_derived]
+    all_bound = [c for c in board.claims if c.active and c.target_refs]
 
     target_detail = []
     for t in open_targets:
         bound = board.claims_for_target(t)
-        raw = sum(1 for c in bound if c.kind == "observation")
-        der = sum(1 for c in bound if c.is_derived)
+        raw_claims = [c for c in bound if c.kind == "observation"]
+        der_claims = [c for c in bound if c.is_derived]
         recs = [
             e.summary for e in board.events
             if e.kind == "close_recommendation"
             and e.detail.get("target_id") == t.id
         ]
+        evidence_sample = "\n".join(
+            f"    - [{c.kind}] {c.content}"
+            for c in sorted(bound, key=lambda c: -c.confidence)[:12]
+        )
         target_detail.append(
-            f"{t.id} [{t.materiality}] {t.need}\n"
-            f"  {raw} raw claims, {der} derived, {len(recs)} close recommendations"
-            + (f"\n  Latest recommendation: {recs[-1][:200]}" if recs else "")
+            f"{t.id} [{t.materiality}, created iter {t.created_iteration}, "
+            f"by {t.proposed_by}] {t.need}\n"
+            f"  Evidence: {len(raw_claims)} raw, {len(der_claims)} derived, "
+            f"{len(recs)} close recs\n"
+            f"  Best evidence:\n{evidence_sample}"
+            + (f"\n  Close recommendation: {recs[-1]}" if recs else "")
         )
 
-    resolved_detail = "\n".join(
-        f"{t.id} [{t.status}] {t.need}" for t in resolved
+    resolved_detail = []
+    for t in resolved:
+        bound = board.claims_for_target(t)
+        resolved_detail.append(
+            f"{t.id} [{t.status}, {t.materiality}] {t.need} "
+            f"({len(bound)} claims) — {t.reason}"
+        )
+
+    unbound_detail = "\n".join(
+        f"  {c.id} [{c.kind}, conf={c.confidence:.1f}] {c.content}"
+        for c in sorted(unbound, key=lambda c: -c.confidence)
     )
 
-    sources_read = "\n".join(
-        f"- {s.name} ({s.read_status})" for s in board.sources
+    sources_detail = "\n".join(
+        f"- {s.name} ({s.read_status}, {s.size_bytes // 1024}KB, "
+        f"relevance: {s.relevance_reason})" for s in board.sources
     )
 
-    prompt = f"""You are a senior investigator auditing the state of a blackboard mid-investigation. Your job is to look at the entire board with fresh eyes and make strategic improvements the iterative controller may have missed.
+    recent_controller = []
+    for e in board.events:
+        if e.kind == "controller" and e.iteration >= board.iteration - 3:
+            recent_controller.append(
+                f"  iter {e.iteration}: {e.detail.get('reasoning', '')}"
+            )
 
-TASK:
+    prompt = f"""You are a world-class investigative analyst performing a deep audit of a blackboard-based investigation. This is NOT a routine check — you are the strategic brain that sees what the iterative controller cannot. The controller operates locally (one iteration at a time); you see globally (the entire investigation arc, all evidence, all gaps).
+
+TASK (the user's original request):
 {board.instruction}
 
-ITERATION: {board.iteration} | {len(board.claims)} total claims, {len(unbound)} unbound, {len(derived)} derived
+ANSWER SHAPE (what excellence looks like):
+{board.metadata.get('answer_shape', '')}
+
+INVESTIGATION STATE: iteration {board.iteration} of {board.metadata.get('max_iterations', 12)}
+- {len(board.claims)} total claims ({len(derived)} derived, {len(unbound)} unbound, {len(all_bound)} bound)
+- {len(open_targets)} open targets, {len(resolved)} resolved ({sum(1 for t in resolved if t.status == 'closed')} closed, {sum(1 for t in resolved if t.status == 'waived')} waived)
 
 SOURCES:
-{sources_read}
+{sources_detail}
 
-OPEN TARGETS (with evidence summary):
-{chr(10).join(target_detail) if target_detail else '(none)'}
+--- OPEN TARGETS (full evidence inventory) ---
+{chr(10).join(target_detail) if target_detail else '(none open)'}
 
-RESOLVED TARGETS:
-{resolved_detail if resolved_detail else '(none)'}
+--- RESOLVED TARGETS ---
+{chr(10).join(resolved_detail) if resolved_detail else '(none resolved)'}
 
-ANSWER SHAPE: {board.metadata.get('answer_shape', '')}
+--- UNBOUND CLAIMS (evidence not connected to any target) ---
+{unbound_detail if unbound_detail else '(none)'}
 
-Your audit should:
-1. CLOSE targets that have close recommendations or sufficient derived evidence — batch all closures together
-2. WAIVE targets that are redundant, out of scope, or whose answers are already covered by other closed targets
-3. OPEN new targets for gaps you notice — things the task clearly needs that no target covers
-4. IDENTIFY extraction gaps — specific facts the task needs that no claim covers, and which source likely contains them
-5. MERGE duplicate or overlapping targets
+--- RECENT CONTROLLER REASONING (last 3 iterations) ---
+{chr(10).join(recent_controller) if recent_controller else '(none)'}
+
+YOUR AUDIT MUST DO ALL OF THE FOLLOWING:
+
+PHASE 1 — EVIDENCE CROSS-CHECK
+For each open target, assess: does the bound evidence actually answer the target's need? Be specific. If a target asks "identify all X" and the evidence only covers 3 of 8 visible X's, that is a gap. If evidence contradicts itself, that is a conflict to resolve. Rate each open target as: READY_TO_CLOSE (evidence sufficient), NEEDS_MORE (specific gap), STALE (no progress, consider waiving), or REDUNDANT (covered by another target).
+
+PHASE 2 — COVERAGE GAP ANALYSIS
+Read the task instruction carefully. What specific deliverable components, analysis points, or document sections does the task demand that NO target currently covers? What facts visible in the unbound claims are being ignored? What sources might contain evidence that was never extracted? Be concrete — name the missing element and where to find it.
+
+PHASE 3 — TARGET RESTRUCTURING
+Based on your assessment: close targets that are ready, waive targets that are stale or redundant, merge overlapping targets, create new targets for uncovered gaps, and reprioritize based on what matters most for a professional deliverable. Every operation must have a specific reason grounded in the evidence you reviewed.
+
+PHASE 4 — STRATEGIC DIRECTION
+What should the next 2-3 iterations focus on? What is the single highest-value action the investigation could take right now? What pattern of failure do you see in the controller's recent reasoning?
 
 Return JSON:
-{{"audit_reasoning": "<your strategic assessment of the board state, 3-5 sentences>",
- "close": [{{"target_id": "...", "reason": "..."}}],
+{{"phase1_assessment": [{{"target_id": "...", "status": "READY_TO_CLOSE|NEEDS_MORE|STALE|REDUNDANT", "reasoning": "<specific evidence-based assessment>", "gap": "<what's missing, if NEEDS_MORE>"}}],
+ "phase2_gaps": [{{"description": "<specific missing element>", "likely_source": "<document name>", "importance": "critical|high|medium"}}],
+ "close": [{{"target_id": "...", "reason": "<evidence-grounded reason>"}}],
  "waive": [{{"target_id": "...", "reason": "..."}}],
- "new_targets": [{{"need": "...", "materiality": "critical|high|medium|low"}}],
- "extraction_gaps": [{{"description": "...", "likely_source": "...", "target_ids": ["..."]}}],
- "merges": [{{"keep": "...", "absorb": ["..."], "need": "<sharpened need>"}}]}}
-Only include ops that genuinely improve the board. Empty lists are valid."""
+ "new_targets": [{{"need": "<specific, closeable question>", "materiality": "critical|high|medium|low", "rationale": "<why this gap matters for the deliverable>"}}],
+ "merges": [{{"keep": "...", "absorb": ["..."], "need": "<sharpened need>"}}],
+ "reprioritize": [{{"target_id": "...", "materiality": "critical|high|medium|low", "reason": "..."}}],
+ "strategic_direction": "<2-4 sentences: what to focus on next, what pattern to break>",
+ "controller_feedback": "<what the iterative controller is doing wrong or missing>"}}"""
 
     parsed = call_json(audit_caller, board, prompt, kind="blackboard_audit",
                        max_tokens=8192)
@@ -488,14 +526,30 @@ Only include ops that genuinely improve the board. Empty lists are valid."""
         if new_need:
             keep.need = new_need
 
-    gaps = parsed.get("extraction_gaps", [])
-    reasoning = str(parsed.get("audit_reasoning", ""))[:500]
+    reprioritized = 0
+    for rp in parsed.get("reprioritize", []):
+        if not isinstance(rp, dict):
+            continue
+        t = board.find_target(str(rp.get("target_id", "")))
+        m = str(rp.get("materiality", ""))
+        if t is not None and t.is_open and m in ("critical", "high", "medium", "low"):
+            t.materiality = m
+            reprioritized += 1
+
+    gaps = parsed.get("phase2_gaps", [])
+    direction = str(parsed.get("strategic_direction", ""))[:500]
+    ctrl_feedback = str(parsed.get("controller_feedback", ""))[:300]
 
     board.log(
         "blackboard_audit",
         f"audit: {closes} closed, {waives} waived, {opens} new, "
-        f"{merges} merged, {len(gaps)} gaps identified",
-        detail={"reasoning": reasoning, "gaps": gaps[:5]},
+        f"{merges} merged, {reprioritized} reprioritized, {len(gaps)} gaps",
+        detail={
+            "strategic_direction": direction,
+            "controller_feedback": ctrl_feedback,
+            "gaps": [g.get("description", "") if isinstance(g, dict) else str(g)
+                     for g in gaps[:5]],
+        },
     )
 
 
