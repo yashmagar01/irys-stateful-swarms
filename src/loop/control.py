@@ -36,14 +36,14 @@ def seed_targets(smart_caller, board: Board) -> None:
     )
     doc_lines = "\n".join(
         f"- {s.path_hint}/{s.name} ({s.size_bytes // 1024}KB)"
-        for s in board.sources[:80]
+        for s in board.sources
     )
-    more = f"\n... and {len(board.sources) - 80} more" if len(board.sources) > 80 else ""
+    more = ""
 
     prompt = f"""You are a top-tier expert planning how to answer a complex request. Do NOT answer it. Think about what a complete, professional answer would have to resolve — then write that as a list of concrete questions (targets).
 
 REQUEST:
-{board.instruction[:6000]}{deliverables_note}
+{board.instruction}{deliverables_note}
 
 AVAILABLE SOURCES (metadata only — nothing has been read yet):
 {doc_lines}{more}
@@ -154,13 +154,13 @@ def _force_analysis_gate(board: Board, actions: list[dict],
 def controller_decide(smart_caller, board: Board, last_summary: dict, *,
                       max_iterations: int = 12, closeout: bool = False) -> dict:
     """One iteration's decision: target updates + actions + converge flag."""
-    open_cards = [board.target_card(t) for t in board.open_targets()[:25]]
+    open_cards = [board.target_card(t) for t in board.open_targets()]
     resolved = [
-        f"{t.id} [{t.status}] {t.need[:90]}" for t in board.resolved_targets()
+        f"{t.id} [{t.status}] {t.need}" for t in board.resolved_targets()
     ]
     unbound = board.unbound_claims()
     unbound_sample = "\n".join(
-        f"  {c.id} [{c.kind}] {c.content[:140]}" for c in unbound[:5]
+        f"  {c.id} [{c.kind}] {c.content}" for c in unbound
     )
     close_recs = [
         e.detail.get("target_id", "") + ": " + e.summary
@@ -171,9 +171,9 @@ def controller_decide(smart_caller, board: Board, last_summary: dict, *,
     prompt = f"""You are the controller of an investigation. Each round you decide: which questions to resolve (close/waive/block), and what work to dispatch next. You are a scheduler — workers do the deep reasoning; you allocate effort where it moves the answer most.
 
 TASK:
-{board.instruction[:2000]}
+{board.instruction}
 
-ANSWER SHAPE: {board.metadata.get('answer_shape', '')[:600]}
+ANSWER SHAPE: {board.metadata.get('answer_shape', '')}
 
 ITERATION {board.iteration} of {max_iterations} | budget used {board.budget_used_pct()}%
 {'''
@@ -188,7 +188,7 @@ OPEN TARGETS (cards with computed blockers):
 
 RESOLVED: {'; '.join(resolved) if resolved else '(none yet)'}
 
-UNBOUND CLAIMS: {len(unbound)} not yet connected to any target.
+UNBOUND CLAIMS ({len(unbound)} not yet connected to any target):
 {unbound_sample}
 
 ANALYST CLOSE RECOMMENDATIONS FROM LAST ROUND:
@@ -296,7 +296,7 @@ def maintain_ledger(smart_caller, board: Board, *, closeout: bool = False) -> No
     prompt = f"""You are grooming the question ledger of an investigation. Workers propose questions freely — your job is judgment: merge duplicates, waive what is not worth pursuing, fix priorities, sharpen vague questions.
 
 TASK:
-{board.instruction[:1500]}
+{board.instruction}
 
 OPEN QUESTIONS:
 {listing}
@@ -376,48 +376,48 @@ def reframe_ledger(smart_caller, board: Board) -> None:
     """
     all_targets = "\n".join(
         f"{t.id} [{t.status}/{t.materiality}, {len(t.claim_refs)} claims]"
-        f" {t.need[:110]}"
-        + (f" | resolved: {t.reason[:60]}" if t.reason else "")
+        f" {t.need}"
+        + (f" | resolved: {t.reason}" if t.reason else "")
         for t in board.targets
         if not t.reason.startswith("merged into")
         and not t.reason.startswith("split into")
     )
     derived = [c for c in board.claims if c.active and c.is_derived]
     best_derived = "\n".join(
-        f"- [{c.kind}] {c.content[:140]}"
-        for c in sorted(derived, key=lambda c: -c.confidence)[:25]
+        f"- [{c.kind}] {c.content}"
+        for c in sorted(derived, key=lambda c: -c.confidence)
     )
     sources_read = "\n".join(
-        f"- {s.name} ({s.read_status})" for s in board.sources[:40]
+        f"- {s.name} ({s.read_status})" for s in board.sources
     )
     reopen = board.reopen_candidates()
     reopen_text = "\n".join(
         f"- {r['target_id']}: {r['need']} ({r['new_claims']} new claims,"
         f" {r['disturbed_basis']} basis claims disturbed)"
-        for r in reopen[:15]
+        for r in reopen
     )
 
     requirement_claims = [
         c for c in board.claims if c.active and c.kind == "requirement"
     ]
-    req_text = "\n".join(f"- [{c.id}] {c.content[:140]}" for c in requirement_claims[:20])
+    req_text = "\n".join(f"- [{c.id}] {c.content}" for c in requirement_claims)
     ob_lines = []
     for o in board.obligations:
         units = board.units_for(o.id)
-        unit_sample = ", ".join(u.name[:40] for u in units[:8])
+        unit_sample = ", ".join(u.name for u in units[:12])
         ob_lines.append(
             f"{o.id} [{o.status}/{o.coverage}/{'mandatory' if o.mandatory else 'optional'}]"
-            f" {o.text[:110]} | {len(units)} units"
+            f" {o.text} | {len(units)} units"
             + (f" (e.g. {unit_sample})" if unit_sample else "")
         )
 
     prompt = f"""You are REBUILDING the working state of an investigation mid-flight. The original questions and answer contract were written before any document was read. The investigation has since built real understanding — even what the answer NEEDS should evolve with that understanding. Your job: re-derive what the question set and the answer contract SHOULD be, knowing everything now known, and repair the gap.
 
 TASK:
-{board.instruction[:4000]}
+{board.instruction}
 
 CURRENT UNDERSTANDING OF WHAT A GREAT ANSWER NEEDS:
-{board.metadata.get('answer_shape', '')[:800]}
+{board.metadata.get('answer_shape', '')}
 
 SOURCES (read state):
 {sources_read}

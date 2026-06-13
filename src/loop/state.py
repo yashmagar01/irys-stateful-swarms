@@ -545,7 +545,7 @@ class Board:
         """Compact card the controller sees — counts and blockers, not the graph."""
         bound = self.claims_for_target(target)
         derived = [c for c in bound if c.is_derived]
-        best = sorted(derived or bound, key=lambda c: -c.confidence)[:3]
+        best = sorted(derived or bound, key=lambda c: -c.confidence)[:8]
         return {
             "id": target.id,
             "need": target.need,
@@ -557,7 +557,7 @@ class Board:
             "derived": len(derived),
             "kinds": sorted({c.kind for c in derived}),
             "best_claims": [
-                {"id": c.id, "kind": c.kind, "content": c.content[:160]}
+                {"id": c.id, "kind": c.kind, "content": c.content}
                 for c in best
             ],
         }

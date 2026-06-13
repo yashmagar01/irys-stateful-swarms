@@ -118,7 +118,7 @@ def _run_read_chunk(job: dict, board: Board, caller) -> dict:
         framing = f"""You are extracting evidence from a document for a research task. Extract every specific, citable fact: amounts, dates, parties, defined terms, obligations, conditions, numbers, named provisions. Exact values, never paraphrased approximations.
 
 TASK CONTEXT:
-{board.instruction[:1500]}
+{board.instruction}
 
 QUESTIONS THIS READ SERVES:
 {targets_text}{focus_note}"""
@@ -127,7 +127,7 @@ QUESTIONS THIS READ SERVES:
     units_ask = ""
     units_schema = ""
     if set_valued:
-        ob_list = "\n".join(f"  {o.id}: {o.text[:120]}" for o in set_valued[:6])
+        ob_list = "\n".join(f"  {o.id}: {o.text}" for o in set_valued)
         units_ask = f"""
 COVERAGE OBLIGATIONS (the answer must account for every repeated item under these):
 {ob_list}
@@ -250,15 +250,15 @@ def _run_bind_batch(job: dict, board: Board, caller) -> dict:
         return {}
     targets_text = "\n".join(f"{t.id} [{t.materiality}] {t.need}" for t in targets)
     claims_text = "\n".join(
-        f"{c.id} [{c.kind}] {c.content[:220]}" for c in claims
+        f"{c.id} [{c.kind}] {c.content}" for c in claims
     )
     active_units = [u for u in board.units if u.status != "waived"]
     units_text = ""
     units_schema = ""
     if active_units:
         units_text = "\nCOVERAGE UNITS (repeated items the answer must account for; attach claims that evidence a specific unit):\n" + "\n".join(
-            f"{u.id} [{board.find_obligation(u.obligation_ref).text[:50] if board.find_obligation(u.obligation_ref) else ''}] {u.name[:80]}"
-            for u in active_units[:120]
+            f"{u.id} [{board.find_obligation(u.obligation_ref).text if board.find_obligation(u.obligation_ref) else ''}] {u.name}"
+            for u in active_units
         )
         units_schema = ', "unit_ids": ["..."]'
 
@@ -304,15 +304,15 @@ def _run_analyze(action: dict, board: Board, caller) -> dict:
     instruction = str(action.get("instruction", ""))
     claims_text = "\n".join(
         f"{c.id} [{c.kind}, conf {c.confidence:.2f}] {c.content}"
-        + (f" | evidence: {c.evidence[:150]}" if c.evidence else "")
+        + (f" | evidence: {c.evidence}" if c.evidence else "")
         + (f" | source: {c.source_doc}" if c.source_doc else "")
-        for c in bound[:80]
+        for c in bound
     )
 
     prompt = f"""You are a top-tier expert doing the analytical work to close a specific question. Raw facts are inputs; your job is conclusions: calculations, comparisons, issue flags, recommendations, decisions. Show reasoning inside the claim content.
 
 OVERALL TASK:
-{board.instruction[:1500]}
+{board.instruction}
 
 QUESTION TO CLOSE:
 [{target.materiality}] {target.need}
@@ -376,8 +376,8 @@ def _run_verify(action: dict, board: Board, caller) -> dict:
                 src.text(), src.section_index(), section, max_chars=12_000,
             )
         support_text = "\n".join(
-            f"  support {s.id}: {s.content[:200]} | evidence: {s.evidence[:150]}"
-            for s in (board.find_claim(r) for r in c.support_refs[:6]) if s
+            f"  support {s.id}: {s.content} | evidence: {s.evidence}"
+            for s in (board.find_claim(r) for r in c.support_refs) if s
         )
         blocks.append(
             f"CLAIM {c.id} [{c.kind}]: {c.content}\n{support_text}\n"

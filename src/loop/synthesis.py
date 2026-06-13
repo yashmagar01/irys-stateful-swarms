@@ -104,8 +104,8 @@ def unit_packets(board: Board, obligation_ids: list[str] | None = None) -> list[
                 "anchor": u.anchor,
                 "status": u.status,
                 "claims": [
-                    {"kind": c.kind, "content": c.content[:300],
-                     "evidence": c.evidence[:150], "source": c.source_doc}
+                    {"kind": c.kind, "content": c.content,
+                     "evidence": c.evidence, "source": c.source_doc}
                     for c in claims[:per_unit]
                 ] or [{"kind": "gap", "content": "no evidence gathered for this unit"}],
             })
@@ -126,7 +126,7 @@ def requirement_block(board: Board) -> str:
     """
     reqs = [c for c in board.claims if c.active and c.kind == "requirement"]
     return "\n".join(
-        f"- {c.content[:300]}" + (f" (Source: {c.source_doc})" if c.source_doc else "")
+        f"- {c.content}" + (f" (Source: {c.source_doc})" if c.source_doc else "")
         for c in reqs
     )
 
@@ -158,12 +158,12 @@ def _supplementary_evidence(board: Board) -> str:
         if not picked:
             continue
         blocks.append({
-            "question": t.need[:200],
+            "question": t.need,
             "status": "partially_investigated",
             "materiality": t.materiality,
             "claims": [
-                {"kind": c.kind, "content": c.content[:300],
-                 "evidence": c.evidence[:150], "source": c.source_doc}
+                {"kind": c.kind, "content": c.content,
+                 "evidence": c.evidence, "source": c.source_doc}
                 for c in picked
             ],
         })
@@ -185,22 +185,22 @@ def plan_synthesis(smart_caller, board: Board) -> dict:
     files = list(deliverables.values()) if deliverables else ["output.docx"]
 
     target_lines = "\n".join(
-        f"{t.id} [{t.status}/{t.materiality}] {t.need[:120]}"
+        f"{t.id} [{t.status}/{t.materiality}] {t.need}"
         f" ({len(t.claim_refs)} claims)"
         for t in board.targets
     )
     ob_lines = "\n".join(
         f"{o.id} [{o.status}/{o.coverage}/{'mandatory' if o.mandatory else 'optional'}]"
-        f" {o.text[:120]} | {len([u for u in board.units_for(o.id) if u.status != 'waived'])} units"
+        f" {o.text} | {len([u for u in board.units_for(o.id) if u.status != 'waived'])} units"
         for o in board.obligations
     )
 
     prompt = f"""You are planning the final deliverable(s) of a completed investigation. All analytical work is done — your job is allocation and structure: which resolved questions feed which file, in what order, at what depth, in what form.
 
 REQUEST:
-{board.instruction[:4000]}
+{board.instruction}
 
-ANSWER SHAPE: {board.metadata.get('answer_shape', '')[:600]}
+ANSWER SHAPE: {board.metadata.get('answer_shape', '')}
 
 OUTPUT FILES REQUIRED: {json.dumps(files)}
 
@@ -304,7 +304,7 @@ def synthesize(smart_caller, board: Board, plan: dict) -> dict[str, str]:
         and not t.reason.startswith("merged into")
     ]
     residual_note = "\n".join(
-        f"- [{t.status}] {t.need[:150]}" + (f" — {t.reason[:100]}" if t.reason else "")
+        f"- [{t.status}] {t.need}" + (f" — {t.reason}" if t.reason else "")
         for t in residuals
     )
 
@@ -363,7 +363,7 @@ UNIT PACKETS (every unit below MUST appear in the deliverable exactly once, in t
         prompt = f"""You are writing the final deliverable of a completed expert investigation. The analysis below is your ONLY knowledge — write from it, never invent. Where claims carry evidence quotes and sources, use them for precision and citation.
 
 ORIGINAL REQUEST:
-{board.instruction[:4000]}
+{board.instruction}
 
 FILE: {filename} - {file_plan.get('form', 'document')}
 {format_rules}
@@ -451,7 +451,7 @@ def _repair_synthesis(smart_caller, board: Board, *, filename: str,
     prompt = f"""You are the final coverage editor for an expert work product. The draft below may be well written but incomplete. Compare it against the analysis packets and rewrite the COMPLETE file so packet-supported material survives into the deliverable.
 
 ORIGINAL REQUEST:
-{board.instruction[:4000]}
+{board.instruction}
 
 FILE: {filename} - {file_plan.get('form', 'document')}
 {format_rules}
@@ -530,7 +530,7 @@ def write_final_state(board: Board) -> None:
             "satisfied": sum(1 for o in board.obligations if o.status == "satisfied"),
             "waived": sum(1 for o in board.obligations if o.status == "waived"),
             "open_mandatory_at_stop": [
-                {"id": o.id, "text": o.text[:120], "coverage": o.coverage}
+                {"id": o.id, "text": o.text, "coverage": o.coverage}
                 for o in board.open_mandatory_obligations()
             ],
             "units": len(board.units),
