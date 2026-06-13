@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import os
 
-from .actions import execute_actions
+from .actions import auto_bind, execute_actions
 from .control import (
     _force_analysis_gate,
     controller_decide, maintain_ledger, reframe_ledger, seed_targets,
@@ -119,6 +119,7 @@ def run_loop(task, worker_caller, smart_caller=None):
             derived_before = sum(1 for c in board.claims if c.is_derived)
             resolved_before = len(board.resolved_targets())
             last_summary = execute_actions(decision["actions"], board, worker_caller)
+            auto_bind(board, worker_caller)
             derived_added = sum(1 for c in board.claims if c.is_derived) - derived_before
             resolved_delta = len(board.resolved_targets()) - resolved_before
             last_summary["derived_added"] = derived_added

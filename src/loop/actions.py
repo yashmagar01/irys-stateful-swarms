@@ -217,6 +217,22 @@ External claims need lower default confidence than primary documents unless from
 
 # --- BIND ---
 
+def auto_bind(board: Board, caller) -> int:
+    """Bind all unbound claims to open targets. Runs automatically after
+    each iteration's reads — don't wait for the controller to ask."""
+    unbound = board.unbound_claims()
+    if not unbound or not board.open_targets():
+        return 0
+    total_bound = 0
+    for i in range(0, len(unbound), _BIND_BATCH):
+        batch = unbound[i:i + _BIND_BATCH]
+        result = _run_bind_batch({"claims": batch}, board, caller)
+        total_bound += result.get("bound", 0)
+    if total_bound:
+        board.log("auto_bind", f"bound {total_bound}/{len(unbound)} unbound claims")
+    return total_bound
+
+
 def _bind_jobs(action: dict, board: Board) -> list[tuple[str, dict]]:
     unbound = board.unbound_claims()
     if not unbound:
