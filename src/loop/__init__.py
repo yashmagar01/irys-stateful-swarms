@@ -155,6 +155,16 @@ def run_loop(task, worker_caller, smart_caller=None):
         board.snapshot()
 
     board.log("stop", board.stop_reason)
+
+    # Pre-synthesis bind sweep: route orphan claims to targets before synthesis.
+    unbound = board.unbound_claims()
+    if unbound:
+        bind_action = {"kind": "bind", "_id": "pre_synth_bind"}
+        bind_result = execute_actions([bind_action], board, worker_caller)
+        board.log("pre_synth_bind",
+                  f"bound {bind_result.get('bound', 0)} orphan claims "
+                  f"(of {len(unbound)} unbound)")
+
     board.snapshot("final")
 
     plan = plan_synthesis(smart, board)

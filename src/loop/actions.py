@@ -229,10 +229,14 @@ def _bind_jobs(action: dict, board: Board) -> list[tuple[str, dict]]:
 
 def _run_bind_batch(job: dict, board: Board, caller) -> dict:
     claims = job["claims"]
-    targets = board.open_targets()
+    open_targets = board.open_targets()
+    resolved = [t for t in board.targets if not t.is_open and t.rank >= 2]
+    targets = open_targets + resolved
     if not targets:
         return {}
-    targets_text = "\n".join(f"{t.id} [{t.materiality}] {t.need}" for t in targets)
+    targets_text = "\n".join(
+        f"{t.id} [{t.materiality}, {t.status}] {t.need}" for t in targets
+    )
     claims_text = "\n".join(
         f"{c.id} [{c.kind}] {c.content[:220]}" for c in claims
     )
@@ -246,9 +250,9 @@ def _run_bind_batch(job: dict, board: Board, caller) -> dict:
         )
         units_schema = ', "unit_ids": ["..."]'
 
-    prompt = f"""You are connecting extracted evidence to the questions it helps answer. A claim can serve multiple questions. A claim that serves no current question gets an empty list — do NOT force-fit.
+    prompt = f"""You are connecting extracted evidence to the questions it helps answer. A claim can serve multiple questions. Questions may be open or already resolved — bind to resolved questions when the claim adds supporting evidence. A claim that serves no current question gets an empty list — do NOT force-fit.
 
-QUESTIONS (id, materiality, need):
+QUESTIONS (id, materiality, status, need):
 {targets_text}
 {units_text}
 
