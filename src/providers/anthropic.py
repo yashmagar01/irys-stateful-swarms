@@ -38,7 +38,8 @@ class AnthropicCaller:
         for attempt in range(5):
             t0 = time.perf_counter()
             try:
-                response = self.client.messages.create(**kwargs)
+                with self.client.messages.stream(**kwargs) as stream:
+                    response = stream.get_final_message()
             except anthropic.RateLimitError as e:
                 wait = min(60, 5 * (2 ** attempt))
                 time.sleep(wait)
@@ -69,7 +70,6 @@ class AnthropicCaller:
                 time.sleep(2)
                 continue
 
-            # Handle refusals (Fable 5 safety classifiers)
             if getattr(response, "stop_reason", None) == "refusal":
                 last_err = RuntimeError(
                     f"Anthropic refusal on {self.model}: {text[:200]}"
