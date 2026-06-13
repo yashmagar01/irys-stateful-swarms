@@ -20,12 +20,12 @@ from .state import Board, Target
 # on the long tail of specifics — packets must carry it. 3.5 flash takes 1M
 # input tokens; starving synthesis to save prompt space is a false economy.
 _CLAIMS_PER_TARGET = 48
-_CONTENT_CAP = 700
-_EVIDENCE_CAP = 350
+_CONTENT_CAP = 500
+_EVIDENCE_CAP = 220
 _REPAIR_ENABLED = os.getenv("LOOP_SYNTHESIS_REPAIR", "1").strip() in (
     "1", "true", "yes",
 )
-_REPAIR_PACKET_CAP = int(os.getenv("LOOP_SYNTHESIS_REPAIR_PACKET_CAP", "500000"))
+_REPAIR_PACKET_CAP = int(os.getenv("LOOP_SYNTHESIS_REPAIR_PACKET_CAP", "320000"))
 _REPAIR_DRAFT_CAP = int(os.getenv("LOOP_SYNTHESIS_REPAIR_DRAFT_CAP", "120000"))
 
 
@@ -373,7 +373,7 @@ FILE: {filename} - {file_plan.get('form', 'document')}
 ''' if requirement_block(board) else ''}
 
 ANALYSIS (per section, with resolved questions and their claims):
-{json.dumps(packet_blocks, indent=1, default=str)[:700_000]}
+{json.dumps(packet_blocks, indent=1, default=str)[:400_000]}
 {coverage_block}
 {supplementary_block}
 
