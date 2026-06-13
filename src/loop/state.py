@@ -129,7 +129,10 @@ class Obligation:
 
     @property
     def set_valued(self) -> bool:
-        return self.coverage in ("exhaustive", "material", "native-complete")
+        # native-complete deliberately excluded: v5 showed unit machinery
+        # strangles drafting (units force checklist-stitching where coherent
+        # composition wins). Drafts are served by targets + requirement claims.
+        return self.coverage in ("exhaustive", "material")
 
     def to_dict(self) -> dict:
         return {
@@ -379,7 +382,12 @@ class Board:
         return [u for u in self.units if u.obligation_ref == obligation_id]
 
     def open_mandatory_obligations(self) -> list[Obligation]:
-        return [o for o in self.obligations if o.mandatory and o.status == "open"]
+        """Only set-valued obligations gate convergence — native-complete and
+        summary substance is what targets already track."""
+        return [
+            o for o in self.obligations
+            if o.mandatory and o.status == "open" and o.set_valued
+        ]
 
     def obligation_card(self, ob: Obligation) -> dict:
         """Aggregate counts only — units never appear individually to the

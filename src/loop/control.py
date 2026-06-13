@@ -59,6 +59,7 @@ Produce two things:
    - "native-complete": a complete work product (a full draft/agreement/letter), not an item ledger.
    - "summary": a concise synthesis is what was asked.
    An instruction can mix obligations with different standards. If an obligation covers repeated items, name the unit of account in the task's own language (provision, request category, policy term, issue, claim, section) — units themselves will be discovered during reading.
+   Be honest about standards: "exhaustive" ONLY where the instruction's words demand accounting for every repeated item; drafting a complete document is "native-complete", never "exhaustive". "mandatory" means the user would reject the answer without it — most obligations beyond the core ask are optional.
 
 Also state what would make the answer excellent (answer_shape) — depth, rigor, what a demanding expert reader would check first.
 
