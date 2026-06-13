@@ -371,6 +371,7 @@ FILE: {filename} - {file_plan.get('form', 'document')}
 {f'''BINDING REQUIREMENTS discovered in the sources — satisfy EVERY one (addressees, length minimums, mandatory elements, required references, procedural requests). If a length minimum exists, meet it with substance, not padding:
 {requirement_block(board)}
 ''' if requirement_block(board) else ''}
+
 ANALYSIS (per section, with resolved questions and their claims):
 {json.dumps(packet_blocks, indent=1, default=str)[:400_000]}
 {coverage_block}
@@ -425,7 +426,7 @@ Write the COMPLETE deliverable. Professional, specific, decision-ready. Every co
 
 
 def _usable_repair(draft: str, repaired: str | None) -> bool:
-    """Reject parse failures, truncation, and content shrinkage from repair."""
+    """Reject parse failures and obvious truncation from the repair pass."""
     if not repaired:
         return False
     cleaned = repaired.strip()
@@ -433,7 +434,7 @@ def _usable_repair(draft: str, repaired: str | None) -> bool:
         return False
     if len(draft) < 1200:
         return len(cleaned) >= len(draft) * 0.5
-    return len(cleaned) >= max(1200, int(len(draft) * 0.9))
+    return len(cleaned) >= max(1200, int(len(draft) * 0.6))
 
 
 def _repair_synthesis(smart_caller, board: Board, *, filename: str,

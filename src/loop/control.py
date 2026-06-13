@@ -16,7 +16,7 @@ from .llm import call_json
 from .state import Board, Obligation, Target, Unit
 from .triage import catalog_summary
 
-MAX_ACTIONS_PER_ITERATION = 6
+MAX_ACTIONS_PER_ITERATION = 8
 MAINTENANCE_EVERY = 3
 MAINTENANCE_OPEN_THRESHOLD = 25
 
@@ -110,8 +110,7 @@ Return JSON:
     board.log("seed", f"{len(board.targets)} initial targets")
 
 
-def _force_analysis_gate(board: Board, actions: list[dict],
-                         max_reopen: int = 3) -> None:
+def _force_analysis_gate(board: Board, actions: list[dict]) -> None:
     """Reopen critical/high targets that were waived with unanalyzed evidence.
 
     The controller sometimes waives targets to converge, but if the target
@@ -124,10 +123,7 @@ def _force_analysis_gate(board: Board, actions: list[dict],
         e.detail.get("target_id")
         for e in board.events if e.kind == "force_analyze"
     }
-    reopened = 0
     for t in list(board.resolved_targets()):
-        if reopened >= max_reopen:
-            break
         if t.status != "waived" or t.materiality not in ("critical", "high"):
             continue
         if t.resolved_iteration != board.iteration:
@@ -146,7 +142,6 @@ def _force_analysis_gate(board: Board, actions: list[dict],
             board.log("force_analyze",
                       f"reopened {t.id}: {raw} raw claims need analysis",
                       detail={"target_id": t.id})
-            reopened += 1
 
 
 # --- CONTROLLER ---

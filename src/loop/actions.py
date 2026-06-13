@@ -144,34 +144,22 @@ DOCUMENT: {source.name}{chunk_note}
 
 Return JSON:
 {{"claims": [{{"kind": "observation", "content": "<the fact, specific and self-contained>", "section": "<section/heading it came from>", "evidence": "<short exact quote>", "confidence": 0.0-1.0}}],
- "proposed_targets": [{{"need": "<new question this document raises that the task must answer>", "materiality": "critical|high|medium|low", "claim_indexes": [0, 2]}}]{units_schema}}}
+ "proposed_targets": [{{"need": "<new question this document raises that the task must answer>", "materiality": "critical|high|medium|low"}}]{units_schema}}}
 
 Rules:
 - kind is usually "observation". Use "contradiction" if this text conflicts with itself, "gap" if something expected is conspicuously absent, "issue" for a clear defect/risk stated in the text.
 - kind "requirement" ONLY for constraints on the work product being created (the document this task will produce): its addressee and submission address, who signs/submits it, its length or format, its filing deadline, elements it must contain, references it must make, procedural requests it must include. Obligations that documents impose on parties (notice duties, filing duties, contractual obligations of the insured/permittee/borrower) are "observation", NEVER "requirement".
 - Be exhaustive on facts relevant to the questions; include other clearly material facts too.
 - Dense term-bearing text (policy declarations, schedules, fee tables, defined-term lists) demands EVERY term: every limit, sublimit, deductible, retention, date, exclusion, endorsement, and amount — completeness over brevity.
-- proposed_targets only for genuinely new material questions, not restatements. A target must be a QUESTION answerable from the sources or web search — advice or actions for the client ("negotiate X", "obtain Y") are claims (recommendation/gap), never targets.
-- claim_indexes: zero-based indexes into this response's claims array that support the proposed target. Every proposed target MUST have at least one supporting claim index."""
+- proposed_targets only for genuinely new material questions, not restatements. A target must be a QUESTION answerable from the sources or web search — advice or actions for the client ("negotiate X", "obtain Y") are claims (recommendation/gap), never targets."""
 
     parsed = call_json(caller, board, prompt, kind="read", max_tokens=16384)
     if job.get("mode") == "inventory" and isinstance(parsed, dict):
         parsed.pop("proposed_targets", None)  # breadth lens has no task context
     tag = "read_inv" if job.get("mode") == "inventory" else "read"
-    # Guided reads auto-bind claims to the dispatching targets. The read was
-    # dispatched FOR these targets so all extracted facts are contextually
-    # relevant. This avoids the schema complexity of asking the model to
-    # annotate target_ids (v16 showed that degrades cheap-model extraction).
-    auto_bind = None
-    if job.get("mode") != "inventory":
-        tids = list(job.get("target_ids", []))
-        if not tids:
-            tids = [t.id for t in board.material_open_targets()[:8]]
-        auto_bind = tids
     return _ingest_claims(
         parsed, board, source=source,
         created_by=f"{tag}:{job.get('action_id', '')}",
-        bind_to=auto_bind,
     )
 
 
@@ -241,14 +229,10 @@ def _bind_jobs(action: dict, board: Board) -> list[tuple[str, dict]]:
 
 def _run_bind_batch(job: dict, board: Board, caller) -> dict:
     claims = job["claims"]
-    open_targets = board.open_targets()
-    resolved = [t for t in board.targets if not t.is_open and t.rank >= 2]
-    targets = open_targets + resolved
+    targets = board.open_targets()
     if not targets:
         return {}
-    targets_text = "\n".join(
-        f"{t.id} [{t.materiality}, {t.status}] {t.need}" for t in targets
-    )
+    targets_text = "\n".join(f"{t.id} [{t.materiality}] {t.need}" for t in targets)
     claims_text = "\n".join(
         f"{c.id} [{c.kind}] {c.content[:220]}" for c in claims
     )
@@ -262,9 +246,9 @@ def _run_bind_batch(job: dict, board: Board, caller) -> dict:
         )
         units_schema = ', "unit_ids": ["..."]'
 
-    prompt = f"""You are connecting extracted evidence to the questions it helps answer. A claim can serve multiple questions. Questions may be open or already resolved — bind to resolved questions when the claim adds supporting evidence. A claim that serves no current question gets an empty list — do NOT force-fit.
+    prompt = f"""You are connecting extracted evidence to the questions it helps answer. A claim can serve multiple questions. A claim that serves no current question gets an empty list — do NOT force-fit.
 
-QUESTIONS (id, materiality, status, need):
+QUESTIONS (id, materiality, need):
 {targets_text}
 {units_text}
 
@@ -419,10 +403,8 @@ def _ingest_claims(parsed, board: Board, *, source: Source | None,
         return {"claims": 0}
     added = 0
     added_ids: list[str] = []
-    index_to_claim_id: dict[int, str] = {}
     seen: set[str] = set()
-    extraction_bound = 0
-    for idx, item in enumerate(parsed.get("claims", [])):
+    for item in parsed.get("claims", []):
         if not isinstance(item, dict):
             continue
         content = str(item.get("content", "")).strip()
@@ -443,16 +425,13 @@ def _ingest_claims(parsed, board: Board, *, source: Source | None,
             conf = max(0.05, min(0.98, float(item.get("confidence", 0.6))))
         except (TypeError, ValueError):
             conf = 0.6
-        local_targets = list(bind_to or [])
-        if local_targets:
-            extraction_bound += 1
         claim = Claim(
             kind=kind, content=content,
             source_doc=source.name if source else None,
             source_section=str(item.get("section", "")) or None,
             evidence=str(item.get("evidence", ""))[:500],
             support_refs=support,
-            target_refs=local_targets,
+            target_refs=list(bind_to or []),
             confidence=conf,
             iteration=board.iteration,
             created_by=created_by,
@@ -460,10 +439,8 @@ def _ingest_claims(parsed, board: Board, *, source: Source | None,
         if board.add_claim(claim):
             added += 1
             added_ids.append(claim.id)
-            index_to_claim_id[idx] = claim.id
 
     proposed = 0
-    proposal_bound = 0
     for pt in parsed.get("proposed_targets", []):
         if not isinstance(pt, dict):
             continue
@@ -473,24 +450,10 @@ def _ingest_claims(parsed, board: Board, *, source: Source | None,
         materiality = str(pt.get("materiality", "medium"))
         if materiality not in ("critical", "high", "medium", "low"):
             materiality = "medium"
-        target = Target(
+        board.add_target(Target(
             need=need, materiality=materiality,
             created_iteration=board.iteration, proposed_by=created_by,
-        )
-        board.add_target(target)
-        claim_indexes = pt.get("claim_indexes", [])
-        bound_count = 0
-        for ci in claim_indexes:
-            try:
-                ci = int(ci)
-            except (TypeError, ValueError):
-                continue
-            cid = index_to_claim_id.get(ci)
-            if cid:
-                board.bind_claim(cid, [target.id])
-                bound_count += 1
-        if bound_count:
-            proposal_bound += 1
+        ))
         proposed += 1
 
     units_added = 0
@@ -510,18 +473,14 @@ def _ingest_claims(parsed, board: Board, *, source: Source | None,
     if added or proposed or units_added:
         board.log(
             "action_output",
-            f"{created_by}: {added} claims ({extraction_bound} bound at extraction), "
-            f"{proposed} targets ({proposal_bound} with evidence), {units_added} units",
-            detail={"by": created_by, "claim_ids": added_ids,
-                    "extraction_bound": extraction_bound,
-                    "proposal_bound": proposal_bound},
+            f"{created_by}: {added} claims, {proposed} targets, {units_added} units",
+            detail={"by": created_by, "claim_ids": added_ids},
         )
-    return {"claims": added, "targets_proposed": proposed, "units": units_added,
-            "extraction_bound": extraction_bound}
+    return {"claims": added, "targets_proposed": proposed, "units": units_added}
 
 
 def _targets_brief(board: Board, target_ids: list[str]) -> str:
     targets = [t for t in (board.find_target(tid) for tid in target_ids) if t]
     if not targets:
         targets = board.material_open_targets()[:8]
-    return "\n".join(f"- {t.id} [{t.materiality}] {t.need}" for t in targets) or "- (general extraction)"
+    return "\n".join(f"- [{t.materiality}] {t.need}" for t in targets) or "- (general extraction)"
