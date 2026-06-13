@@ -649,7 +649,7 @@ def _ingest_claims(parsed, board: Board, *, source: Source | None,
     seen: set[str] = set()
     span_hits = 0
     span_misses = 0
-    for item in parsed.get("claims", []):
+    for item in parsed.get("claims") or []:
         if not isinstance(item, dict):
             continue
         content = str(item.get("content", "")).strip()
@@ -663,7 +663,7 @@ def _ingest_claims(parsed, board: Board, *, source: Source | None,
         if kind not in CLAIM_KINDS:
             kind = "observation"
         support = [
-            str(r) for r in item.get("support_refs", [])
+            str(r) for r in (item.get("support_refs") or [])
             if valid_support is None or str(r) in valid_support
         ]
         try:
@@ -697,7 +697,7 @@ def _ingest_claims(parsed, board: Board, *, source: Source | None,
             added_ids.append(claim.id)
 
     proposed = 0
-    for pt in parsed.get("proposed_targets", []):
+    for pt in parsed.get("proposed_targets") or []:
         if not isinstance(pt, dict):
             continue
         need = str(pt.get("need", "")).strip()
@@ -713,7 +713,7 @@ def _ingest_claims(parsed, board: Board, *, source: Source | None,
         proposed += 1
 
     units_added = 0
-    for un in parsed.get("units", []):
+    for un in parsed.get("units") or []:
         if not isinstance(un, dict):
             continue
         name = str(un.get("name", "")).strip()
@@ -727,13 +727,13 @@ def _ingest_claims(parsed, board: Board, *, source: Source | None,
         units_added += 1
 
     proposed_reads_count = 0
-    for pr in parsed.get("proposed_reads", []):
+    for pr in parsed.get("proposed_reads") or []:
         if not isinstance(pr, dict):
             continue
         source_hint = str(pr.get("source_hint", "")).strip()[:160]
         section_hint = str(pr.get("section_hint", "")).strip()[:160]
         reason = str(pr.get("reason", "")).strip()[:240]
-        target_ids_pr = [str(t) for t in pr.get("target_ids", []) if t]
+        target_ids_pr = [str(t) for t in (pr.get("target_ids") or []) if t]
         if not (source_hint or section_hint) or not reason:
             continue
         if proposed_reads_count == 0:
