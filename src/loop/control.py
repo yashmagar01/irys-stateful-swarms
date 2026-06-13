@@ -396,7 +396,7 @@ def blackboard_audit(audit_caller, board: Board) -> None:
     )
 
     sources_read = "\n".join(
-        f"- {s.name} ({s.read_status}, {s.reads_done} reads)" for s in board.sources
+        f"- {s.name} ({s.read_status})" for s in board.sources
     )
 
     prompt = f"""You are a senior investigator auditing the state of a blackboard mid-investigation. Your job is to look at the entire board with fresh eyes and make strategic improvements the iterative controller may have missed.
