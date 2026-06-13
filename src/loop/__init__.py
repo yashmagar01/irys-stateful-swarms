@@ -20,7 +20,7 @@ from .state import Board, Source
 from .synthesis import plan_synthesis, synthesize, write_final_state
 from .triage import triage_sources
 
-MAX_ITERATIONS = int(os.getenv("LOOP_MAX_ITERATIONS", "16"))
+MAX_ITERATIONS = int(os.getenv("LOOP_MAX_ITERATIONS", "12"))
 # Contract plane (obligations/units/coverage plan/gate). Default OFF: v5/v6
 # showed macro regressions; re-enable per-experiment until validated on its
 # target class with paired runs.
@@ -78,17 +78,10 @@ def run_loop(task, worker_caller, smart_caller=None):
         material_open = board.material_open_targets()
         open_mandatory = board.open_mandatory_obligations()
         open_history.append(len(material_open) + len(open_mandatory))
-        has_unanalyzed_material = any(
-            t.materiality in ("critical", "high")
-            and any(c.kind == "observation" for c in board.claims_for_target(t))
-            and not any(c.is_derived for c in board.claims_for_target(t))
-            for t in material_open
-        )
         closeout = (
             board.iteration >= MAX_ITERATIONS // 2
             and len(open_history) >= 2
             and open_history[-1] >= open_history[-2] > 0
-            and not has_unanalyzed_material
         )
         if closeout:
             board.log(
@@ -135,31 +128,11 @@ def run_loop(task, worker_caller, smart_caller=None):
                 quiet_rounds = 0
 
         if quiet_rounds >= DIMINISHING_ROUNDS:
-            unread_definite = [
-                s for s in board.sources
-                if s.read_status == "unread" and s.relevance == "definite"
-            ]
-            mat_open = board.material_open_targets()
-            unanalyzed = [
-                t for t in mat_open
-                if any(c.kind == "observation" for c in board.claims_for_target(t))
-                and not any(c.is_derived for c in board.claims_for_target(t))
-            ]
-            high_unbound = len(board.unbound_claims()) > 15
-            if unread_definite or unanalyzed or high_unbound:
-                board.log(
-                    "stop_blocked",
-                    f"quiet rounds but work remains: {len(unread_definite)} unread, "
-                    f"{len(unanalyzed)} unanalyzed targets, "
-                    f"{len(board.unbound_claims())} unbound claims",
-                )
-                quiet_rounds = 0
-            else:
-                board.stop_reason = (
-                    f"diminishing_returns ({quiet_rounds} quiet rounds); "
-                    f"{len(mat_open)} material targets open"
-                )
-                break
+            board.stop_reason = (
+                f"diminishing_returns ({quiet_rounds} quiet rounds); "
+                f"{len(board.material_open_targets())} material targets open"
+            )
+            break
 
         if board.iteration in REFRAME_ITERATIONS:
             reframe_ledger(smart, board)
