@@ -44,6 +44,7 @@ class Claim:
     source_doc: str | None = None
     source_section: str | None = None
     evidence: str = ""
+    source_span: tuple[int, int] | None = None
     support_refs: list[str] = field(default_factory=list)
     contradicts_refs: list[str] = field(default_factory=list)
     target_refs: list[str] = field(default_factory=list)
@@ -66,6 +67,7 @@ class Claim:
             "id": self.id, "kind": self.kind, "content": self.content,
             "source_doc": self.source_doc, "source_section": self.source_section,
             "evidence": self.evidence,
+            "source_span": list(self.source_span) if self.source_span is not None else None,
             "support_refs": self.support_refs,
             "contradicts_refs": self.contradicts_refs,
             "target_refs": self.target_refs,
@@ -73,6 +75,37 @@ class Claim:
             "superseded": self.superseded,
             "iteration": self.iteration, "created_by": self.created_by,
         }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "Claim":
+        span = data.get("source_span")
+        source_span = None
+        if isinstance(span, (list, tuple)) and len(span) == 2:
+            try:
+                source_span = (int(span[0]), int(span[1]))
+            except (TypeError, ValueError):
+                source_span = None
+        try:
+            confidence = float(data.get("confidence", 0.6))
+        except (TypeError, ValueError):
+            confidence = 0.6
+        return cls(
+            id=str(data.get("id", "")),
+            kind=str(data.get("kind", "observation")),
+            content=str(data.get("content", "")),
+            source_doc=data.get("source_doc"),
+            source_section=data.get("source_section"),
+            evidence=str(data.get("evidence", "")),
+            source_span=source_span,
+            support_refs=[str(r) for r in data.get("support_refs", [])],
+            contradicts_refs=[str(r) for r in data.get("contradicts_refs", [])],
+            target_refs=[str(r) for r in data.get("target_refs", [])],
+            confidence=confidence,
+            verified=data.get("verified"),
+            superseded=bool(data.get("superseded", False)),
+            iteration=int(data.get("iteration", 0)),
+            created_by=str(data.get("created_by", "")),
+        )
 
 
 @dataclass
@@ -300,7 +333,12 @@ class Board:
         """
         if not claim.id:
             claim.id = self.next_claim_id()
-        key = " ".join(claim.content.lower().split())[:160]
+        content_key = " ".join(claim.content.lower().split())[:160]
+        if claim.source_doc:
+            loc = claim.source_span if claim.source_span is not None else (claim.source_section or "")
+            key = f"{claim.kind}|{content_key}|{claim.source_doc}|{loc}"
+        else:
+            key = f"{claim.kind}|{content_key}"
         with self._lock:
             if not hasattr(self, "_content_index"):
                 self._content_index: dict[str, str] = {}
