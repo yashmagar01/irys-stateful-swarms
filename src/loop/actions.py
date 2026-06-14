@@ -680,6 +680,8 @@ def _ingest_claims(parsed, board: Board, *, source: Source | None,
                 span_hits += 1
             else:
                 span_misses += 1
+                if span_text is not None:
+                    source_span = (span_start, span_start + len(span_text))
         claim = Claim(
             kind=kind, content=content,
             source_doc=source.name if source else None,
