@@ -533,7 +533,7 @@ import re as _re
 _TFIDF_WINDOW = 600
 _TFIDF_STRIDE = 200
 _TFIDF_MIN_SCORE = 0.25
-_TFIDF_PAD = 500
+_TFIDF_PAD = 1200
 _TOKENIZE_RE = _re.compile(r"[a-z0-9$%.,/:;'\"-]+", _re.IGNORECASE)
 
 
