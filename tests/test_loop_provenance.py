@@ -205,11 +205,11 @@ def test_hydration_overlap_merge():
 
 def test_hydration_no_overlap_separate_blocks():
     board = _make_board()
-    text = "A" * 200
+    text = "A" * 5000
     src = _make_source("doc.pdf", text)
     board.add_source(src)
-    c1 = Claim(content="fact1", source_doc="doc.pdf", source_span=(10, 30))
-    c2 = Claim(content="fact2", source_doc="doc.pdf", source_span=(100, 150))
+    c1 = Claim(content="fact1", source_doc="doc.pdf", source_span=(100, 200))
+    c2 = Claim(content="fact2", source_doc="doc.pdf", source_span=(3000, 3100))
     board.add_claim(c1)
     board.add_claim(c2)
 

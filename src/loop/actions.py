@@ -361,7 +361,8 @@ def build_evidence_context(board: Board, claims: list[Claim]) -> tuple[str, dict
             if start < 0 or end <= start or start >= len(text):
                 invalid_span += 1
                 continue
-            end = min(end, len(text))
+            start = max(0, start - 500)
+            end = min(len(text), end + 500)
             candidate_windows.append({
                 "source": src.name,
                 "text": text,
@@ -635,6 +636,23 @@ def _find_quote_span(text: str, quote: str, base_offset: int = 0) -> tuple[int, 
     return (base_offset + start, base_offset + end)
 
 
+_FALLBACK_WINDOW = 3000
+
+
+def _narrow_fallback_span(
+    chunk_text: str, chunk_start: int, section_hint: str
+) -> tuple[int, int]:
+    if section_hint:
+        sec_lower = section_hint.strip().lower()
+        chunk_lower = chunk_text.lower()
+        pos = chunk_lower.find(sec_lower)
+        if pos >= 0:
+            end = min(len(chunk_text), pos + _FALLBACK_WINDOW)
+            return (chunk_start + pos, chunk_start + end)
+    window = min(len(chunk_text), _FALLBACK_WINDOW)
+    return (chunk_start, chunk_start + window)
+
+
 # --- shared ingestion ---
 
 def _ingest_claims(parsed, board: Board, *, source: Source | None,
@@ -646,7 +664,6 @@ def _ingest_claims(parsed, board: Board, *, source: Source | None,
         return {"claims": 0}
     added = 0
     added_ids: list[str] = []
-    seen: set[str] = set()
     span_hits = 0
     span_misses = 0
     for item in parsed.get("claims") or []:
@@ -655,10 +672,6 @@ def _ingest_claims(parsed, board: Board, *, source: Source | None,
         content = str(item.get("content", "")).strip()
         if not content:
             continue
-        key = content[:120].lower()
-        if key in seen:
-            continue
-        seen.add(key)
         kind = str(item.get("kind", "observation"))
         if kind not in CLAIM_KINDS:
             kind = "observation"
@@ -681,7 +694,10 @@ def _ingest_claims(parsed, board: Board, *, source: Source | None,
             else:
                 span_misses += 1
                 if span_text is not None:
-                    source_span = (span_start, span_start + len(span_text))
+                    source_span = _narrow_fallback_span(
+                        span_text, span_start,
+                        str(item.get("section", "")),
+                    )
         claim = Claim(
             kind=kind, content=content,
             source_doc=source.name if source else None,
