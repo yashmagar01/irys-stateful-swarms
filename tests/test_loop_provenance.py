@@ -5,12 +5,8 @@ from dataclasses import dataclass, field
 import pytest
 
 from src.loop.state import Board, Claim, Source, Target
-from src.loop.actions import (
-    _find_quote_span,
-    _normalize_with_map,
-    _source_claims_for_hydration,
-    build_evidence_context,
-)
+from src.loop.actions import _find_quote_span, _normalize_with_map
+from src.loop.hydration import build_evidence_context, source_claims_for_hydration
 
 
 # --- helpers ---
