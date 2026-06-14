@@ -13,12 +13,10 @@ import json
 import os
 from pathlib import Path
 
+from .hydration import build_evidence_context
 from .llm import call_json, call_text
-from .state import Board, Target
+from .state import Board, Claim, Target
 
-# Completeness-driven tasks (extractions, schedules, term sheets) are scored
-# on the long tail of specifics — packets must carry it. 3.5 flash takes 1M
-# input tokens; starving synthesis to save prompt space is a false economy.
 _CLAIMS_PER_TARGET = 48
 _CONTENT_CAP = 500
 _EVIDENCE_CAP = 220
@@ -27,6 +25,11 @@ _REPAIR_ENABLED = os.getenv("LOOP_SYNTHESIS_REPAIR", "1").strip() in (
 )
 _REPAIR_PACKET_CAP = int(os.getenv("LOOP_SYNTHESIS_REPAIR_PACKET_CAP", "320000"))
 _REPAIR_DRAFT_CAP = int(os.getenv("LOOP_SYNTHESIS_REPAIR_DRAFT_CAP", "120000"))
+
+_SYNTHESIS_HYDRATE = os.getenv("LOOP_SYNTHESIS_HYDRATE", "0").strip().lower() in (
+    "1", "true", "yes",
+)
+_SYNTHESIS_HYDRATE_MAX = int(os.getenv("LOOP_SYNTHESIS_HYDRATE_MAX_CHARS", "400000"))
 
 
 def _dedup_claims(claims, cap: int) -> list:
@@ -63,6 +66,7 @@ def target_packet(board: Board, target: Target) -> dict:
         "reason": target.reason,
         "claims": [
             {
+                "id": c.id,
                 "kind": c.kind,
                 "content": c.content[:_CONTENT_CAP],
                 "evidence": c.evidence[:_EVIDENCE_CAP],
@@ -70,9 +74,12 @@ def target_packet(board: Board, target: Target) -> dict:
                 "section": c.source_section,
                 "verified": c.verified,
                 "confidence": round(c.confidence, 2),
+                "support_refs": c.support_refs,
+                "source_span": list(c.source_span) if c.source_span else None,
             }
             for c in picked
         ],
+        "_claim_objects": picked,
     }
 
 
@@ -99,15 +106,19 @@ def unit_packets(board: Board, obligation_ids: list[str] | None = None) -> list[
                 if c is not None and c.active
             ]
             claims.sort(key=lambda c: (not c.is_derived, -c.confidence))
+            picked = claims[:per_unit]
             rows.append({
                 "unit": u.name,
                 "anchor": u.anchor,
                 "status": u.status,
                 "claims": [
-                    {"kind": c.kind, "content": c.content,
-                     "evidence": c.evidence, "source": c.source_doc}
-                    for c in claims[:per_unit]
+                    {"id": c.id, "kind": c.kind, "content": c.content,
+                     "evidence": c.evidence, "source": c.source_doc,
+                     "support_refs": c.support_refs,
+                     "source_span": list(c.source_span) if c.source_span else None}
+                    for c in picked
                 ] or [{"kind": "gap", "content": "no evidence gathered for this unit"}],
+                "_claim_objects": picked,
             })
         packets.append({
             "obligation": ob.text,
@@ -327,10 +338,20 @@ def synthesize(smart_caller, board: Board, plan: dict) -> dict[str, str]:
                 "packets": packets,
             })
 
+        # Collect Claim objects from packets before JSON serialization
+        all_packet_claims: list[Claim] = []
+        for pb in packet_blocks:
+            for pkt in pb.get("packets", []):
+                all_packet_claims.extend(pkt.pop("_claim_objects", []))
+
         coverage_block = ""
+        upackets = []
         if coverage:
             ob_ids = [str(c.get("obligation_id", "")) for c in coverage]
             upackets = unit_packets(board, obligation_ids=ob_ids)
+            for up in upackets:
+                for row in up.get("units", []):
+                    all_packet_claims.extend(row.pop("_claim_objects", []))
             plan_lines = "\n".join(
                 f"- {c.get('obligation_id')}: render units in section "
                 f"'{c.get('section')}' as {c.get('unit_mode', 'subsection')}"
@@ -360,6 +381,33 @@ UNIT PACKETS (every unit below MUST appear in the deliverable exactly once, in t
 
         supplementary_block = _supplementary_evidence(board)
 
+        source_text_block = ""
+        if _SYNTHESIS_HYDRATE and all_packet_claims:
+            req_claims = [c for c in board.claims if c.active and c.kind == "requirement"]
+            hydrate_claims = all_packet_claims + req_claims
+
+            evidence_context, hydrate_stats = build_evidence_context(
+                board, hydrate_claims, max_chars=_SYNTHESIS_HYDRATE_MAX,
+            )
+            board.log(
+                "synthesis_hydrate",
+                f"{filename}: {hydrate_stats['merged_windows']} windows, "
+                f"{hydrate_stats['chars']} chars"
+                + (f", {hydrate_stats['dropped_windows']} dropped"
+                   if hydrate_stats.get('dropped_windows') else ""),
+                detail={"filename": filename, **hydrate_stats},
+            )
+            if evidence_context:
+                source_text_block = (
+                    "\n\nPRIMARY SOURCE TEXT backing the claims above. "
+                    "The analysis packets decide what belongs in the deliverable; "
+                    "use source text for exact wording, numbers, dates, parties, "
+                    "citations, and to resolve any ambiguity in claim summaries. "
+                    "Do not import facts from source text that are not reflected "
+                    "in the analysis packets.\n"
+                    + evidence_context
+                )
+
         prompt = f"""You are writing the final deliverable of a completed expert investigation. The analysis below is your ONLY knowledge — write from it, never invent. Where claims carry evidence quotes and sources, use them for precision and citation.
 
 ORIGINAL REQUEST:
@@ -376,6 +424,7 @@ ANALYSIS (per section, with resolved questions and their claims):
 {json.dumps(packet_blocks, indent=1, default=str)[:400_000]}
 {coverage_block}
 {supplementary_block}
+{source_text_block}
 
 {f'''UNRESOLVED MATERIAL QUESTIONS (disclose honestly in a final Limitations note):
 {residual_note}''' if residual_note else ''}
@@ -385,10 +434,7 @@ Write the COMPLETE deliverable. Professional, specific, decision-ready. Every co
         _dump_packets(board, filename, {
             "sections": packet_blocks,
             "coverage_plan": coverage,
-            "unit_packets": unit_packets(
-                board,
-                obligation_ids=[str(c.get("obligation_id", "")) for c in coverage],
-            ) if coverage else [],
+            "unit_packets": upackets,
         })
         text = call_text(
             smart_caller, board, prompt, kind="synthesize",
@@ -403,6 +449,7 @@ Write the COMPLETE deliverable. Professional, specific, decision-ready. Every co
                 packet_blocks=packet_blocks,
                 coverage_block=coverage_block,
                 supplementary_block=supplementary_block,
+                source_text_block=source_text_block,
                 residual_note=residual_note,
                 draft=text,
             )
@@ -440,7 +487,7 @@ def _usable_repair(draft: str, repaired: str | None) -> bool:
 def _repair_synthesis(smart_caller, board: Board, *, filename: str,
                       file_plan: dict, format_rules: str,
                       packet_blocks: list[dict], coverage_block: str,
-                      supplementary_block: str,
+                      supplementary_block: str, source_text_block: str = "",
                       residual_note: str, draft: str) -> str:
     """Second-pass coverage editor.
 
@@ -469,6 +516,7 @@ ANALYSIS PACKETS:
 {json.dumps(packet_blocks, indent=1, default=str)[:_REPAIR_PACKET_CAP]}
 {coverage_block[:80_000]}
 {supplementary_block[:100_000]}
+{source_text_block[:200_000] if source_text_block else ''}
 
 {f'''UNRESOLVED MATERIAL QUESTIONS:
 {residual_note}''' if residual_note else ''}

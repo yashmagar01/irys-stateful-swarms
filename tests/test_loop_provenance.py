@@ -247,3 +247,49 @@ def test_hydration_no_span_counted():
 
     context, stats = build_evidence_context(board, [c1])
     assert stats["missing_span"] == 1
+
+
+# --- max_chars cap ---
+
+def test_hydration_max_chars_cap():
+    board = _make_board()
+    text = "A" * 5000
+    src = _make_source("doc.pdf", text)
+    board.add_source(src)
+    c1 = Claim(content="f1", source_doc="doc.pdf", source_span=(100, 200))
+    c2 = Claim(content="f2", source_doc="doc.pdf", source_span=(3000, 3100))
+    board.add_claim(c1)
+    board.add_claim(c2)
+
+    context, stats = build_evidence_context(board, [c1, c2], max_chars=800)
+    assert stats["included_windows"] == 1
+    assert stats["dropped_windows"] == 1
+    assert stats["chars"] <= 800
+
+
+def test_hydration_max_chars_zero_means_no_cap():
+    board = _make_board()
+    text = "B" * 5000
+    src = _make_source("doc.pdf", text)
+    board.add_source(src)
+    c1 = Claim(content="f1", source_doc="doc.pdf", source_span=(100, 200))
+    c2 = Claim(content="f2", source_doc="doc.pdf", source_span=(3000, 3100))
+    board.add_claim(c1)
+    board.add_claim(c2)
+
+    context, stats = build_evidence_context(board, [c1, c2], max_chars=0)
+    assert stats["included_windows"] == 2
+    assert stats["dropped_windows"] == 0
+
+
+def test_hydration_custom_expansion():
+    board = _make_board()
+    text = "X" * 2000
+    src = _make_source("doc.pdf", text)
+    board.add_source(src)
+    c1 = Claim(content="f1", source_doc="doc.pdf", source_span=(1000, 1010))
+    board.add_claim(c1)
+
+    _, stats_narrow = build_evidence_context(board, [c1], expansion=100)
+    _, stats_wide = build_evidence_context(board, [c1], expansion=500)
+    assert stats_narrow["chars"] < stats_wide["chars"]
