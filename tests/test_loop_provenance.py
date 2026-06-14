@@ -293,3 +293,49 @@ def test_hydration_custom_expansion():
     _, stats_narrow = build_evidence_context(board, [c1], expansion=100)
     _, stats_wide = build_evidence_context(board, [c1], expansion=500)
     assert stats_narrow["chars"] < stats_wide["chars"]
+
+
+# --- synthesis packet _claim_objects lifecycle ---
+
+def test_target_packet_claim_objects_stripped_by_pop():
+    """_claim_objects must be poppable before json.dumps without error."""
+    import json
+    from src.loop.synthesis import target_packet
+    from src.loop.state import Target
+
+    board = _make_board()
+    t = Target(need="test question", materiality="high")
+    board.add_target(t)
+    c1 = Claim(content="some fact", source_doc="doc.pdf",
+               source_span=(0, 10), kind="observation")
+    board.add_claim(c1)
+    board.bind_claim(c1.id, [t.id])
+
+    pkt = target_packet(board, t)
+    assert "_claim_objects" in pkt
+    objs = pkt.pop("_claim_objects")
+    assert len(objs) >= 1
+    json.dumps(pkt)  # must not raise
+
+
+def test_unit_packet_claim_objects_stripped_by_pop():
+    """_claim_objects in unit rows must be poppable before json.dumps."""
+    import json
+    from src.loop.synthesis import unit_packets
+    from src.loop.state import Obligation, Unit
+
+    board = _make_board()
+    ob = Obligation(text="list all items", coverage="exhaustive", mandatory=True)
+    board.add_obligation(ob)
+    u = Unit(obligation_ref=ob.id, name="item-1", anchor="sec1")
+    u = board.add_unit(u)
+    c1 = Claim(content="item detail", kind="observation")
+    board.add_claim(c1)
+    u.claim_refs.append(c1.id)
+
+    packets = unit_packets(board, obligation_ids=[ob.id])
+    assert len(packets) == 1
+    for row in packets[0]["units"]:
+        objs = row.pop("_claim_objects", [])
+        assert isinstance(objs, list)
+    json.dumps(packets)  # must not raise
