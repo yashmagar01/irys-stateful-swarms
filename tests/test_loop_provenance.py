@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 import pytest
 
 from src.loop.state import Board, Claim, Source, Target
-from src.loop.actions import _find_quote_span, _normalize_with_map
+from src.loop.actions import _find_quote_span, _normalize_with_map, _tfidf_span
 from src.loop.hydration import build_evidence_context, source_claims_for_hydration
 
 
@@ -124,6 +124,61 @@ def test_find_quote_span_missing():
 def test_find_quote_span_empty():
     assert _find_quote_span("some text", "") is None
     assert _find_quote_span("", "some quote") is None
+
+
+# --- tfidf span matching ---
+
+def test_tfidf_span_paraphrased_quote():
+    text = (
+        "The borrower shall maintain a minimum debt service coverage ratio "
+        "of 1.25x, tested quarterly. The Second Lien Term Loan Facility is "
+        "in an aggregate principal amount of $125,000,000 with a maturity "
+        "date of December 31, 2028. Interest accrues at SOFR plus 350 basis "
+        "points. " + "Filler text here. " * 200
+    )
+    quote = "The Second Lien Term Loan Facility is $125,000,000"
+    span = _tfidf_span(text, quote)
+    assert span is not None
+    start, end = span
+    excerpt = text[start:end]
+    assert "$125,000,000" in excerpt
+    assert "Second Lien" in excerpt
+
+
+def test_tfidf_span_synonym_substitution():
+    text = (
+        "Filler intro paragraph. " * 20
+        + "per annum interest rate: 4.5% applicable to the revolving credit facility"
+        + " with additional terms. " * 20
+    )
+    quote = "Interest rate is 4.5% per annum for the revolving credit facility"
+    span = _tfidf_span(text, quote)
+    assert span is not None
+    start, end = span
+    excerpt = text[start:end]
+    assert "4.5%" in excerpt
+    assert "revolving" in excerpt
+
+
+def test_tfidf_span_no_match():
+    text = "The sky is blue and the grass is green. " * 50
+    quote = "aggregate principal amount of $500,000,000 due December 2029"
+    span = _tfidf_span(text, quote)
+    assert span is None
+
+
+def test_tfidf_span_with_base_offset():
+    text = "The facility amount is $250,000,000 maturing in 2027."
+    quote = "facility amount $250,000,000 maturing 2027"
+    span = _tfidf_span(text, quote, base_offset=5000)
+    assert span is not None
+    assert span[0] >= 5000
+
+
+def test_tfidf_span_short_quote():
+    text = "some text here"
+    span = _tfidf_span(text, "hi")
+    assert span is None
 
 
 # --- recursive hydration ---

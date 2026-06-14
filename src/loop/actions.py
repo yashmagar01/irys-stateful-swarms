@@ -527,6 +527,73 @@ def _find_quote_span(text: str, quote: str, base_offset: int = 0) -> tuple[int, 
     return (base_offset + start, base_offset + end)
 
 
+import math
+import re as _re
+
+_TFIDF_WINDOW = 600
+_TFIDF_STRIDE = 200
+_TFIDF_MIN_SCORE = 0.25
+_TFIDF_PAD = 80
+_TOKENIZE_RE = _re.compile(r"[a-z0-9$%.,/:;'\"-]+", _re.IGNORECASE)
+
+
+def _tokenize(text: str) -> list[str]:
+    return [t.lower() for t in _TOKENIZE_RE.findall(text) if len(t) > 1]
+
+
+def _tfidf_span(
+    text: str, quote: str, base_offset: int = 0,
+) -> tuple[int, int] | None:
+    quote_tokens = _tokenize(quote)
+    if not quote_tokens or not text:
+        return None
+
+    n_windows = max(1, (len(text) - _TFIDF_WINDOW) // _TFIDF_STRIDE + 1)
+    doc_freq: dict[str, int] = {}
+    windows: list[tuple[int, int, list[str]]] = []
+    for i in range(n_windows):
+        start = i * _TFIDF_STRIDE
+        end = min(len(text), start + _TFIDF_WINDOW)
+        wtokens = _tokenize(text[start:end])
+        windows.append((start, end, wtokens))
+        seen: set[str] = set()
+        for t in wtokens:
+            if t not in seen:
+                doc_freq[t] = doc_freq.get(t, 0) + 1
+                seen.add(t)
+
+    quote_set = set(quote_tokens)
+    idf: dict[str, float] = {}
+    for t in quote_set:
+        df = doc_freq.get(t, 0)
+        idf[t] = math.log((n_windows + 1) / (df + 1)) + 1.0
+
+    best_score = 0.0
+    best_start = 0
+    best_end = 0
+    for start, end, wtokens in windows:
+        if not wtokens:
+            continue
+        wset = set(wtokens)
+        shared = quote_set & wset
+        if not shared:
+            continue
+        score = sum(idf.get(t, 0) for t in shared) / (
+            sum(idf.get(t, 0) for t in quote_set) + 1e-9
+        )
+        if score > best_score:
+            best_score = score
+            best_start = start
+            best_end = end
+
+    if best_score < _TFIDF_MIN_SCORE:
+        return None
+
+    span_start = max(0, best_start - _TFIDF_PAD)
+    span_end = min(len(text), best_end + _TFIDF_PAD)
+    return (base_offset + span_start, base_offset + span_end)
+
+
 _FALLBACK_WINDOW = 3000
 
 
@@ -556,6 +623,7 @@ def _ingest_claims(parsed, board: Board, *, source: Source | None,
     added = 0
     added_ids: list[str] = []
     span_hits = 0
+    span_tfidf_hits = 0
     span_misses = 0
     for item in parsed.get("claims") or []:
         if not isinstance(item, dict):
@@ -583,12 +651,17 @@ def _ingest_claims(parsed, board: Board, *, source: Source | None,
             if source_span is not None:
                 span_hits += 1
             else:
-                span_misses += 1
                 if span_text is not None:
-                    source_span = _narrow_fallback_span(
-                        span_text, span_start,
-                        str(item.get("section", "")),
-                    )
+                    source_span = _tfidf_span(span_text, evidence_raw, span_start)
+                if source_span is not None:
+                    span_tfidf_hits += 1
+                else:
+                    span_misses += 1
+                    if span_text is not None:
+                        source_span = _narrow_fallback_span(
+                            span_text, span_start,
+                            str(item.get("section", "")),
+                        )
         claim = Claim(
             kind=kind, content=content,
             source_doc=source.name if source else None,
@@ -672,16 +745,18 @@ def _ingest_claims(parsed, board: Board, *, source: Source | None,
             detail={"by": created_by, "claim_ids": added_ids},
         )
 
-    if span_misses:
+    if span_misses or span_tfidf_hits:
         board.log(
             "span_warning",
-            f"{created_by}: {span_misses} evidence quotes did not match source text",
-            detail={"by": created_by, "span_hits": span_hits, "span_misses": span_misses},
+            f"{created_by}: {span_hits} exact, {span_tfidf_hits} tfidf, {span_misses} fallback",
+            detail={"by": created_by, "span_hits": span_hits,
+                    "span_tfidf_hits": span_tfidf_hits, "span_misses": span_misses},
         )
 
     return {
         "claims": added, "targets_proposed": proposed, "units": units_added,
-        "span_hits": span_hits, "span_misses": span_misses,
+        "span_hits": span_hits, "span_tfidf_hits": span_tfidf_hits,
+        "span_misses": span_misses,
         "proposed_reads": proposed_reads_count,
     }
 
