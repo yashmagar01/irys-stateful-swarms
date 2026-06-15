@@ -501,7 +501,7 @@ Return JSON:
  "controller_feedback": "<what the iterative controller is doing wrong or missing>"}}"""
 
     parsed = call_json(audit_caller, board, prompt, kind="blackboard_audit",
-                       max_tokens=8192)
+                       max_tokens=16384)
     if not isinstance(parsed, dict):
         board.log("blackboard_audit", "parse failure — board unchanged")
         return
