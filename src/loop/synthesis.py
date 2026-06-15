@@ -429,6 +429,8 @@ ANALYSIS (per section, with resolved questions and their claims):
 {f'''UNRESOLVED MATERIAL QUESTIONS (disclose honestly in a final Limitations note):
 {residual_note}''' if residual_note else ''}
 
+NUMERICAL FIDELITY: Every specific number, amount, percentage, date, case count, dollar figure, ratio, or calculation from the analysis MUST appear in the deliverable. Never round, paraphrase, or omit a concrete figure — if the analysis says "75 cases" or "24% deficiency rate" or "$712,500 gap", those exact numbers must be in the output.
+
 Write the COMPLETE deliverable. Professional, specific, decision-ready. Every conclusion traceable to the analysis. No meta-commentary about the process."""
 
         _dump_packets(board, filename, {

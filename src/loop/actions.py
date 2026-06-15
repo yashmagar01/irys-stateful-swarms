@@ -29,15 +29,23 @@ _ANALYZE_HYDRATE = os.getenv("LOOP_ANALYZE_HYDRATE", "0").strip().lower() in (
     "1", "true", "yes",
 )
 
+_ANALYZE_PREMIUM = os.getenv("LOOP_ANALYZE_PREMIUM", "0").strip().lower() in (
+    "1", "true", "yes",
+)
+
 
 def execute_actions(actions: list[dict], board: Board, worker_caller,
-                    smart_caller=None) -> dict:
+                    smart_caller=None, synthesis_caller=None) -> dict:
     """Run an iteration's actions in parallel. Returns summary counts.
 
     worker_caller: cheap tier for read/search/bind/verify.
     smart_caller: judgment tier for analyze (falls back to worker_caller).
+    synthesis_caller: premium tier, used for analyze when LOOP_ANALYZE_PREMIUM=1.
     """
-    analyze_caller = smart_caller or worker_caller
+    if _ANALYZE_PREMIUM and synthesis_caller:
+        analyze_caller = synthesis_caller
+    else:
+        analyze_caller = smart_caller or worker_caller
     jobs = []
     for idx, action in enumerate(actions):
         action["_id"] = f"a{board.iteration}.{idx}"

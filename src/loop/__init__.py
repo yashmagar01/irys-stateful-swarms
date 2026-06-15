@@ -125,7 +125,8 @@ def run_loop(task, worker_caller, smart_caller=None, synthesis_caller=None,
             derived_before = sum(1 for c in board.claims if c.is_derived)
             resolved_before = len(board.resolved_targets())
             last_summary = execute_actions(decision["actions"], board, worker_caller,
-                                              smart_caller=smart)
+                                              smart_caller=smart,
+                                              synthesis_caller=synth)
             derived_added = sum(1 for c in board.claims if c.is_derived) - derived_before
             resolved_delta = len(board.resolved_targets()) - resolved_before
             last_summary["derived_added"] = derived_added
