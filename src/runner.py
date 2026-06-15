@@ -85,6 +85,9 @@ def run_single_task(task_dir: Path, output_dir: Path, *,
         if model.startswith("claude-"):
             from .providers.anthropic import AnthropicCaller
             return AnthropicCaller(model=model)
+        if model.startswith("gpt-") or model.startswith("o3") or model.startswith("o4"):
+            from .providers.openai import OpenAICaller
+            return OpenAICaller(model=model)
         return GeminiCaller(model=model)
 
     worker_caller = _make_caller(w_model)
@@ -148,6 +151,8 @@ def run_single_task(task_dir: Path, output_dir: Path, *,
         "claude-opus-4-7": {"input": 5.00, "output": 25.00},
         "claude-opus-4-6": {"input": 5.00, "output": 25.00},
         "claude-sonnet-4-6": {"input": 3.00, "output": 15.00},
+        "gpt-5.5": {"input": 2.00, "output": 12.00},
+        "gpt-5.4": {"input": 1.50, "output": 8.00},
     }
     DEFAULT_PRICING = {"input": 0.25, "output": 1.50}
 
