@@ -77,9 +77,8 @@ def run_single_task(task_dir: Path, output_dir: Path, *,
         return RunResult(task_id=task_id, error="no documents found")
 
     w_model = worker_model or os.getenv("SWARM_WORKER_MODEL", "gemini-3.1-flash-lite")
+    sm_model = os.getenv("SWARM_SMART_MODEL", "gemini-3.5-flash")
     s_model = synthesis_model or os.getenv("SWARM_SYNTHESIS_MODEL", "gemini-3.5-flash")
-    # Smart caller (controller/analyze/seed/triage) — defaults to synthesis model
-    sm_model = os.getenv("SWARM_SMART_MODEL", "").strip() or s_model
     r_model = os.getenv("SWARM_REVIEWER_MODEL", "gemini-3.5-flash")
 
     def _make_caller(model: str):
