@@ -64,7 +64,7 @@ def run_loop(task, worker_caller, smart_caller=None, synthesis_caller=None,
         ))
 
     # Think before reading; triage before thinking about everything.
-    seed_targets(smart, board)
+    seed_targets(synth, board)
     triage_sources(smart, board)
     board.snapshot("seed")
 
