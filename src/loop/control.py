@@ -13,7 +13,7 @@ from __future__ import annotations
 import json
 
 from .llm import call_json
-from .state import Board, Obligation, Target, Unit
+from .state import CLAIM_KINDS, Board, Claim, Obligation, Target, Unit
 from .triage import catalog_summary
 
 MAX_ACTIONS_PER_ITERATION = 6
@@ -479,6 +479,9 @@ For each open target, assess: does the bound evidence actually answer the target
 PHASE 2 — COVERAGE GAP ANALYSIS
 Read the task instruction carefully. What specific deliverable components, analysis points, or document sections does the task demand that NO target currently covers? What facts visible in the unbound claims are being ignored? What sources might contain evidence that was never extracted? Be concrete — name the missing element and where to find it.
 
+PHASE 2B — CROSS-DOCUMENT NUMERICAL ANALYSIS
+Scan the bound claims for specific numbers, amounts, percentages, dates, thresholds, case counts, and dollar figures from DIFFERENT source documents. For each pair of related numbers from different documents, compute the difference/mismatch and flag it. Examples: retention amount vs deductible amount (compute dollar gap), different survival periods (flag the mismatch), stated percentages vs computed percentages (verify the arithmetic), case counts stated in one document vs different counts in another. Create new claims of kind "calculation" or "contradiction" for each finding. This is the HIGHEST VALUE analysis because it catches cross-document discrepancies that extraction alone cannot find.
+
 PHASE 3 — TARGET RESTRUCTURING
 Based on your assessment: close targets that are ready, waive targets that are stale or redundant, merge overlapping targets, create new targets for uncovered gaps, and reprioritize based on what matters most for a professional deliverable. Every operation must have a specific reason grounded in the evidence you reviewed.
 
@@ -488,6 +491,7 @@ What should the next 2-3 iterations focus on? What is the single highest-value a
 Return JSON:
 {{"phase1_assessment": [{{"target_id": "...", "status": "READY_TO_CLOSE|NEEDS_MORE|STALE|REDUNDANT", "reasoning": "<specific evidence-based assessment>", "gap": "<what's missing, if NEEDS_MORE>"}}],
  "phase2_gaps": [{{"description": "<specific missing element>", "likely_source": "<document name>", "importance": "critical|high|medium"}}],
+ "cross_doc_findings": [{{"kind": "calculation|contradiction|comparison", "content": "<specific finding with exact numbers>", "support_refs": ["<claim_ids>"], "confidence": 0.0-1.0}}],
  "close": [{{"target_id": "...", "reason": "<evidence-grounded reason>"}}],
  "waive": [{{"target_id": "...", "reason": "..."}}],
  "new_targets": [{{"need": "<specific, closeable question>", "materiality": "critical|high|medium|low", "rationale": "<why this gap matters for the deliverable>"}}],
@@ -565,15 +569,38 @@ Return JSON:
     direction = str(parsed.get("strategic_direction", ""))[:500]
     ctrl_feedback = str(parsed.get("controller_feedback", ""))[:300]
 
+    cross_findings = 0
+    for finding in parsed.get("cross_doc_findings", []):
+        if not isinstance(finding, dict):
+            continue
+        content = str(finding.get("content", "")).strip()
+        kind = str(finding.get("kind", "calculation"))
+        if kind not in CLAIM_KINDS:
+            kind = "calculation"
+        if not content:
+            continue
+        support_refs = [str(r) for r in finding.get("support_refs", []) if r]
+        conf = float(finding.get("confidence", 0.8))
+        board.add_claim(Claim(
+            kind=kind,
+            content=content,
+            support_refs=support_refs,
+            confidence=min(max(conf, 0.0), 1.0),
+            created_by=f"audit:{board.iteration}",
+        ))
+        cross_findings += 1
+
     board.log(
         "blackboard_audit",
         f"audit: {closes} closed, {waives} waived, {opens} new, "
-        f"{merges} merged, {reprioritized} reprioritized, {len(gaps)} gaps",
+        f"{merges} merged, {reprioritized} reprioritized, {len(gaps)} gaps, "
+        f"{cross_findings} cross-doc findings",
         detail={
             "strategic_direction": direction,
             "controller_feedback": ctrl_feedback,
             "gaps": [g.get("description", "") if isinstance(g, dict) else str(g)
                      for g in gaps[:5]],
+            "cross_findings": cross_findings,
         },
     )
 

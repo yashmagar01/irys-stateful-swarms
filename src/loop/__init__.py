@@ -32,7 +32,7 @@ DIMINISHING_ROUNDS = 2
 REFRAME_ITERATIONS = tuple(
     int(x) for x in os.getenv("LOOP_REFRAME_ITERATIONS", "3,7").split(",") if x.strip()
 )
-AUDIT_EVERY = int(os.getenv("LOOP_AUDIT_EVERY", "5"))
+AUDIT_EVERY = int(os.getenv("LOOP_AUDIT_EVERY", "3"))
 
 
 def run_loop(task, worker_caller, smart_caller=None, synthesis_caller=None,
@@ -47,6 +47,7 @@ def run_loop(task, worker_caller, smart_caller=None, synthesis_caller=None,
     """
     smart = smart_caller or worker_caller
     synth = synthesis_caller or smart
+    auditor = audit_caller or synth
     board = Board(
         instruction=task.instruction,
         metadata=dict(task.metadata or {}),
@@ -125,8 +126,7 @@ def run_loop(task, worker_caller, smart_caller=None, synthesis_caller=None,
             derived_before = sum(1 for c in board.claims if c.is_derived)
             resolved_before = len(board.resolved_targets())
             last_summary = execute_actions(decision["actions"], board, worker_caller,
-                                              smart_caller=smart,
-                                              synthesis_caller=synth)
+                                              smart_caller=smart)
             derived_added = sum(1 for c in board.claims if c.is_derived) - derived_before
             resolved_delta = len(board.resolved_targets()) - resolved_before
             last_summary["derived_added"] = derived_added
@@ -149,12 +149,12 @@ def run_loop(task, worker_caller, smart_caller=None, synthesis_caller=None,
         elif should_maintain(board) or closeout:
             maintain_ledger(smart, board, closeout=closeout)
 
-        if (audit_caller and AUDIT_EVERY > 0
+        if (AUDIT_EVERY > 0
                 and board.iteration > 0
                 and board.iteration % AUDIT_EVERY == 0
                 and board.open_targets()):
             try:
-                blackboard_audit(audit_caller, board)
+                blackboard_audit(auditor, board)
             except Exception as exc:
                 board.log("blackboard_audit", f"audit failed: {exc}",
                           detail={"error": str(exc)})
