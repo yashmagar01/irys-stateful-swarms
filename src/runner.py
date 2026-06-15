@@ -78,7 +78,8 @@ def run_single_task(task_dir: Path, output_dir: Path, *,
 
     w_model = worker_model or os.getenv("SWARM_WORKER_MODEL", "gemini-3.1-flash-lite")
     s_model = synthesis_model or os.getenv("SWARM_SYNTHESIS_MODEL", "gemini-3.5-flash")
-
+    # Smart caller (controller/analyze/seed/triage) — defaults to synthesis model
+    sm_model = os.getenv("SWARM_SMART_MODEL", "").strip() or s_model
     r_model = os.getenv("SWARM_REVIEWER_MODEL", "gemini-3.5-flash")
 
     def _make_caller(model: str):
@@ -88,7 +89,8 @@ def run_single_task(task_dir: Path, output_dir: Path, *,
         return GeminiCaller(model=model)
 
     worker_caller = _make_caller(w_model)
-    synthesis_caller = _make_caller(s_model) if s_model != w_model else worker_caller
+    smart_caller = _make_caller(sm_model) if sm_model != w_model else worker_caller
+    synthesis_caller = _make_caller(s_model) if s_model != sm_model else smart_caller
     reviewer_caller = _make_caller(r_model) if r_model else None
 
     audit_model = os.getenv("SWARM_AUDIT_MODEL", "").strip()
@@ -112,7 +114,8 @@ def run_single_task(task_dir: Path, output_dir: Path, *,
         if os.getenv("SWARM_ARCH", "").strip().lower() == "loop":
             from .loop import run_loop
             deliverable, blackboard = run_loop(
-                task, worker_caller, smart_caller=synthesis_caller,
+                task, worker_caller, smart_caller=smart_caller,
+                synthesis_caller=synthesis_caller,
                 audit_caller=audit_caller,
             )
         else:

@@ -35,14 +35,18 @@ REFRAME_ITERATIONS = tuple(
 AUDIT_EVERY = int(os.getenv("LOOP_AUDIT_EVERY", "5"))
 
 
-def run_loop(task, worker_caller, smart_caller=None, audit_caller=None):
+def run_loop(task, worker_caller, smart_caller=None, synthesis_caller=None,
+             audit_caller=None):
     """Run the loop on a task. Returns (deliverable, board).
 
-    worker_caller: cheap tier — read/search/bind/analyze/verify executors.
-    smart_caller: judgment tier — seed/triage/controller/maintenance/synthesis.
+    worker_caller: cheap tier — read/search/bind/verify executors.
+    smart_caller: judgment tier — seed/triage/controller/maintenance + analyze.
+    synthesis_caller: optional dedicated tier for plan_synthesis/synthesize.
+                      Falls back to smart_caller.
     audit_caller: optional stronger model for periodic blackboard audit.
     """
     smart = smart_caller or worker_caller
+    synth = synthesis_caller or smart
     board = Board(
         instruction=task.instruction,
         metadata=dict(task.metadata or {}),
@@ -120,7 +124,8 @@ def run_loop(task, worker_caller, smart_caller=None, audit_caller=None):
         else:
             derived_before = sum(1 for c in board.claims if c.is_derived)
             resolved_before = len(board.resolved_targets())
-            last_summary = execute_actions(decision["actions"], board, worker_caller)
+            last_summary = execute_actions(decision["actions"], board, worker_caller,
+                                              smart_caller=smart)
             derived_added = sum(1 for c in board.claims if c.is_derived) - derived_before
             resolved_delta = len(board.resolved_targets()) - resolved_before
             last_summary["derived_added"] = derived_added
@@ -157,7 +162,8 @@ def run_loop(task, worker_caller, smart_caller=None, audit_caller=None):
         forced = []
         _force_analysis_gate(board, forced)
         if forced:
-            extra = execute_actions(forced, board, worker_caller)
+            extra = execute_actions(forced, board, worker_caller,
+                                       smart_caller=smart)
             board.log("force_analyze_exec",
                       f"executed {len(forced)} forced analyze actions",
                       detail=extra)
@@ -167,7 +173,7 @@ def run_loop(task, worker_caller, smart_caller=None, audit_caller=None):
     board.log("stop", board.stop_reason)
     board.snapshot("final")
 
-    plan = plan_synthesis(smart, board)
-    deliverable = synthesize(smart, board, plan)
+    plan = plan_synthesis(synth, board)
+    deliverable = synthesize(synth, board, plan)
     write_final_state(board)
     return deliverable, board
