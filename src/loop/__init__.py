@@ -174,7 +174,7 @@ def run_loop(task, worker_caller, smart_caller=None, synthesis_caller=None,
     board.log("stop", board.stop_reason)
     board.snapshot("final")
 
-    plan = plan_synthesis(synth, board)
-    deliverable = synthesize(synth, board, plan)
+    plan = plan_synthesis(smart, board)
+    deliverable = synthesize(synth, board, plan, repair_caller=smart)
     write_final_state(board)
     return deliverable, board

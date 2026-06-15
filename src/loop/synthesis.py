@@ -274,8 +274,14 @@ Every required file must appear. Every mandatory set-valued obligation must appe
     return parsed
 
 
-def synthesize(smart_caller, board: Board, plan: dict) -> dict[str, str]:
-    """Generate each deliverable from its planned target packets."""
+def synthesize(smart_caller, board: Board, plan: dict,
+               repair_caller=None) -> dict[str, str]:
+    """Generate each deliverable from its planned target packets.
+
+    smart_caller is used for the main synthesis call (the premium model).
+    repair_caller, if provided, handles iterative repair passes (cheaper model).
+    """
+    repairer = repair_caller or smart_caller
     results: dict[str, str] = {}
     deliverables = board.metadata.get("deliverables", {})
     required = list(deliverables.values()) if deliverables else ["output.docx"]
@@ -444,7 +450,7 @@ Write the COMPLETE deliverable. Professional, specific, decision-ready. Every co
         )
         if text and _REPAIR_ENABLED:
             repaired = _repair_synthesis(
-                smart_caller, board,
+                repairer, board,
                 filename=filename,
                 file_plan=file_plan,
                 format_rules=format_rules,
