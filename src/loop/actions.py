@@ -21,7 +21,7 @@ from .state import CLAIM_KINDS, Board, Claim, Source, Target, Unit
 # Smaller chunks = more parallel extraction calls, each with the full output
 # budget — dense documents (policies, schedules, tables) lose their tail when
 # one call must cover too much text.
-_CHUNK_CHARS = 40_000
+_CHUNK_CHARS = int(os.getenv("LOOP_READ_CHUNK_CHARS", "20000"))
 _MAX_PARALLEL = 8
 _BIND_BATCH = 60
 
@@ -165,16 +165,76 @@ Rules:
 - proposed_reads are for explicit cross-references or clearly missing referenced materials, e.g. "Section 8.3", "Exhibit B", "Schedule 2.1". Do not propose generic extra research.
 - proposed_reads should be few and high-value; omit them if no specific referenced source/section is visible."""
 
-    parsed = call_json(caller, board, prompt, kind="read", max_tokens=16384)
+    parsed = call_json(caller, board, prompt, kind="read", max_tokens=32768)
     if job.get("mode") == "inventory" and isinstance(parsed, dict):
         parsed.pop("proposed_targets", None)  # breadth lens has no task context
     tag = "read_inv" if job.get("mode") == "inventory" else "read"
-    return _ingest_claims(
+    result = _ingest_claims(
         parsed, board, source=source,
         created_by=f"{tag}:{job.get('action_id', '')}",
         span_text=job["chunk"],
         span_start=int(job.get("chunk_start", 0)),
     )
+
+    if os.getenv("LOOP_READ_COMPLETENESS", "0").strip().lower() in ("1", "true", "yes"):
+        result = _run_completeness_pass(
+            job, board, caller, source, result,
+            tag=tag, action_id=job.get("action_id", ""),
+        )
+
+    return result
+
+
+def _run_completeness_pass(
+    job: dict, board: Board, caller, source: Source, prior_result: dict,
+    *, tag: str, action_id: str,
+) -> dict:
+    chunk = job["chunk"]
+    chunk_start = int(job.get("chunk_start", 0))
+    existing = []
+    for claim in board.claims[-200:]:
+        if claim.source_doc == source.name and claim.active:
+            existing.append(f"- [{claim.kind}] {claim.content[:150]}")
+    if not existing:
+        return prior_result
+
+    existing_text = "\n".join(existing[-80:])
+    prompt = f"""You already extracted facts from this document section. Review the text again and find SPECIFIC facts that were MISSED.
+
+ALREADY EXTRACTED ({len(existing)} claims):
+{existing_text}
+
+DOCUMENT: {source.name}
+---
+{chunk}
+---
+
+Return JSON with ONLY claims not already covered above. Same schema:
+{{"claims": [{{"kind": "observation", "content": "<missed fact>", "section": "<section>", "evidence": "<verbatim quote>", "confidence": 0.0-1.0}}]}}
+
+Rules:
+- Only return facts genuinely missing from the list above.
+- Focus on specific numbers, dates, amounts, parties, terms, conditions that were skipped.
+- Do not rephrase or duplicate existing claims.
+- evidence must be copied verbatim from the document."""
+
+    parsed = call_json(caller, board, prompt, kind="read_completeness", max_tokens=16384)
+    comp_result = _ingest_claims(
+        parsed, board, source=source,
+        created_by=f"completeness:{action_id}",
+        span_text=chunk,
+        span_start=chunk_start,
+    )
+    board.log(
+        "completeness_pass",
+        f"completeness:{action_id}: +{comp_result.get('claims', 0)} new claims",
+        detail={"prior_claims": prior_result.get("claims", 0),
+                "new_claims": comp_result.get("claims", 0)},
+    )
+    merged = dict(prior_result)
+    merged["claims"] = prior_result.get("claims", 0) + comp_result.get("claims", 0)
+    merged["completeness_added"] = comp_result.get("claims", 0)
+    return merged
 
 
 # --- SEARCH ---
