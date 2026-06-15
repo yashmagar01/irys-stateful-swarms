@@ -1,5 +1,26 @@
 # Experiments Log
 
+## v29d: GPT-5.5 Synthesis (2026-06-15)
+**Config**: `SWARM_SYNTHESIS_MODEL=gpt-5.5` + flash-lite worker + flash smart | **Commit**: `372304a` | **Status**: completed
+
+| Metric | Value |
+|--------|-------|
+| Criteria macro | **88.8%** (2623/2954) |
+| Full-pass | 0/48 |
+| vs v29 (flash synth) | **+9.7pp** |
+| vs v10 baseline | **+19.1pp** |
+| Improved tasks | 44 |
+| Regressed tasks | 3 |
+| Cost | $120.37 total ($2.51/task avg) |
+
+**What we learned**: Synthesis model quality is the dominant lever. Flash-lite extraction (20K chunks + completeness) produces enough claims (801/task avg). Flash smart tier handles control/analyze adequately. But flash can't assemble 800+ claims into quality output — GPT-5.5 and opus both gain ~10pp by doing synthesis better. GPT-5.5 completed all 48 tasks with zero failures at comparable quality to opus (88.9% on 34 tasks). Three minor regressions: healthcare subpoena (-6.5pp), IRS analysis (-4.2pp), immigration PERM (-1.6pp).
+
+**Top improvements**: LPA scenario-18 (+43.4pp to 98.1%), clinical trial (+33.3pp to 92.2%), capital markets registration (+30.0pp to 83.3%), LPA scenario-20 (+15.8pp to 97.9%), NPDES permit (+12.7pp to 90.9%).
+
+**Decision**: GPT-5.5 is the production synthesis model. Next target: close the remaining ~6pp gap to 95%.
+
+---
+
 ## exp-002: Synthesis-Fix Ablation (2026-06-08)
 **Config**: `.env.phase0_synthesis_fix` | **Commit**: `1ac5dcf` | **Status**: completed
 
