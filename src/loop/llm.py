@@ -24,6 +24,7 @@ def call_json(caller, board: Board, prompt: str, *, kind: str,
         kind, f"{kind} call ({result.model}, {result.tokens_total} tok)",
         detail={"parsed": parsed is not None},
         model=result.model, tokens=result.tokens_total,
+        tokens_in=result.tokens_input, tokens_out=result.tokens_output,
     )
     return parsed
 
@@ -38,6 +39,7 @@ def call_text(caller, board: Board, prompt: str, *, kind: str,
     board.log(
         kind, f"{kind} call ({result.model}, {result.tokens_total} tok)",
         model=result.model, tokens=result.tokens_total,
+        tokens_in=result.tokens_input, tokens_out=result.tokens_output,
     )
     return result.text
 

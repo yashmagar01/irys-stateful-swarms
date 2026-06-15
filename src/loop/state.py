@@ -260,13 +260,19 @@ class Event:
     detail: dict = field(default_factory=dict)
     model: str = ""
     tokens: int = 0
+    tokens_in: int = 0
+    tokens_out: int = 0
 
     def to_dict(self) -> dict:
-        return {
+        d = {
             "iteration": self.iteration, "kind": self.kind,
             "summary": self.summary, "detail": self.detail,
             "model": self.model, "tokens": self.tokens,
         }
+        if self.tokens_in or self.tokens_out:
+            d["tokens_in"] = self.tokens_in
+            d["tokens_out"] = self.tokens_out
+        return d
 
 
 @dataclass
@@ -615,10 +621,12 @@ class Board:
     # --- Events / observability ---
 
     def log(self, kind: str, summary: str, detail: dict | None = None,
-            model: str = "", tokens: int = 0) -> None:
+            model: str = "", tokens: int = 0,
+            tokens_in: int = 0, tokens_out: int = 0) -> None:
         ev = Event(
             iteration=self.iteration, kind=kind, summary=summary,
             detail=detail or {}, model=model, tokens=tokens,
+            tokens_in=tokens_in, tokens_out=tokens_out,
         )
         with self._lock:
             self.events.append(ev)
@@ -660,7 +668,10 @@ class Board:
             "obligations": [o.to_dict() for o in self.obligations],
             "units": [u.to_dict() for u in self.units],
             "total_tokens_used": self.total_tokens_used,
+            "tokens_input": self.tokens_input,
+            "tokens_output": self.tokens_output,
             "token_budget": self.token_budget,
             "budget_used_pct": self.budget_used_pct(),
+            "cost_by_model": dict(self.cost_by_model),
         }
         path.write_text(json.dumps(data, indent=2, default=str), encoding="utf-8")
