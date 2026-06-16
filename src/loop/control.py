@@ -50,7 +50,7 @@ AVAILABLE SOURCES (metadata only — nothing has been read yet):
 
 Produce two things:
 
-1. The target ledger: 5-14 targets. Each target is a question the investigation must close. Good targets are semantic ("reconcile the share counts across documents", "determine total 10-year cost including escalations"), never formatting ("include a table").
+1. The target ledger: as many targets as the task genuinely requires — no more, no fewer. Each target is a question the investigation must close. Good targets are semantic ("reconcile the share counts across documents", "determine total 10-year cost including escalations"), never formatting ("include a table"). Prefer fewer, sharper targets over many overlapping ones.
 
 2. The answer contract: what the final answer OWES the user, derived from the instruction's own words. Each obligation has a coverage standard read from the language:
    - "exhaustive": the instruction demands accounting for EVERY repeated item ("compare each provision", "identify all issues", "extract the terms") — missing one item fails the user.
