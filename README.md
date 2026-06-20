@@ -408,6 +408,44 @@ We're actively adapting the system to run across multiple benchmarks spanning di
 
 We're a small team, and benchmark runs at scale take real compute and time. We'll be releasing results as we complete them. If you're working on benchmarks for knowledge-intensive tasks and would be interested in partnering or having irys-stateful-swarms evaluated on your benchmark, reach out at [devansh@iqidis.ai](mailto:devansh@iqidis.ai).
 
+## Blackboard MCP: use stateful reasoning in Claude Code and Codex
+
+The blackboard reasoning system that powers irys-stateful-swarms is available as a standalone MCP server at [`packages/blackboard-mcp/`](packages/blackboard-mcp/). It gives any AI agent persistent structured reasoning — zero API calls, zero cost.
+
+**What it does:** 12 tools for creating and managing blackboards — typed entries (observation, analysis, calculation, strategy, gap), automatic contradiction detection with confidence decay, signal tracking for open questions, convergence gating that blocks premature synthesis, cross-session persistence, and document provenance. The intelligence comes from the agent. The blackboard just provides structured state management as pure computation.
+
+**Why it matters:** When you install this in Claude Code or Codex, your agent gains the ability to build persistent analytical state. A blackboard created during one session is discoverable in the next — the agent calls `bb_list`, finds prior work, and extends it instead of starting from scratch. Complex multi-document analysis, contradiction tracking, gap identification, and evidence-chain building all happen through the blackboard, producing auditable reasoning traces instead of black-box answers.
+
+### Install
+
+Clone this repo, build the server, and point your config at it:
+
+```bash
+cd packages/blackboard-mcp && npm install && npm run build
+```
+
+**Claude Code** — add to `.mcp.json`:
+```json
+{
+  "mcpServers": {
+    "blackboard": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["/path/to/packages/blackboard-mcp/dist/index.js"]
+    }
+  }
+}
+```
+
+**Codex CLI** — add to `.codex/config.toml`:
+```toml
+[mcp_servers.blackboard]
+command = "node"
+args = ["/path/to/packages/blackboard-mcp/dist/index.js"]
+```
+
+Once configured, the agent automatically uses the blackboard for complex analysis tasks and skips it for simple questions. See [`packages/blackboard-mcp/SETUP.md`](packages/blackboard-mcp/SETUP.md) for details.
+
 ## Installation
 
 ```bash
