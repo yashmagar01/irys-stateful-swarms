@@ -1,0 +1,64 @@
+TECHNICAL ASSESSMENT REPORT: Project Alpha
+Date: 2026-05-15
+Author: Engineering Team Lead
+
+## Executive Summary
+
+Project Alpha achieved 94.2% uptime in Q1 2026, exceeding the 99% SLA target on a monthly basis but falling short during the March 12-14 incident window. Total cost of ownership was $2.3M for the quarter, representing a 15% increase over Q4 2025 due to expanded infrastructure.
+
+## Performance Metrics
+
+### Uptime
+- January: 99.97% (2.1 minutes downtime)
+- February: 99.99% (0.4 minutes downtime)
+- March: 82.7% (7,492 minutes downtime due to cascading failure)
+- Q1 Average: 94.2%
+
+Note: The Q1 average is misleading. January and February were exemplary. The March incident was a singular event caused by a configuration change that bypassed the staging environment.
+
+### Latency
+- P50: 12ms (target: 50ms)
+- P95: 89ms (target: 200ms)
+- P99: 340ms (target: 500ms)
+- All latency targets met consistently.
+
+### Throughput
+- Average: 45,000 requests/second
+- Peak: 127,000 requests/second (February 14, Valentine's Day surge)
+- No capacity-related failures observed.
+
+## Cost Analysis
+
+| Category | Q4 2025 | Q1 2026 | Change |
+|----------|---------|---------|--------|
+| Compute | $1.2M | $1.4M | +16.7% |
+| Storage | $0.3M | $0.35M | +16.7% |
+| Network | $0.2M | $0.25M | +25.0% |
+| Licensing | $0.3M | $0.3M | 0% |
+| Total | $2.0M | $2.3M | +15.0% |
+
+The cost increase is primarily attributable to horizontal scaling performed in January to handle projected Q1 traffic growth. This scaling was validated by the February peak handling.
+
+## March Incident Post-Mortem
+
+On March 12, a configuration change to the load balancer was deployed directly to production, bypassing the staging environment. The change introduced an incorrect health check endpoint (/healthz-v2 instead of /healthz), causing the load balancer to mark all backend instances as unhealthy.
+
+The cascading effect:
+1. Load balancer drained all connections (T+0)
+2. Auto-scaler detected "unhealthy" instances and terminated them (T+5 min)
+3. New instances came up but were also marked unhealthy (T+8 min)
+4. Complete service outage (T+10 min)
+5. On-call engineer identified root cause (T+2 hours)
+6. Configuration rolled back (T+2 hours 15 min)
+7. Service restored (T+2 hours 30 min)
+8. Full recovery with backlog processing (T+52 hours)
+
+Root cause: Lack of staging gate for load balancer configuration changes. This has been remediated with PR #4521 (merged March 20).
+
+## Recommendations
+
+1. Mandate staging deployment for ALL infrastructure configuration changes
+2. Implement canary deployments for load balancer changes
+3. Add health check endpoint validation to CI/CD pipeline
+4. Consider multi-region failover to prevent single-region outages
+5. Review auto-scaler behavior during health check failures

@@ -1,0 +1,31 @@
+{
+  "name": "@irys/blackboard-mcp",
+  "version": "0.1.0",
+  "description": "Persistent blackboard reasoning for AI agents. Zero API calls, zero cost. Works with Claude Code and Codex.",
+  "type": "module",
+  "bin": {
+    "blackboard-mcp": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "node test/test_workflow.mjs",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.11.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "@types/node": "^22.0.0"
+  },
+  "keywords": ["mcp", "blackboard", "reasoning", "stateful", "analysis", "claude-code", "codex"],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/iqidis/ant-irys"
+  }
+}

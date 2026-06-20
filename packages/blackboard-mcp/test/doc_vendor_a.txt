@@ -1,0 +1,23 @@
+# Vendor A Assessment - CloudScale Platform
+## Prepared by: Internal Engineering Team
+## Date: 2026-04-01
+
+## Performance
+
+CloudScale delivered 99.99% uptime over the evaluation period (6 months). Response times averaged 15ms at P50 and 85ms at P99, well within our requirements. The platform handled our peak load of 50,000 concurrent users without degradation.
+
+## Security
+
+CloudScale is SOC 2 Type II certified and maintains ISO 27001 compliance. Data encryption at rest uses AES-256. However, their key management relies on a shared HSM model, which means tenant keys are co-located on the same hardware. They claim logical separation is sufficient, but we have not independently verified this.
+
+## Cost
+
+Base platform fee: $45,000/month. Includes 100TB storage, 500 compute units. Overage rates: $0.50/GB storage, $12/compute unit. Our projected annual cost: $580,000.
+
+## Contract Terms
+
+3-year commitment required for the quoted price. Month-to-month available at 40% premium. Exit clause allows termination with 6 months notice after year 1, with a 25% early termination fee on remaining contract value.
+
+## Recommendation
+
+CloudScale is the stronger technical option. Their performance and reliability exceed alternatives we evaluated. The shared HSM concern is noted but manageable with our threat model.

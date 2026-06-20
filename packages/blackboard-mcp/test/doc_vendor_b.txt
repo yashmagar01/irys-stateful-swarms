@@ -1,0 +1,39 @@
+# CloudScale Platform - Independent Security Audit
+## Prepared by: External Security Consultancy (RedTeam Partners)
+## Date: 2026-05-10
+
+## Scope
+
+This audit covers CloudScale's multi-tenant infrastructure, authentication systems, data isolation, and incident response capabilities. The audit was conducted over 4 weeks using a combination of penetration testing, architecture review, and policy analysis.
+
+## Findings
+
+### Critical: Tenant Data Isolation (FINDING-001)
+
+The shared HSM model presents a significant risk. During our testing, we demonstrated that a compromised tenant context could theoretically access key material belonging to other tenants. While the attack requires elevated privileges within the HSM partition, the shared hardware creates an unacceptable blast radius. This contradicts CloudScale's claim of "logical separation equivalent to physical isolation."
+
+We rate this finding as HIGH severity with MEDIUM exploitability.
+
+### Major: Incident Response Gap (FINDING-002)
+
+CloudScale's incident response documentation claims a 15-minute detection-to-notification SLA. During our simulated breach exercise, actual notification took 2 hours 45 minutes. When questioned, CloudScale attributed the delay to "weekend staffing levels" but their SLA makes no exception for weekends.
+
+### Minor: API Authentication (FINDING-003)
+
+API tokens have no automatic expiry. Revocation is manual-only. We found 3 active tokens belonging to former CloudScale employees in their production environment. CloudScale has since revoked these tokens and implemented quarterly access reviews.
+
+## Overall Assessment
+
+CloudScale's infrastructure performance is genuine — their uptime and latency claims are accurate. However, the security posture has significant gaps that are material for any organization handling sensitive data. The shared HSM finding alone may be disqualifying for regulated industries.
+
+## Cost Note
+
+We note that CloudScale's pricing to your organization ($45,000/month) is approximately 15% above the market rate we've seen for comparable services. This is not unusual for a first contract but should be negotiated down on renewal.
+
+## Recommendation
+
+Proceed with caution. The performance is real, but the security gaps must be contractually remediated before commitment. We specifically recommend:
+1. Require dedicated HSM or migrate to CloudScale's upcoming isolated HSM tier (Q3 2026)
+2. Require contractual SLA on incident response with financial penalties
+3. Negotiate pricing to market rate
+4. Reduce initial commitment to 1 year, not 3

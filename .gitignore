@@ -37,6 +37,10 @@ htmlcov/
 
 # Claude Code
 .claude/
+AGENTS.md
+
+# Blackboard state (local working state, not for git)
+.blackboard/
 
 # Codex review artifacts
 codex_*.md

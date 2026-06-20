@@ -1,0 +1,120 @@
+# RFC: Migration from Monolithic Auth to Distributed Identity Service
+## Author: Platform Team
+## Status: Draft
+## Date: 2026-06-01
+
+## 1. Problem Statement
+
+Our current authentication system is a monolithic module embedded in the main application. This creates several problems:
+
+1. **Scaling bottleneck**: Auth queries hit the same database as the application, creating contention during peak hours. We've observed P99 auth latency spikes of 2.3 seconds during the 9 AM login surge (40,000 concurrent auth requests).
+
+2. **Deployment coupling**: Any auth change requires a full application deployment. Our current deployment cadence is weekly; auth changes often wait 2-3 weeks to ship.
+
+3. **Single point of failure**: The auth module shares the application's availability characteristics. During the March 15 outage (4 hours), all auth was unavailable even though the auth code itself was not the cause.
+
+4. **Compliance burden**: SOC 2 audit scope includes the entire application because auth is embedded. Extracting auth would reduce audit scope by approximately 60%.
+
+## 2. Proposed Solution
+
+Extract authentication into a standalone microservice ("Identity Service") with:
+
+- Independent PostgreSQL database (dedicated, not shared)
+- Redis cluster for session/token storage
+- gRPC API for internal service communication
+- REST API for external clients (backward compatible with current endpoints)
+- Independent deployment pipeline
+
+## 3. Architecture
+
+```
+                    ┌─────────────┐
+                    │   API GW    │
+                    └──────┬──────┘
+                           │
+              ┌────────────┼────────────┐
+              │            │            │
+        ┌─────▼─────┐ ┌───▼───┐ ┌─────▼─────┐
+        │  Identity  │ │  App  │ │  Billing  │
+        │  Service   │ │  Svc  │ │  Service  │
+        └─────┬──────┘ └───┬───┘ └─────┬─────┘
+              │            │            │
+        ┌─────▼─────┐ ┌───▼───┐ ┌─────▼─────┐
+        │ Auth DB   │ │App DB │ │Billing DB │
+        │ (PG)      │ │(PG)   │ │(PG)       │
+        └───────────┘ └───────┘ └───────────┘
+              │
+        ┌─────▼─────┐
+        │  Redis    │
+        │  Cluster  │
+        └───────────┘
+```
+
+## 4. Migration Strategy
+
+### Phase 1: Strangler Fig (Weeks 1-4)
+- Deploy Identity Service alongside monolith
+- Route 1% of auth traffic through Identity Service via feature flag
+- Compare response times and correctness
+- Both systems write to the shared database during this phase
+
+### Phase 2: Gradual Cutover (Weeks 5-8)
+- Increase traffic routing: 1% → 10% → 50% → 100%
+- Identity Service gets its own database; real-time replication from monolith DB
+- Monolith auth module becomes a thin proxy
+
+### Phase 3: Independence (Weeks 9-12)
+- Cut database replication
+- Remove auth code from monolith
+- Identity Service is the single source of truth
+- Decommission auth tables in monolith database
+
+## 5. Risk Assessment
+
+### High Risk
+- **Data consistency during dual-write**: During Phase 1-2, both systems write to the database. Race conditions could cause inconsistent state (e.g., password change in monolith not reflected in Identity Service).
+- **Token format change**: Current JWT tokens are signed with the application's RSA key. Identity Service will use its own key pair. Existing tokens must remain valid during migration.
+
+### Medium Risk
+- **Latency increase**: Adding a network hop. Estimated 2-5ms increase per auth call. For the 9 AM surge, this adds approximately 80-200 seconds of cumulative latency across all requests.
+- **Operational complexity**: Two systems to monitor instead of one during transition.
+
+### Low Risk
+- **API compatibility**: REST endpoints maintain backward compatibility. gRPC is additive.
+- **Team capacity**: Auth team (3 engineers) has bandwidth; no new hires needed.
+
+## 6. Success Metrics
+
+| Metric | Current | Target | Measurement |
+|--------|---------|--------|-------------|
+| Auth P99 latency | 2.3s (peak) | <200ms | Datadog APM |
+| Deployment frequency | Weekly (bundled) | Daily (independent) | CI/CD metrics |
+| Mean time to recovery | 4 hours | <15 minutes | Incident log |
+| SOC 2 audit scope | 100% application | 40% (auth only) | Audit report |
+| Token validation throughput | 10,000/sec | 50,000/sec | Load test |
+
+## 7. Open Questions
+
+1. Should we use OAuth 2.0 / OIDC as the protocol, or continue with our custom JWT scheme? OIDC would add complexity but improve interoperability.
+2. How do we handle the ~2M existing sessions during the cutover? Options: force re-auth, dual-validate, or session migration script.
+3. Should the Identity Service own user profile data, or only authentication credentials? Current auth module also serves user profile queries.
+4. What is the rollback plan if Phase 2 fails? Can we revert to monolith auth without data loss?
+5. Do we need a dedicated on-call rotation for the Identity Service during Phase 1-2, or can the existing platform on-call cover it?
+
+## 8. Timeline and Resources
+
+- **Start date**: July 1, 2026
+- **Phase 1 completion**: July 28, 2026
+- **Phase 2 completion**: August 25, 2026
+- **Phase 3 completion**: September 22, 2026
+- **Team**: 3 engineers (2 backend, 1 SRE)
+- **Infrastructure cost increase**: ~$2,500/month (dedicated DB, Redis cluster, compute)
+- **Estimated total project cost**: $45,000 (3 months, 3 engineers at ~$5,000/month overhead + infrastructure)
+
+## 9. Stakeholder Review
+
+- [ ] VP Engineering: Architecture approval
+- [ ] Security Team: Token migration plan review
+- [ ] Compliance: SOC 2 scope change validation
+- [ ] SRE Lead: Operational readiness
+- [ ] Product: Impact on user-facing auth flows
