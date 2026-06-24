@@ -1,16 +1,17 @@
 # irys-stateful-swarms
 
-**98x more intelligence per dollar.** On the full 1,251-task [Harvey Legal Agent Benchmark (LAB)](https://github.com/harveyai/harvey-labs), irys-stateful-swarms achieves **17.75% strict all-pass at $1.30/task** — using Gemini Flash models that scored **0% in Harvey's own agentic evaluations.** Harvey's best published result is 10.4% all-pass at $50.90/task. Claude Fable 5, a Mythos-class frontier model, recently set a new high for frontier model performance on LAB at **13.3%** — still 4.45 points below irys-stateful-swarms, at a fraction of the cost.
+**98x more intelligence per dollar.** On the full 1,251-task [Harvey Legal Agent Benchmark (LAB)](https://github.com/harveyai/harvey-labs), irys-stateful-swarms achieves **17.75% strict all-pass at $1.30/task** — using Gemini Flash models that scored **0% in Harvey's own agentic evaluations.** Harvey's best published result is 10.4% all-pass at $50.90/task. Claude Fable 5, a Mythos-class frontier model, recently set a new high for frontier model performance on LAB at **13.3%** — still 4.45 points below irys-stateful-swarms, at a fraction of the cost. In a subsequent research collaboration with Applied Compute, Harvey post-trained a frontier model with full-parameter RL and a custom harness to reach **16.1%** — still below irys-stateful-swarms on the mean, at unpublished cost, and using the exact architectural behaviours the stateful swarm produces by construction.
 
-| | Harvey initial | Harvey best | Claude Fable 5 | **irys-stateful-swarms** |
-|---|---|---|---|---|
-| Strict all-pass | 7.1% | 10.4% | 13.3% | **17.75%** |
-| Cost per task | $50.90 | $50.90 | —† | **$1.30** |
-| Intelligence per dollar | 0.14 | 0.20 | —† | **13.65** |
-| | | | | **98x** vs initial / **67x** vs best |
+| | Harvey initial | Harvey best | Claude Fable 5 | AC harness (Opus 4.8 max) | **irys-stateful-swarms** |
+|---|---|---|---|---|---|
+| Strict all-pass | 7.1% | 10.4% | 13.3% | 16.1% ±2.6% | **17.75%** |
+| Cost per task | $50.90 | $50.90 | —† | —†† | **$1.30** |
+| Intelligence per dollar | 0.14 | 0.20 | —† | —†† | **13.65** |
+| | | | | | **98x** vs initial / **67x** vs best |
 
 > *Intelligence per dollar* = strict all-pass rate ÷ cost per task. Higher is better.
-> † Claude Fable 5 pipeline cost not yet published; intelligence per dollar will be updated when available.
+> † Claude Fable 5 pipeline cost not yet published; intelligence per dollar will be updated when available. Fable 5 was taken offline June 12, 2026 by US government export-control directive.
+> †† Applied Compute × Harvey research result using Opus 4.8 max on an optimised harness with compaction and full-parameter RL on GLM-5.1. Pipeline cost not published. See [Harvey × Applied Compute blog](https://www.harvey.ai/blog/training-a-legal-agent-with-applied-compute).
 
 ![Benchmark results](benchmark.png)
 
@@ -53,6 +54,8 @@ Harvey's published LAB results use a private holdout set that mirrors the public
 Two notes: due to rate limit issues, we used Gemini 3.1 FL as our judge (instead of Sonnet 4.6 as recommended). We made sure to compare the outputs of both and found over 90%+ agreement so this isn't a killer. Second, we lack access to Harvey's Private Holdout Benchmark (where they get their numbers). However, they endorsed Anthropic's run on their public benchmark when Opus 4.8 released. Since Opus 4.8 from Anthropic and Harvey got very close results, we can reasonably assume similar distributions for public and private benchmark (something said by Harvey themselves). So we think we can reasonably compare the performance of the systems. We're happy to use their benchmarks if provided.
 
 A separate reference point: Claude Fable 5, a Mythos-class frontier model, achieved **13.3% strict all-pass** on LAB — a new high for frontier model performance on the benchmark. irys-stateful-swarms exceeds this by 4.45 percentage points using Gemini Flash models that cost two orders of magnitude less.
+
+A subsequent [Harvey × Applied Compute research collaboration](https://www.harvey.ai/blog/training-a-legal-agent-with-applied-compute) post-trained Opus 4.8 max using full-parameter reinforcement learning on AC2 infrastructure with a custom harness, reaching **16.1% strict all-pass** (±2.6%) — the highest published result to date. irys-stateful-swarms sits above this on the mean. More importantly, the Applied Compute blog traces their gains to three specific behaviours: artifact completeness (+185 rubric criteria flipped), specificity and exactness (+243 criteria), and grounding (+70 criteria). These are not emergent properties of RL training — they are structural outputs of the stateful swarm architecture. Typed provenance tracking enforces grounding by construction. Convergence gating prevents premature synthesis and ensures artifact completeness. The blackboard's structured entry types force the specificity that the RL run had to teach explicitly. Harvey's research team spent a post-training run to teach a frontier model the behaviours this architecture produces for free, at $1.30/task, using Gemini Flash. The cost of the Applied Compute run is not published.
 
 ### It's the architecture, not the model
 
@@ -547,7 +550,9 @@ Bounties given out monthly on the 15th.
 
 - Harvey LAB repository: <https://github.com/harveyai/harvey-labs>
 - Harvey initial LAB results: <https://www.harvey.ai/blog/legal-agent-benchmark-initial-results>
-- Harvey published 10.4% LAB update: <https://www.harvey.ai/blog/opus-4-8-now-live-in-harvey>
+- Harvey published 10.4% LAB update (Opus 4.8): <https://www.harvey.ai/blog/opus-4-8-now-live-in-harvey>
+- Harvey Fable 5 LAB result (13.3%): <https://www.harvey.ai/blog/fable-5-now-available-in-harvey>
+- Harvey × Applied Compute post-training result (16.1%): <https://www.harvey.ai/blog/training-a-legal-agent-with-applied-compute>
 
 ## License
 
