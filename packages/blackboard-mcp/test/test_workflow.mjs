@@ -191,6 +191,69 @@ async function main() {
   const convergence2 = parseToolResult(findById(phase4, 34));
   check("Convergence after resolution - disputed still blocks", convergence2?.converged === false || convergence2?.disputed_entries?.length > 0);
 
+  // Phase 5: Export, Diagram, and Label field
+  // Phase 5a: Add labeled entries + verify schema
+  console.log("\nPhase 5a: Labels + Schema");
+  const phase5a = await runServer([
+    { jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "2025-03-26", capabilities: {}, clientInfo: { name: "test", version: "0.1" } } },
+    { jsonrpc: "2.0", method: "notifications/initialized" },
+    { jsonrpc: "2.0", id: 2, method: "tools/list", params: {} },
+    { jsonrpc: "2.0", id: 40, method: "tools/call", params: { name: "bb_add_entries", arguments: { blackboard_id: bbId, entries: JSON.stringify([
+      { type: "strategy", label: "Migrate Alpha to Beta stack", content: "Given Beta's superior cost-efficiency and uptime, recommend migrating Alpha workloads to Beta's infrastructure.", confidence: 0.75 },
+      { type: "gap", label: "Missing latency comparison", content: "No latency data available for either project. Cannot assess user experience impact.", confidence: 0.5 },
+    ]) } } },
+  ]);
+
+  const toolsList5 = findById(phase5a, 2);
+  const toolNames5 = (toolsList5?.result?.tools || []).map(t => t.name);
+  check("has bb_export", toolNames5.includes("bb_export"));
+  check("has bb_diagram", toolNames5.includes("bb_diagram"));
+
+  const addEntriesSchema = (toolsList5?.result?.tools || []).find(t => t.name === "bb_add_entries");
+  const schemaStr = JSON.stringify(addEntriesSchema?.inputSchema || {});
+  check("bb_add_entries schema has label field", schemaStr.includes('"label"'));
+
+  const labeledEntries = parseToolResult(findById(phase5a, 40));
+  check("Labeled entries created", labeledEntries?.created_entries?.length === 2);
+  const hasLabel = labeledEntries?.created_entries?.some(e => e.label === "Migrate Alpha to Beta stack");
+  check("Label field persisted on entry", hasLabel === true);
+  const hasGapLabel = labeledEntries?.created_entries?.some(e => e.label === "Missing latency comparison");
+  check("Label field persisted on gap entry", hasGapLabel === true);
+
+  // Phase 5b: Export + Diagram (separate server so state is read from disk after labels saved)
+  console.log("\nPhase 5b: Export + Diagram");
+  const phase5b = await runServer([
+    { jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "2025-03-26", capabilities: {}, clientInfo: { name: "test", version: "0.1" } } },
+    { jsonrpc: "2.0", method: "notifications/initialized" },
+    { jsonrpc: "2.0", id: 41, method: "tools/call", params: { name: "bb_export", arguments: { blackboard_id: bbId } } },
+    { jsonrpc: "2.0", id: 42, method: "tools/call", params: { name: "bb_diagram", arguments: { blackboard_id: bbId } } },
+  ]);
+
+  const exportResult = parseToolResult(findById(phase5b, 41));
+  check("bb_export returns path", !!exportResult?.path);
+  check("bb_export returns node count", exportResult?.nodes > 0);
+  check("bb_export returns edge count", typeof exportResult?.edges === "number");
+
+  if (exportResult?.path) {
+    const { readFileSync, existsSync } = await import("fs");
+    const htmlExists = existsSync(exportResult.path);
+    check("Export HTML file exists", htmlExists);
+    if (htmlExists) {
+      const html = readFileSync(exportResult.path, "utf8");
+      check("Export HTML contains label text", html.includes("Migrate Alpha to Beta stack"));
+      check("Export HTML is self-contained", html.includes("<canvas") && html.includes("</html>"));
+      check("Export HTML > 10KB", html.length > 10000);
+    }
+  }
+
+  const diagramResult = parseToolResult(findById(phase5b, 42));
+  check("bb_diagram returns mermaid", !!diagramResult?.mermaid);
+  check("bb_diagram returns node count", diagramResult?.nodes > 0);
+  if (diagramResult?.mermaid) {
+    check("Mermaid starts with graph", diagramResult.mermaid.startsWith("graph"));
+    check("Mermaid contains entry nodes", diagramResult.mermaid.includes("e1"));
+  }
+
   // Summary
   console.log(`\n=== Results: ${pass} passed, ${fail} failed ===`);
   process.exit(fail > 0 ? 1 : 0);
