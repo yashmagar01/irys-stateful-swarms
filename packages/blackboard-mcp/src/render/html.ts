@@ -244,7 +244,7 @@ button:hover,button.on{border-color:var(--accent);background:rgba(72,215,255,.12
       </li>
       <li>
         <div class="step-icon">&#x1f4cb;</div>
-        <div class="step-text"><b>Insights (right panel)</b>Three tabs: Detail (selected node), Insights (readiness, conflicts, depth), Sources (coverage, timeline). All entry IDs are clickable.</div>
+        <div class="step-text"><b>Knowledge Panel (right)</b>Four tabs: Briefing (executive summary, key findings, topic map), Detail (selected node), Insights (readiness, conflicts, depth), Sources (coverage, timeline). All entry IDs are clickable.</div>
       </li>
       <li>
         <div class="step-icon">&#x2328;</div>
@@ -343,15 +343,20 @@ button:hover,button.on{border-color:var(--accent);background:rgba(72,215,255,.12
       </div>
       <div id="listView" class="list-view hidden"></div>
       <div id="narration" class="narration"></div>
-      <div class="kbd-hint">Tab: next &middot; F: fit &middot; L: list &middot; Space: play</div>
+      <div class="kbd-hint">Tab: next &middot; F: fit &middot; L: list &middot; 1-4: tabs &middot; Space: play</div>
       <div class="minimap"><canvas id="mini"></canvas></div>
     </main>
 
     <aside id="dp" class="right">
       <div class="tab-bar">
+        <button class="tab-btn active" data-tab="briefing">Briefing</button>
         <button class="tab-btn" data-tab="detail">Detail</button>
-        <button class="tab-btn active" data-tab="insights">Insights</button>
+        <button class="tab-btn" data-tab="insights">Insights</button>
         <button class="tab-btn" data-tab="sources">Sources</button>
+      </div>
+
+      <div id="tabBriefing" class="tab-content active">
+        <div id="briefing"></div>
       </div>
 
       <div id="tabDetail" class="tab-content">
@@ -367,7 +372,7 @@ button:hover,button.on{border-color:var(--accent);background:rgba(72,215,255,.12
         </section>
       </div>
 
-      <div id="tabInsights" class="tab-content active">
+      <div id="tabInsights" class="tab-content">
         <section class="panel">
           <h2>Analysis Readiness</h2>
           <p class="panel-desc">How complete the analysis is. Drops for disputes, open questions, unread sources.</p>
@@ -465,9 +470,20 @@ function switchTab(name){
 }
 tabBtns.forEach(function(btn){btn.onclick=function(){switchTab(btn.dataset.tab)}});
 
+// Cluster nodes by source section for topic grouping
+var clusterMap=new Map();
+entries.forEach(function(e){
+  var sec=(e.source&&e.source.section)?e.source.section:"";
+  if(sec&&!clusterMap.has(sec))clusterMap.set(sec,clusterMap.size);
+});
+var clusterCount=Math.max(1,clusterMap.size);
+var clusterColors=["rgba(72,215,255,.08)","rgba(199,146,234,.08)","rgba(126,231,135,.08)","rgba(255,209,102,.08)","rgba(255,123,114,.08)","rgba(105,240,174,.08)","rgba(130,170,255,.08)","rgba(255,200,87,.08)"];
 var nodes=entries.map(function(e,i){
-  var a=i*2.399963,r=80+9*Math.sqrt(i);
-  return{id:e.id,e:e,x:Math.cos(a)*r,y:Math.sin(a)*r,vx:0,vy:0,r:4+(e.confidence||0)*8,vis:true};
+  var sec=(e.source&&e.source.section)?e.source.section:"";
+  var ci=clusterMap.has(sec)?clusterMap.get(sec):0;
+  var ca=ci*(2*Math.PI/clusterCount),cr=180+60*Math.floor(ci/8);
+  var jitter=i*2.399963,jr=30+6*Math.sqrt(i%20);
+  return{id:e.id,e:e,x:Math.cos(ca)*cr+Math.cos(jitter)*jr,y:Math.sin(ca)*cr+Math.sin(jitter)*jr,vx:0,vy:0,r:4+(e.confidence||0)*8,vis:true,cluster:ci,clusterKey:sec};
 });
 var byId=new Map(nodes.map(function(n){return[n.id,n]}));
 var edges=[];
@@ -596,7 +612,7 @@ function applyFilters(){
   cacheVis();if(sel&&!sel.vis)sel=null;simSettled=false;dirty=true;panels();updateFindingsIndex();if(isListView)renderListView();
 }
 
-function panels(){stats();histogram();detail();convergence();convTraj();contradictions();coverage();chainDepth();progression();questions();srcDependency();insightStrip()}
+function panels(){briefing();stats();histogram();detail();convergence();convTraj();contradictions();coverage();chainDepth();progression();questions();srcDependency();insightStrip()}
 
 function stats(){
   var v=vis(),ve=v.map(function(n){return n.e});
@@ -841,6 +857,179 @@ function insightStrip(){
   }).join("");
 }
 
+// Briefing tab — knowledge-focused content
+function briefing(){
+  var h="";
+  var activeEntries=entries.filter(function(e){return e.status==="active"});
+  var strategies=activeEntries.filter(function(e){return e.type==="strategy"})
+    .sort(function(a,b){return(influence.get(b.id)||{score:0}).score-(influence.get(a.id)||{score:0}).score});
+  var topAnalyses=activeEntries.filter(function(e){return e.type==="analysis"&&(e.confidence||0)>=0.7})
+    .sort(function(a,b){return(influence.get(b.id)||{score:0}).score-(influence.get(a.id)||{score:0}).score});
+  var gapEntries=activeEntries.filter(function(e){return e.type==="gap"});
+  var contradictEdges=edges.filter(function(e){return e.k==="contradicts"});
+  var openSigs=signals.filter(function(s){return s.status==="open"});
+
+  // Executive summary — lead with the insight, not the count
+  h+='<section class="panel"><h2>Executive Summary</h2>';
+  if(topAnalyses.length){
+    h+='<div class="narrative" style="cursor:pointer" data-jump="'+esc(topAnalyses[0].id)+'">';
+    h+='<strong>'+esc(topAnalyses[0].content.length>220?topAnalyses[0].content.slice(0,217)+"...":topAnalyses[0].content)+'</strong></div>';
+  }
+  h+='<div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:6px">';
+  h+='<div class="mc"><b>'+entries.length+'</b><span>total findings</span></div>';
+  h+='<div class="mc"><b>'+docs.length+'</b><span>source'+(docs.length!==1?"s":"")+'</span></div>';
+  h+='<div class="mc"><b>'+strategies.length+'</b><span>recommendations</span></div>';
+  h+='<div class="mc"><b style="color:'+(gapEntries.length>0?"var(--bad)":"var(--good)")+'">'+gapEntries.length+'</b><span>gaps identified</span></div>';
+  h+='</div>';
+  if(strategies.length){
+    h+='<div style="margin-top:10px;padding:10px;border-left:3px solid var(--str);background:rgba(126,231,135,.06);border-radius:0 var(--radius) var(--radius) 0;cursor:pointer" data-jump="'+esc(strategies[0].id)+'">';
+    h+='<div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--str);margin-bottom:4px">Top recommendation</div>';
+    h+='<p style="font-size:12px;line-height:1.5;color:var(--soft)">'+esc(strategies[0].content)+'</p></div>';
+  }
+  if(contradictEdges.length){
+    var topC=contradictEdges[0],cA=byId.get(topC.s),cB=byId.get(topC.t);
+    if(cA&&cB){
+      h+='<div style="margin-top:8px;padding:10px;border-left:3px solid var(--bad);background:rgba(255,92,122,.06);border-radius:0 var(--radius) var(--radius) 0">';
+      h+='<div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--bad);margin-bottom:4px">Key tension</div>';
+      h+='<p style="font-size:11px;line-height:1.4;color:var(--soft)">'+esc(cA.e.content.slice(0,100))+'</p>';
+      h+='<p style="font-size:10px;color:var(--bad);margin:4px 0">contradicts</p>';
+      h+='<p style="font-size:11px;line-height:1.4;color:var(--soft)">'+esc(cB.e.content.slice(0,100))+'</p></div>';
+    }
+  }
+  if(gapEntries.length){
+    h+='<div style="margin-top:8px;padding:10px;border-left:3px solid var(--warn);background:rgba(255,200,87,.06);border-radius:0 var(--radius) var(--radius) 0;cursor:pointer" data-jump="'+esc(gapEntries[0].id)+'">';
+    h+='<div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--warn);margin-bottom:4px">Biggest gap</div>';
+    h+='<p style="font-size:11px;line-height:1.4;color:var(--soft)">'+esc(gapEntries[0].content.length>150?gapEntries[0].content.slice(0,147)+"...":gapEntries[0].content)+'</p></div>';
+  }
+  h+='</section>';
+
+  // Key findings — top 8 by influence, full content
+  var topByInfluence=activeEntries.slice().sort(function(a,b){
+    return(influence.get(b.id)||{score:0}).score-(influence.get(a.id)||{score:0}).score}).slice(0,8);
+  h+='<section class="panel"><h2>Key Findings</h2>';
+  h+='<p class="panel-desc">Most influential findings — click to inspect on graph</p>';
+  topByInfluence.forEach(function(e,i){
+    var inf=influence.get(e.id)||{score:0};
+    h+='<div class="item" data-jump="'+esc(e.id)+'">';
+    h+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;flex-wrap:wrap">';
+    h+='<span style="font-size:14px;font-weight:700;color:var(--muted);min-width:18px">'+(i+1)+'</span>';
+    h+='<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+(colors[e.type]||"#edf3ff")+'"></span>';
+    h+='<b style="font-size:11px;color:'+(colors[e.type]||"#edf3ff")+'">'+(typeLabels[e.type]||e.type)+'</b>';
+    h+='<span class="chip" style="font-size:9px">'+Math.round((e.confidence||0)*100)+'%</span>';
+    h+='<span class="chip" style="font-size:9px">influence '+inf.score+'</span>';
+    h+='</div>';
+    h+='<p style="font-size:12px;line-height:1.5;color:var(--soft)">'+esc(e.content)+'</p>';
+    if(e.source&&e.source.section)h+='<div style="font-size:10px;color:var(--muted);margin-top:4px">'+esc(e.source.section)+'</div>';
+    h+='</div>';
+  });
+  h+='</section>';
+
+  // Topic map — group by source section
+  var clusters=new Map();
+  activeEntries.forEach(function(e){
+    var topic=(e.source&&e.source.section)?e.source.section:"General";
+    if(!clusters.has(topic))clusters.set(topic,[]);
+    clusters.get(topic).push(e);
+  });
+  if(clusters.size>1){
+    h+='<section class="panel"><h2>Topic Map</h2>';
+    h+='<p class="panel-desc">Findings organized by source — click to search</p>';
+    var sortedClusters=Array.from(clusters.entries()).sort(function(a,b){return b[1].length-a[1].length});
+    sortedClusters.forEach(function(pair){
+      var topic=pair[0],ces=pair[1];
+      var tMap={};ces.forEach(function(e){tMap[e.type]=(tMap[e.type]||0)+1});
+      var topE=ces.slice().sort(function(a,b){return(influence.get(b.id)||{score:0}).score-(influence.get(a.id)||{score:0}).score})[0];
+      h+='<div class="item" data-search="'+esc(topic)+'">';
+      h+='<div style="display:flex;justify-content:space-between;align-items:center">';
+      h+='<b style="font-size:12px">'+esc(topic)+'</b>';
+      h+='<span class="chip" style="font-size:9px">'+ces.length+' findings</span></div>';
+      h+='<div style="display:flex;gap:4px;margin-top:4px;flex-wrap:wrap">';
+      Object.keys(tMap).forEach(function(t){
+        h+='<span class="chip" style="font-size:9px;border-left:2px solid '+(colors[t]||"#edf3ff")+'">'+tMap[t]+" "+t+'</span>';
+      });
+      h+='</div>';
+      if(topE)h+='<p style="font-size:11px;color:var(--muted);margin-top:5px;line-height:1.35">'+esc(topE.content.length>140?topE.content.slice(0,137)+"...":topE.content)+'</p>';
+      h+='</div>';
+    });
+    h+='</section>';
+  }
+
+  // Cross-topic connections
+  var crossEdges=[];
+  edges.forEach(function(e){
+    var a=byId.get(e.s),b=byId.get(e.t);if(!a||!b)return;
+    var aS=(a.e.source&&a.e.source.section)||"",bS=(b.e.source&&b.e.source.section)||"";
+    if(aS&&bS&&aS!==bS)crossEdges.push({edge:e,aS:aS,bS:bS});
+  });
+  if(crossEdges.length){
+    h+='<section class="panel"><h2>Cross-Topic Connections</h2>';
+    h+='<p class="panel-desc">Insights that bridge different topics — these are often the most valuable discoveries</p>';
+    var pairMap=new Map();
+    crossEdges.forEach(function(ce){
+      var key=[ce.aS,ce.bS].sort().join(" ↔ ");
+      if(!pairMap.has(key))pairMap.set(key,{count:0,examples:[]});
+      var p=pairMap.get(key);p.count++;if(p.examples.length<2)p.examples.push(ce);
+    });
+    var sortedPairs=Array.from(pairMap.entries()).sort(function(a,b){return b[1].count-a[1].count}).slice(0,10);
+    sortedPairs.forEach(function(pair){
+      var label=pair[0],data=pair[1];
+      h+='<div class="item">';
+      h+='<div style="display:flex;justify-content:space-between;align-items:center">';
+      h+='<b style="font-size:11px;color:var(--accent)">'+esc(label)+'</b>';
+      h+='<span class="chip" style="font-size:9px">'+data.count+' link'+(data.count>1?"s":"")+'</span></div>';
+      data.examples.forEach(function(ex){
+        var kColor=ex.edge.k==="contradicts"?"var(--bad)":"var(--good)";
+        var sN=byId.get(ex.edge.s),tN=byId.get(ex.edge.t);
+        h+='<div style="margin-top:6px;padding:6px;background:rgba(255,255,255,.02);border-radius:4px">';
+        if(sN)h+='<p style="font-size:11px;line-height:1.35;color:var(--soft);margin-bottom:3px">'+esc(sN.e.content.length>100?sN.e.content.slice(0,97)+"...":sN.e.content)+'</p>';
+        h+='<div style="display:flex;align-items:center;gap:6px;margin:3px 0">';
+        h+='<span style="color:'+kColor+';font-size:10px;font-weight:600">'+ex.edge.k+'</span>';
+        h+='<span style="flex:1;height:1px;background:'+kColor+';opacity:.3"></span></div>';
+        if(tN)h+='<p style="font-size:11px;line-height:1.35;color:var(--soft)">'+esc(tN.e.content.length>100?tN.e.content.slice(0,97)+"...":tN.e.content)+'</p>';
+        h+='</div>';
+      });
+      h+='</div>';
+    });
+    h+='</section>';
+  }
+
+  // Knowledge gaps
+  if(gapEntries.length||openSigs.length){
+    h+='<section class="panel"><h2>Knowledge Gaps</h2>';
+    h+='<p class="panel-desc">What this analysis could not resolve or did not cover</p>';
+    gapEntries.forEach(function(e){
+      h+='<div class="item" data-jump="'+esc(e.id)+'" style="border-left:3px solid var(--bad)">';
+      h+='<p style="font-size:12px;line-height:1.4;color:var(--soft)">'+esc(e.content)+'</p>';
+      if(e.source&&e.source.section)h+='<div style="font-size:10px;color:var(--muted);margin-top:3px">'+esc(e.source.section)+'</div>';
+      h+='</div>';
+    });
+    var highSigs=openSigs.filter(function(s){return s.priority==="critical"||s.priority==="high"});
+    if(highSigs.length){
+      h+='<div style="margin-top:8px;font-size:11px;color:var(--warn);margin-bottom:6px">'+highSigs.length+' high-priority question'+(highSigs.length>1?"s":"")+':</div>';
+      highSigs.slice(0,6).forEach(function(s){
+        var jumpId=s.origin_entry&&byId.has(s.origin_entry)?s.origin_entry:null;
+        h+='<div class="item" style="border-left:3px solid var(--warn)"'+(jumpId?' data-jump="'+esc(jumpId)+'"':'')+'>';
+        h+='<p style="font-size:11px;color:var(--soft)">'+esc(s.content)+'</p></div>';
+      });
+    }
+    h+='</section>';
+  }
+
+  $("#briefing").innerHTML=h;
+}
+
+// Topic search handler
+document.body.addEventListener("click",function(ev){
+  var t=ev.target;while(t&&t!==document.body){
+    if(t.dataset&&t.dataset.search){
+      var s=t.dataset.search;
+      $("#search").value=s;fil.q=s.toLowerCase();applyFilters();
+      return;
+    }
+    t=t.parentElement;
+  }
+});
+
 // Findings index
 var currentSort="influence";
 function updateFindingsIndex(){
@@ -927,6 +1116,22 @@ function simulate(){
     var dx=b.x-a.x,dy=b.y-a.y,d=Math.max(1,Math.hypot(dx,dy)),ideal=e.k==="contradicts"?170:118,f=(d-ideal)*.0024;
     a.vx+=dx/d*f;a.vy+=dy/d*f;b.vx-=dx/d*f;b.vy-=dy/d*f;
   });
+  // Cluster attraction: same-section nodes attract gently
+  if(clusterCount>1){
+    var centers=new Map();
+    v.forEach(function(n){
+      var k=n.clusterKey||"";if(!k)return;
+      if(!centers.has(k))centers.set(k,{x:0,y:0,c:0});
+      var c=centers.get(k);c.x+=n.x;c.y+=n.y;c.c++;
+    });
+    centers.forEach(function(c){c.x/=c.c;c.y/=c.c});
+    v.forEach(function(n){
+      var k=n.clusterKey||"";if(!k)return;
+      var c=centers.get(k);if(!c)return;
+      var dx=c.x-n.x,dy=c.y-n.y;
+      n.vx+=dx*.003;n.vy+=dy*.003;
+    });
+  }
   v.forEach(function(n){
     if(drag===n)return;
     n.vx+=-n.x*.0008;n.vy+=-n.y*.0008;n.vx*=.86;n.vy*=.86;n.x+=n.vx;n.y+=n.vy;
@@ -935,9 +1140,48 @@ function simulate(){
   if(totalV<0.05*v.length&&frame>120)simSettled=true;
 }
 
+function drawClusters(){
+  if(clusterCount<=1)return;
+  var groups=new Map();
+  cachedVis.forEach(function(n){
+    var k=n.clusterKey||"";if(!k)return;
+    if(!groups.has(k))groups.set(k,[]);
+    groups.get(k).push(n);
+  });
+  var ci=0;
+  groups.forEach(function(gnodes,key){
+    if(gnodes.length<2)return;
+    var cx=0,cy=0;gnodes.forEach(function(n){cx+=n.x;cy+=n.y});
+    cx/=gnodes.length;cy/=gnodes.length;
+    var maxR=0;gnodes.forEach(function(n){maxR=Math.max(maxR,Math.hypot(n.x-cx,n.y-cy))});
+    var r=Math.max(40,(maxR+30))*cam.z;
+    var p=w2s(cx,cy);
+    ctx.save();
+    ctx.globalAlpha=.06;
+    ctx.fillStyle=clusterColors[ci%clusterColors.length].replace(".08",".12");
+    ctx.beginPath();ctx.arc(p.x,p.y,r,0,Math.PI*2);ctx.fill();
+    ctx.globalAlpha=.15;
+    ctx.strokeStyle=clusterColors[ci%clusterColors.length].replace(".08",".3").replace("rgba","rgba");
+    ctx.lineWidth=1;ctx.setLineDash([4,6]);
+    ctx.stroke();ctx.setLineDash([]);
+    if(cam.z>.35){
+      ctx.globalAlpha=.3;
+      ctx.fillStyle="rgba(237,243,255,.5)";
+      var fs=Math.max(8,Math.min(13,10*cam.z));
+      ctx.font=fs+"px var(--sans)";
+      var short=key.replace(/^\\d+\\.\\s*/,"");
+      if(short.length>30)short=short.slice(0,27)+"...";
+      ctx.fillText(short,p.x-ctx.measureText(short).width/2,p.y-r-4);
+    }
+    ctx.restore();
+    ci++;
+  });
+}
+
 function draw(){
   ctx.setTransform(dpr,0,0,dpr,0,0);
   ctx.clearRect(0,0,viewW,viewH);
+  drawClusters();
   var rel=conn(hov||sel);
   cachedVisEdges.forEach(function(e){drawEdge(e,rel)});
   cachedVis.forEach(function(n){drawNode(n,rel)});
@@ -1048,9 +1292,10 @@ document.onkeydown=function(e){
   else if(e.key==="l"||e.key==="L"){e.preventDefault();isListView?$("#viewGraph").click():$("#viewList").click()}
   else if(e.key==="Escape"){sel=null;panels();updateHash();updateFindingsIndex()}
   else if(e.key==="?"){e.preventDefault();guideEl.classList.add("show")}
-  else if(e.key==="1"){switchTab("detail")}
-  else if(e.key==="2"){switchTab("insights")}
-  else if(e.key==="3"){switchTab("sources")}
+  else if(e.key==="1"){switchTab("briefing")}
+  else if(e.key==="2"){switchTab("detail")}
+  else if(e.key==="3"){switchTab("insights")}
+  else if(e.key==="4"){switchTab("sources")}
   else if(e.key===" "){e.preventDefault();$("#playBtn").click()}
   else if(e.key==="Tab"){
     e.preventDefault();
