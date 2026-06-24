@@ -68,8 +68,8 @@ body{font-family:var(--sans);color:var(--text);background:
 .actions button{padding:6px 12px;font-size:12px}
 .workspace{display:grid;grid-template-columns:280px minmax(0,1fr) 340px;min-height:0}
 aside{overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--line) transparent;background:linear-gradient(180deg,rgba(9,12,18,.96),rgba(7,9,14,.92))}
-.left{border-right:1px solid var(--line)}.right{border-left:1px solid var(--line)}
-.panel{padding:12px;border-bottom:1px solid var(--line)}
+.left{border-right:1px solid var(--line)}.right{border-left:1px solid var(--line);overflow-x:hidden;word-wrap:break-word;overflow-wrap:break-word}
+.panel{padding:12px;border-bottom:1px solid var(--line);min-width:0;overflow-wrap:break-word}
 .panel h2{margin:0 0 4px;color:var(--soft);font-size:10px;text-transform:uppercase;letter-spacing:.08em}
 .panel-desc{color:var(--muted);font-size:10.5px;line-height:1.35;margin-bottom:8px}
 .search{width:100%;height:34px;padding:0 10px;color:var(--text);background:rgba(0,0,0,.26);border:1px solid var(--line);border-radius:var(--radius);outline:none;font-size:13px}
@@ -105,9 +105,9 @@ button:hover,button.on{border-color:var(--accent);background:rgba(72,215,255,.12
 .bar>i{display:block;height:100%;border-radius:999px;transition:width .3s}
 .bar-good>i{background:linear-gradient(90deg,var(--good),rgba(105,240,174,.6))}
 .bar-conv>i{background:linear-gradient(90deg,var(--bad),var(--warn),var(--good))}
-.kv{display:grid;grid-template-columns:100px 1fr;gap:4px 8px;margin-top:8px;font-size:11px}
+.kv{display:grid;grid-template-columns:100px minmax(0,1fr);gap:4px 8px;margin-top:8px;font-size:11px;overflow-wrap:break-word;word-break:break-word}
 .kv div:nth-child(odd){color:var(--muted)}
-.evidence{margin-top:10px;padding:8px;border-left:3px solid var(--accent);background:rgba(72,215,255,.06);color:var(--soft);font-size:11px;line-height:1.4;border-radius:0 var(--radius) var(--radius) 0}
+.evidence{margin-top:10px;padding:8px;border-left:3px solid var(--accent);background:rgba(72,215,255,.06);color:var(--soft);font-size:11px;line-height:1.4;border-radius:0 var(--radius) var(--radius) 0;overflow-wrap:break-word;word-break:break-word}
 .footer-note{color:var(--muted);font-size:10px;text-align:center}
 .footer-note a{color:var(--accent);text-decoration:none}
 
@@ -164,7 +164,7 @@ button:hover,button.on{border-color:var(--accent);background:rgba(72,215,255,.12
 .insight-card .ic-value{font-size:12px;color:var(--text);line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .insight-card .ic-sub{font-size:10px;color:var(--muted);margin-top:2px}
 
-.xref{display:inline-block;padding:1px 6px;margin:1px 2px;font-size:10px;color:var(--accent);background:rgba(72,215,255,.08);
+.xref{display:inline-block;padding:1px 6px;margin:1px 2px;font-size:10px;color:var(--accent);background:rgba(72,215,255,.08);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;
   border:1px solid rgba(72,215,255,.25);border-radius:4px;cursor:pointer;transition:.12s;font-family:var(--mono)}
 .xref:hover{background:rgba(72,215,255,.2);border-color:var(--accent)}
 
@@ -434,6 +434,16 @@ var statuses=["active","disputed","superseded","retracted"];
 var statusLabels={active:"Active",disputed:"Disputed",superseded:"Superseded",retracted:"Retracted"};
 var $=function(id){return document.querySelector(id)};
 var esc=function(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]})};
+var labelMap=new Map();
+function shortLabel(e){
+  if(labelMap.has(e.id))return labelMap.get(e.id);
+  var c=e.content||"";
+  var w=c.split(/[\s,.:;!?()]+/).filter(function(x){return x.length>2});
+  var label=w.slice(0,5).join(" ");
+  if(label.length>40)label=label.slice(0,37)+"...";
+  if(!label)label=e.type;
+  labelMap.set(e.id,label);return label;
+}
 
 // Guide overlay
 var guideEl=$("#guide");
@@ -573,7 +583,7 @@ function parseHash(){
   if(m){var n=byId.get(m[1]);if(n)jumpToEntry(m[1])}
 }
 
-function xref(id){return'<button class="xref" data-jump="'+esc(id)+'">'+esc(id)+'</button>'}
+function xref(id){var n=byId.get(id);var lbl=n?shortLabel(n.e):id;return'<button class="xref" data-jump="'+esc(id)+'" title="'+esc(id)+'">'+esc(lbl)+'</button>'}
 function xrefList(ids){return ids.map(xref).join(" ")}
 
 function applyFilters(){
@@ -627,7 +637,7 @@ function detail(){
   h+='</div>';
   h+='<p style="margin:8px 0;line-height:1.5;font-size:13px">'+esc(e.content)+'</p>';
   h+='<div class="kv">';
-  h+='<div>ID</div><div style="font-family:var(--mono)">'+esc(e.id)+' <button class="copy-link-btn" data-entry="'+esc(e.id)+'" style="font-size:10px;padding:1px 6px;margin-left:4px">Copy link</button></div>';
+  h+='<div>ID</div><div style="font-family:var(--mono);font-size:10px;color:var(--muted)">'+esc(e.id)+' <button class="copy-link-btn" data-entry="'+esc(e.id)+'" style="font-size:10px;padding:1px 6px;margin-left:4px">Copy link</button></div>';
   h+='<div>Status</div><div>'+(statusLabels[e.status]||e.status)+'</div>';
   h+='<div>Iteration</div><div>'+esc(e.iteration)+'</div>';
   h+='<div>Created by</div><div>'+esc(e.created_by)+'</div>';
@@ -654,9 +664,9 @@ function detail(){
     connected.forEach(function(c){
       var kLabel=c.k==="supports"?"supports":c.k==="contradicts"?"contradicts":c.k==="supersedes"?"supersedes":c.k==="supports_by"?"supported by":c.k==="contradicts_by"?"contradicted by":"superseded by";
       var kColor=c.k.indexOf("contradict")>=0?"var(--bad)":c.k.indexOf("supersede")>=0?"var(--warn)":"var(--good)";
-      h+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:11px">';
-      h+='<span style="color:'+kColor+';font-size:10px;min-width:90px">'+kLabel+'</span>';
-      h+=xref(c.id)+' <span style="color:var(--muted)">'+esc(c.content.slice(0,60))+'</span></div>';
+      h+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:11px;flex-wrap:wrap">';
+      h+='<span style="color:'+kColor+';font-size:10px;min-width:80px">'+kLabel+'</span>';
+      h+=xref(c.id)+'</div>';
     });
     h+='</div>';
   }
@@ -818,7 +828,9 @@ function insightStrip(){
     var combined=(a.e.confidence||0)+(b.e.confidence||0);
     if(!topContrad||combined>topContrad.combined)topContrad={s:e.s,t:e.t,combined:combined,content:a.e.content};
   });
-  if(topContrad)cards.push({label:"Key Conflict",value:topContrad.content.slice(0,50),sub:topContrad.s+" vs "+topContrad.t,id:topContrad.s});
+  if(topContrad){var tcA=byId.get(topContrad.s),tcB=byId.get(topContrad.t);
+    cards.push({label:"Key Conflict",value:topContrad.content.slice(0,50),sub:(tcA?shortLabel(tcA.e):topContrad.s)+" vs "+(tcB?shortLabel(tcB.e):topContrad.t),id:topContrad.s});
+  }
 
   strip.innerHTML=cards.map(function(c){
     return'<div class="insight-card" '+(c.id?'data-jump="'+esc(c.id)+'"':'')+'>'
@@ -972,8 +984,8 @@ function drawNode(n,rel){
   if(n.e.status==="disputed"){ctx.strokeStyle="#ff5c7a";ctx.lineWidth=3;ctx.setLineDash([4,4]);ctx.lineDashOffset=-frame*.3;ctx.stroke();ctx.setLineDash([]);}
   else{ctx.strokeStyle="rgba(255,255,255,.6)";ctx.lineWidth=1.2;ctx.stroke();}
   if(cam.z>.7||sel===n||hov===n){
-    ctx.fillStyle="rgba(237,243,255,.88)";ctx.font=Math.max(9,11*cam.z)+"px ui-monospace,monospace";
-    ctx.fillText(n.id,p.x+r+5,p.y+4);
+    ctx.fillStyle="rgba(237,243,255,.88)";ctx.font=Math.max(9,11*cam.z)+"px var(--sans)";
+    ctx.fillText(shortLabel(n.e),p.x+r+5,p.y+4);
   }
   ctx.restore();
 }
@@ -1093,7 +1105,7 @@ canvas.onpointermove=function(e){
         +'<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+colors[hov.e.type]+'"></span>'
         +'<b style="color:'+colors[hov.e.type]+'">'+esc(tipType)+'</b>'
         +'<span style="color:var(--muted);font-size:10px">'+tipConf+'% &middot; influence '+tipInf.score+'</span></div>'
-        +'<div style="margin-bottom:4px">'+esc(hov.e.content).slice(0,240)+'</div>'
+        +'<div style="margin-bottom:4px;line-height:1.4">'+esc(hov.e.content.slice(0,200))+'</div>'
         +'<div style="color:var(--muted);font-size:10px">Click to inspect &middot; Drag to move</div>';
     }
   }
