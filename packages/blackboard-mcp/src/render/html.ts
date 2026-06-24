@@ -437,6 +437,7 @@ var esc=function(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){r
 var labelMap=new Map();
 function shortLabel(e){
   if(labelMap.has(e.id))return labelMap.get(e.id);
+  if(e.label){labelMap.set(e.id,e.label);return e.label}
   var c=e.content||"";
   var w=c.split(/[\s,.:;!?()]+/).filter(function(x){return x.length>2});
   var label=w.slice(0,5).join(" ");

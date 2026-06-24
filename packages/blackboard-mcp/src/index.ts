@@ -68,6 +68,8 @@ Visualization tools:
 
 Entry types: observation (source-grounded fact), analysis (interpretation), calculation (derived work), strategy (framing decision), gap (missing evidence).
 
+Every entry SHOULD include a short label (3-6 words) — this is what appears on graph nodes and cross-reference buttons in the visualization. Good labels: "Revenue growth decelerating", "Auth middleware race condition", "Missing test coverage for edge cases". Bad labels: "e4", "finding 1", "observation".
+
 The blackboard automatically tracks contradictions, creates signals from open questions, and computes convergence. Your answer should be assembled from blackboard state — this ensures provenance and surfaces contradictions.`;
 
 const server = new McpServer({
@@ -192,6 +194,7 @@ server.tool(
     entries: z.union([
       z.array(z.object({
         type: z.enum(["observation", "analysis", "calculation", "strategy", "gap"]).optional().describe("Entry type (default: observation)."),
+        label: z.string().optional().describe("Short human-readable label (3-6 words). Shown on graph nodes and cross-references. Example: 'Revenue growth slowing', 'Memory leak in worker pool'."),
         content: z.string().describe("The finding text."),
         source: z.object({
           document: z.string().describe("Document ID."),

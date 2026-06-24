@@ -51,6 +51,7 @@ export function addEntriesToBb(bb: Blackboard, rawEntries: unknown[], workerId: 
     const entry: Entry = {
       id: genEntryId(),
       type: entryType as Entry["type"],
+      label: String(ed.label || ""),
       content: String(ed.content || ""),
       source,
       confidence: conf,
@@ -127,6 +128,7 @@ export function entryDict(e: Entry): Record<string, unknown> {
     confidence: e.confidence, status: e.status,
     tags: e.tags, created_by: e.created_by, iteration: e.iteration,
   };
+  if (e.label) d.label = e.label;
   if (e.source) d.source = e.source;
   if (e.opens_questions.length) d.opens_questions = e.opens_questions;
   if (e.supports_entries.length) d.supports_entries = e.supports_entries;

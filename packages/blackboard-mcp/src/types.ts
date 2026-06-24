@@ -7,6 +7,7 @@ export interface EntrySource {
 export interface Entry {
   id: string;
   type: "observation" | "analysis" | "calculation" | "strategy" | "gap";
+  label: string;
   content: string;
   source: EntrySource | null;
   confidence: number;
