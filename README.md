@@ -419,6 +419,8 @@ The blackboard reasoning system that powers irys-stateful-swarms is available as
 
 **Why it matters:** When you install this in Claude Code or Codex, your agent gains the ability to build persistent analytical state. A blackboard created during one session is discoverable in the next — the agent calls `bb_list`, finds prior work, and extends it instead of starting from scratch. Complex multi-document analysis, contradiction tracking, gap identification, and evidence-chain building all happen through the blackboard, producing auditable reasoning traces instead of black-box answers.
 
+**Interactive exports:** Call `bb_export` to generate a self-contained HTML file with an interactive knowledge graph — force-directed layout, cluster detection, cross-document synthesis, evidence chains, confidence gauges, and a structured briefing. The export is a single file with zero dependencies that works offline. Share it with anyone; open it in any browser. Mobile responsive with touch navigation.
+
 ### Install
 
 Clone this repo, build the server, and point your config at it:
