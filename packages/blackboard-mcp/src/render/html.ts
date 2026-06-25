@@ -1479,6 +1479,16 @@ function briefing(){
       md+="- **"+strategies.length+"** recommendations, **"+gapEntries.length+"** gaps\\n\\n";
       if(topAnalyses.length)md+="> "+topAnalyses[0].content+"\\n\\n";
       if(strategies.length)md+="**Top recommendation:** "+strategies[0].content+"\\n\\n";
+      if(surprisingFindings.length){
+        md+="## Worth a Double Take\\n\\n";
+        surprisingFindings.forEach(function(item){
+          var e=item.e;
+          var isContradicted=contradictedIds.has(e.id);
+          var reason=isContradicted?"contested":(e.confidence||0)<0.6?"low confidence":"quantitative";
+          md+="- **["+e.type.toUpperCase()+"]** "+e.content.slice(0,150)+" *("+reason+")*\\n";
+        });
+        md+="\\n";
+      }
       if(contradictEdges.length){
         md+="## Disputes ("+contradictEdges.length+")\\n\\n";
         contradictEdges.slice(0,3).forEach(function(ce){
