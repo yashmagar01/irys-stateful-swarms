@@ -251,7 +251,7 @@ button:hover,button.on{border-color:var(--accent);background:rgba(72,215,255,.12
   .mob-brief-btn{display:flex}}
 @media(max-width:900px){.workspace,.workspace.briefing-wide{grid-template-columns:1fr}.left{display:none}}
 @media(max-width:720px){.shell{grid-template-rows:auto minmax(0,1fr) 48px}.title h1{font-size:15px;white-space:normal}
-  .guide-card{padding:20px}.guide-card h2{font-size:18px}.insight-strip{flex-wrap:wrap;max-width:90vw}
+  .guide-card{padding:20px}.guide-card h2{font-size:18px}.insight-strip{display:none!important}
   .right.open{width:100vw;border-radius:16px 16px 0 0;top:15vh;bottom:0;border-top:1px solid var(--accent)}
   .hud,.legend,.legend-toggle,.minimap,.kbd-hint{display:none!important}
   .stamp{display:none}}
@@ -1072,8 +1072,26 @@ function briefing(){
     if(chains.length>2)bottomLine+=" "+chains.length+" conclusions are backed by multi-source evidence chains.";
   })();
 
+  // Cross-document synthesis: find edges between entries from different documents
+  var crossDocEdges=[];
+  edges.forEach(function(e){
+    var a=byId.get(e.s),b=byId.get(e.t);if(!a||!b)return;
+    var aDoc=a.e.source&&a.e.source.document,bDoc=b.e.source&&b.e.source.document;
+    if(aDoc&&bDoc&&aDoc!==bDoc)crossDocEdges.push({edge:e,aDoc:aDoc,bDoc:bDoc,a:a.e,b:b.e});
+  });
+  var crossDocPairs=new Map();
+  crossDocEdges.forEach(function(cd){
+    var key=[cd.aDoc,cd.bDoc].sort().join(":");
+    if(!crossDocPairs.has(key))crossDocPairs.set(key,{docs:[cd.aDoc,cd.bDoc].sort(),supports:[],contradicts:[]});
+    var p=crossDocPairs.get(key);
+    if(cd.edge.k==="contradicts")p.contradicts.push(cd);
+    else p.supports.push(cd);
+  });
+
   // Section navigation
-  var navItems=["Bottom Line","Start Here","Summary"];
+  var navItems=["Bottom Line","Start Here"];
+  if(crossDocEdges.length)navItems.push("Synthesis");
+  navItems.push("Summary");
   if(surprisingFindings.length)navItems.push("Surprises");
   if(contradictEdges.length)navItems.push("Disputes");
   navItems.push("Connections");
@@ -1136,6 +1154,42 @@ function briefing(){
     h+='</div>';
   });
   h+='</section>';
+
+  // --- CROSS-DOCUMENT SYNTHESIS --- where different sources connect
+  if(crossDocEdges.length){
+    var docNameById=new Map();docs.forEach(function(d){docNameById.set(d.doc_id,d.name.length>35?d.name.slice(0,32)+"...":d.name)});
+    h+='<section id="brief-synthesis" class="panel" style="border:1px solid rgba(199,146,234,.3);background:linear-gradient(135deg,rgba(199,146,234,.05),rgba(72,215,255,.03))">';
+    h+='<h2 style="color:#c792ea">Cross-Document Synthesis</h2>';
+    h+='<p class="panel-desc">'+crossDocEdges.length+' connection'+(crossDocEdges.length>1?"s":"")+ ' found across '+crossDocPairs.size+' document pair'+(crossDocPairs.size>1?"s":"")+ ' — where independent sources converge or clash</p>';
+    var sortedDocPairs=Array.from(crossDocPairs.values()).sort(function(a,b){return(b.supports.length+b.contradicts.length)-(a.supports.length+a.contradicts.length)});
+    sortedDocPairs.forEach(function(pair){
+      var d1=docNameById.get(pair.docs[0])||pair.docs[0];
+      var d2=docNameById.get(pair.docs[1])||pair.docs[1];
+      h+='<div class="item">';
+      h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">';
+      h+='<span class="chip" style="font-size:10px;background:rgba(199,146,234,.15);color:#c792ea;border-color:rgba(199,146,234,.3)">'+esc(d1)+'</span>';
+      h+='<span style="color:#c792ea;font-size:14px;font-weight:700">&harr;</span>';
+      h+='<span class="chip" style="font-size:10px;background:rgba(199,146,234,.15);color:#c792ea;border-color:rgba(199,146,234,.3)">'+esc(d2)+'</span>';
+      h+='<div style="display:flex;gap:4px;margin-left:auto">';
+      if(pair.supports.length)h+='<span class="chip" style="font-size:8px;color:var(--good);border-color:rgba(105,240,174,.3)">'+pair.supports.length+' agree</span>';
+      if(pair.contradicts.length)h+='<span class="chip" style="font-size:8px;color:var(--bad);border-color:rgba(255,92,122,.3)">'+pair.contradicts.length+' clash</span>';
+      h+='</div></div>';
+      var examples=pair.contradicts.concat(pair.supports).slice(0,3);
+      examples.forEach(function(cd){
+        var kColor=cd.edge.k==="contradicts"?"var(--bad)":"var(--good)";
+        var kWord=cd.edge.k==="contradicts"?"contradicts":"supports";
+        h+='<div style="margin-bottom:6px;padding:8px;background:rgba(255,255,255,.02);border-radius:4px;border-left:2px solid '+kColor+'">';
+        h+='<p style="font-size:11px;line-height:1.4;color:var(--soft);margin-bottom:2px;cursor:pointer" data-jump="'+esc(cd.a.id)+'">';
+        h+=esc(cd.a.content.length>100?cd.a.content.slice(0,97)+"...":cd.a.content)+'</p>';
+        h+='<div style="font-size:9px;color:'+kColor+';margin:3px 0;font-weight:600">'+kWord+'</div>';
+        h+='<p style="font-size:11px;line-height:1.4;color:var(--soft);cursor:pointer" data-jump="'+esc(cd.b.id)+'">';
+        h+=esc(cd.b.content.length>100?cd.b.content.slice(0,97)+"...":cd.b.content)+'</p>';
+        h+='</div>';
+      });
+      h+='</div>';
+    });
+    h+='</section>';
+  }
 
   // --- EXECUTIVE SUMMARY ---
   h+='<section id="brief-summary" class="panel"><h2>Executive Summary</h2>';
@@ -1474,6 +1528,21 @@ function briefing(){
         }
         md+="\\n";
       });
+      if(crossDocEdges.length){
+        md+="## Cross-Document Synthesis\\n\\n";
+        md+=crossDocEdges.length+" connection"+(crossDocEdges.length>1?"s":"")+" across "+crossDocPairs.size+" document pair"+(crossDocPairs.size>1?"s":"")+"\\n\\n";
+        var docNameById2=new Map();docs.forEach(function(d){docNameById2.set(d.doc_id,d.name.length>40?d.name.slice(0,37)+"...":d.name)});
+        Array.from(crossDocPairs.values()).forEach(function(pair){
+          var d1=docNameById2.get(pair.docs[0])||pair.docs[0];
+          var d2=docNameById2.get(pair.docs[1])||pair.docs[1];
+          md+="**"+d1+"** <> **"+d2+"**";
+          if(pair.supports.length)md+=" ("+pair.supports.length+" agree";
+          if(pair.contradicts.length)md+=(pair.supports.length?", ":"")+pair.contradicts.length+" clash";
+          if(pair.supports.length||pair.contradicts.length)md+=")";
+          md+="\\n";
+        });
+        md+="\\n";
+      }
       md+="## Executive Summary\\n\\n";
       md+="- **"+entries.length+"** findings across **"+docs.length+"** source"+(docs.length!==1?"s":"")+"\\n";
       md+="- **"+strategies.length+"** recommendations, **"+gapEntries.length+"** gaps\\n\\n";
