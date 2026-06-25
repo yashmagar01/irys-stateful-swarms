@@ -794,15 +794,16 @@ function detail(){
   h+='</div>';
   if(s.document){
     h+='<div class="evidence"><div style="color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Source Evidence</div>';
-    h+='<b>'+esc(s.document)+'</b>';
+    var docName=docs.find(function(d){return d.doc_id===s.document});
+    h+='<b>'+esc(docName?docName.name:s.document)+'</b>';
     if(s.section)h+='<br><span style="color:var(--muted)">Section:</span> '+esc(s.section);
     if(s.evidence)h+='<br><span style="color:var(--muted)">Quote:</span> "'+esc(s.evidence)+'"';
     h+='</div>';
   }
   var connected=[];
   edges.forEach(function(ed){
-    if(ed.s===e.id&&byId.has(ed.t)){var n=byId.get(ed.t);connected.push({id:ed.t,k:ed.k,content:n.e.content,type:n.e.type})}
-    if(ed.t===e.id&&byId.has(ed.s)){var n2=byId.get(ed.s);connected.push({id:ed.s,k:ed.k+"_by",content:n2.e.content,type:n2.e.type})}
+    if(ed.s===e.id&&byId.has(ed.t)){var n=byId.get(ed.t);connected.push({id:ed.t,k:ed.k,label:n.e.label,content:n.e.content,type:n.e.type})}
+    if(ed.t===e.id&&byId.has(ed.s)){var n2=byId.get(ed.s);connected.push({id:ed.s,k:ed.k+"_by",label:n2.e.label,content:n2.e.content,type:n2.e.type})}
   });
   if(connected.length){
     h+='<div style="margin-top:12px"><div style="color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Connected Findings ('+connected.length+')</div>';
@@ -811,6 +812,7 @@ function detail(){
       var kColor=c.k.indexOf("contradict")>=0?"var(--bad)":c.k.indexOf("supersede")>=0?"var(--warn)":"var(--good)";
       h+='<div style="margin-bottom:8px;padding:6px 8px;background:rgba(255,255,255,.02);border-radius:var(--radius);border-left:2px solid '+kColor+';cursor:pointer" data-jump="'+esc(c.id)+'">';
       h+='<div style="font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:'+kColor+';margin-bottom:3px">'+kLabel+'</div>';
+      if(c.label)h+='<div style="font-size:11px;font-weight:600;color:var(--text);margin-bottom:2px">'+esc(c.label)+'</div>';
       h+='<p style="font-size:11px;line-height:1.4;color:var(--soft);margin:0">'+esc(c.content.length>140?c.content.slice(0,137)+"...":c.content)+'</p>';
       h+='</div>';
     });
