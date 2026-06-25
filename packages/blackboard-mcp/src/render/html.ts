@@ -1626,7 +1626,7 @@ function updateFindingsIndex(){
     var e=n.e,isSelected=sel&&sel.id===e.id;
     return'<div class="finding-row'+(isSelected?" selected":"")+'" data-jump="'+esc(e.id)+'">'
       +'<span class="finding-dot" style="background:'+(colors[e.type]||"#edf3ff")+'"></span>'
-      +'<span class="finding-content">'+esc(e.content.slice(0,60))+'</span>'
+      +'<span class="finding-content">'+esc(e.label||e.content.slice(0,60))+'</span>'
       +'<span class="finding-conf">'+Math.round((e.confidence||0)*100)+'%</span></div>';
   }).join("");
   if(!h)h='<p style="color:var(--muted);font-size:12px;padding:4px">No findings match filters.</p>';
@@ -1647,14 +1647,17 @@ function renderListView(){
   var sorted=filtered.slice().sort(function(a,b){
     if(listSortCol==="confidence")return listSortAsc?(a.confidence||0)-(b.confidence||0):(b.confidence||0)-(a.confidence||0);
     if(listSortCol==="type")return listSortAsc?a.type.localeCompare(b.type):b.type.localeCompare(a.type);
+    if(listSortCol==="label")return listSortAsc?(a.label||"").localeCompare(b.label||""):(b.label||"").localeCompare(a.label||"");
     if(listSortCol==="iteration")return listSortAsc?(a.iteration||0)-(b.iteration||0):(b.iteration||0)-(a.iteration||0);
     if(listSortCol==="status")return listSortAsc?a.status.localeCompare(b.status):b.status.localeCompare(a.status);
     var ai=(influence.get(a.id)||{score:0}).score,bi=(influence.get(b.id)||{score:0}).score;
     return listSortAsc?ai-bi:bi-ai;
   });
   function thC(col){return col===listSortCol?(listSortAsc?"sorted asc":"sorted"):""}
+  var hasLabels=filtered.some(function(e){return!!e.label});
   var h='<table><thead><tr>';
   h+='<th class="'+thC("type")+'" data-lcol="type">Type</th>';
+  if(hasLabels)h+='<th class="'+thC("label")+'" data-lcol="label">Label</th>';
   h+='<th>Content</th>';
   h+='<th class="'+thC("confidence")+'" data-lcol="confidence">Conf</th>';
   h+='<th class="'+thC("influence")+'" data-lcol="influence">Influence</th>';
@@ -1665,6 +1668,7 @@ function renderListView(){
     var inf=influence.get(e.id)||{score:0};
     h+='<tr data-jump="'+esc(e.id)+'">';
     h+='<td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+(colors[e.type]||"#edf3ff")+';margin-right:6px"></span>'+(typeLabels[e.type]||e.type)+'</td>';
+    if(hasLabels)h+='<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;color:var(--text)">'+esc(e.label||"")+'</td>';
     h+='<td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(e.content)+'</td>';
     h+='<td>'+Math.round((e.confidence||0)*100)+'%</td><td>'+inf.score+'</td>';
     h+='<td>'+(statusLabels[e.status]||e.status)+'</td><td>'+(e.iteration||0)+'</td></tr>';
