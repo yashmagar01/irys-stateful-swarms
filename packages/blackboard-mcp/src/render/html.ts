@@ -245,6 +245,23 @@ button:hover,button.on{border-color:var(--accent);background:rgba(72,215,255,.12
 .kbd-hint{position:absolute;bottom:12px;right:180px;padding:4px 8px;border:1px solid var(--strong);border-radius:var(--radius);
   background:rgba(6,7,10,.74);backdrop-filter:blur(14px);color:var(--muted);font:10px var(--mono);z-index:3;pointer-events:none}
 
+.trust-card{padding:10px 12px;border:1px solid var(--strong);border-radius:var(--radius);background:rgba(255,255,255,.025);margin-bottom:6px}
+.trust-card .tc-label{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:3px}
+.trust-card .tc-value{font-size:14px;font-weight:700;color:var(--text)}
+.trust-card .tc-sub{font-size:10px;color:var(--muted);margin-top:2px}
+.trust-metric{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.collapse-bar{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius);
+  background:rgba(255,255,255,.02);margin-bottom:6px;cursor:pointer;transition:.15s}
+.collapse-bar:hover{border-color:var(--accent);background:rgba(72,215,255,.04)}
+.collapse-bar.active{border-color:var(--accent);background:rgba(72,215,255,.08)}
+.collapse-bar .cb-name{flex:1;font-size:11px;color:var(--soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.collapse-bar .cb-impact{display:flex;gap:4px;flex-shrink:0}
+.skeptic-btn{padding:4px 10px;font-size:11px;border-radius:var(--radius);transition:.15s}
+.skeptic-btn.active{background:rgba(255,92,122,.15);border-color:var(--bad);color:var(--bad)}
+.audit-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:600}
+.audit-ready{background:rgba(105,240,174,.12);color:var(--good);border:1px solid rgba(105,240,174,.3)}
+.audit-partial{background:rgba(255,200,87,.12);color:var(--warn);border:1px solid rgba(255,200,87,.3)}
+.audit-sparse{background:rgba(255,92,122,.12);color:var(--bad);border:1px solid rgba(255,92,122,.3)}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @media(max-width:1100px){.workspace,.workspace.briefing-wide{grid-template-columns:260px minmax(0,1fr)}.right{position:absolute;right:0;top:60px;bottom:54px;width:min(420px,90vw);
   transform:translateX(calc(100% + 4px));transition:.2s ease;z-index:6;box-shadow:-8px 0 32px rgba(0,0,0,.4)}.right.open{transform:translateX(0)}
@@ -318,6 +335,7 @@ button:hover,button.on{border-color:var(--accent);background:rgba(72,215,255,.12
         <button id="viewGraph" class="active" title="Graph view">Graph</button>
         <button id="viewList" title="Table view">List</button>
       </div>
+      <button id="skepticBtn" class="skeptic-btn" title="Skeptic lens: highlight fragile claims (S)">Skeptic</button>
       <button id="fitBtn" title="Fit all nodes (F)">Fit</button>
       <button id="shotBtn" title="Download PNG">PNG</button>
       <button class="help-btn" id="helpBtn" title="Show guide (?)">?</button>
@@ -395,7 +413,7 @@ button:hover,button.on{border-color:var(--accent);background:rgba(72,215,255,.12
       </div>
       <div id="listView" class="list-view hidden"></div>
       <div id="narration" class="narration"></div>
-      <div class="kbd-hint">Tab: next &middot; F: fit &middot; L: list &middot; 1-4: tabs &middot; Space: play</div>
+      <div class="kbd-hint">Tab: next &middot; F: fit &middot; L: list &middot; S: skeptic &middot; 1-4: tabs &middot; Space: play</div>
       <div class="minimap"><canvas id="mini"></canvas></div>
     </main>
 
@@ -457,6 +475,11 @@ button:hover,button.on{border-color:var(--accent);background:rgba(72,215,255,.12
       </div>
 
       <div id="tabSources" class="tab-content">
+        <section class="panel">
+          <h2>Source Fragility</h2>
+          <p class="panel-desc">What breaks if you remove a source? Click to highlight affected conclusions.</p>
+          <div id="collapseTest"></div>
+        </section>
         <section class="panel">
           <h2>Source Documents</h2>
           <p class="panel-desc">How much of each source has been analyzed</p>
@@ -568,6 +591,70 @@ entries.forEach(function(e){
   var score=inD*2+outD+(e.addresses_signals||[]).length*3+(e.opens_questions||[]).length;
   influence.set(e.id,{score:score,inD:inD,outD:outD,contrad:contrad});
 });
+
+// Support graph (IIFE-scope for collapse test + detail + tooltip)
+var supportedBy=new Map();
+var supportsWhat=new Map();
+edges.forEach(function(e){
+  if(e.k==="supports"){
+    if(!supportedBy.has(e.t))supportedBy.set(e.t,[]);
+    supportedBy.get(e.t).push(e.s);
+    if(!supportsWhat.has(e.s))supportsWhat.set(e.s,[]);
+    supportsWhat.get(e.s).push(e.t);
+  }
+});
+
+// Collapse test: source docs reachable through support chains
+var entrySourceDocs=new Map();
+entries.forEach(function(e){
+  var s=new Set();
+  if(e.source&&e.source.document)s.add(e.source.document);
+  entrySourceDocs.set(e.id,s);
+});
+var _changed=true,_rounds=20;
+while(_changed&&_rounds-->0){
+  _changed=false;
+  edges.forEach(function(e){
+    if(e.k!=="supports")return;
+    var ss=entrySourceDocs.get(e.s),ts=entrySourceDocs.get(e.t);
+    if(!ss||!ts)return;
+    ss.forEach(function(doc){if(!ts.has(doc)){ts.add(doc);_changed=true}});
+  });
+}
+var allContradictEdges=edges.filter(function(e){return e.k==="contradicts"});
+var conclusions=entries.filter(function(e){
+  return e.status==="active"&&(e.type==="analysis"||e.type==="strategy"||e.type==="calculation");
+});
+var docImpact=new Map();
+docs.forEach(function(d){
+  var did=d.id||d.doc_id;
+  var broken=[],weakened=[],robust=[];
+  conclusions.forEach(function(c){
+    var sd=entrySourceDocs.get(c.id);
+    if(!sd||sd.size===0)return;
+    if(!sd.has(did)){robust.push(c);return}
+    if(sd.size===1)broken.push(c);else weakened.push(c);
+  });
+  var hiddenContras=allContradictEdges.filter(function(ce){
+    var a=byId.get(ce.s),b=byId.get(ce.t);
+    if(!a||!b)return false;
+    return(a.e.source&&a.e.source.document===did)||(b.e.source&&b.e.source.document===did);
+  });
+  docImpact.set(did,{doc:d,broken:broken,weakened:weakened,robust:robust,
+    hiddenContras:hiddenContras,score:broken.length*10+weakened.length*3+hiddenContras.length*2});
+});
+var fragileConclusions=conclusions.filter(function(c){
+  var sd=entrySourceDocs.get(c.id);return sd&&sd.size===1;
+});
+var loadBearingDoc=null,maxImpactScore=-1;
+docImpact.forEach(function(imp){if(imp.score>maxImpactScore){maxImpactScore=imp.score;loadBearingDoc=imp}});
+var hasProvenance=entries.filter(function(e){return e.source&&e.source.document}).length;
+var hasSupportEdgeCount=edges.filter(function(e){return e.k==="supports"}).length;
+var nonDefaultConf=entries.filter(function(e){return e.confidence!==undefined&&e.confidence!==0.5&&e.confidence!==0}).length;
+var auditLevel=(hasProvenance>=entries.length*0.4&&hasSupportEdgeCount>=3&&nonDefaultConf>=entries.length*0.3)?"ready":
+  (hasProvenance>=entries.length*0.15||hasSupportEdgeCount>=1)?"partial":"sparse";
+var skepticMode=false;
+var collapseHighlight=null;
 
 // Progression narration — auto-generate per-iteration summaries
 var maxIter=Math.max(bb.iteration||0);
@@ -710,7 +797,7 @@ function applyFilters(){
   cacheVis();if(sel&&!sel.vis)sel=null;simSettled=false;dirty=true;panels();updateFindingsIndex();if(isListView)renderListView();
 }
 
-function panels(){briefing();stats();histogram();detail();convergence();convTraj();contradictions();coverage();chainDepth();progression();questions();srcDependency();insightStrip()}
+function panels(){briefing();stats();histogram();detail();convergence();convTraj();contradictions();coverage();chainDepth();progression();questions();srcDependency();collapseTestPanel();insightStrip()}
 
 function stats(){
   var v=vis(),ve=v.map(function(n){return n.e});
@@ -794,7 +881,7 @@ function detail(){
   h+='</div>';
   if(s.document){
     h+='<div class="evidence"><div style="color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Source Evidence</div>';
-    var docName=docs.find(function(d){return d.doc_id===s.document});
+    var docName=docs.find(function(d){return(d.id||d.doc_id)===s.document});
     h+='<b>'+esc(docName?docName.name:s.document)+'</b>';
     if(s.section)h+='<br><span style="color:var(--muted)">Section:</span> '+esc(s.section);
     if(s.evidence)h+='<br><span style="color:var(--muted)">Quote:</span> "'+esc(s.evidence)+'"';
@@ -903,6 +990,59 @@ function srcDependency(){
   if(unsourced)h+='<p style="font-size:11px;color:var(--warn)">'+unsourced+' finding'+(unsourced>1?"s":"")+' without source attribution</p>';
   if(!h)h='<p style="color:var(--muted);font-size:12px">No source dependency data.</p>';
   $("#srcDep").innerHTML=h;
+}
+
+function collapseTestPanel(){
+  var el=$("#collapseTest");if(!el)return;
+  if(!docs.length||auditLevel==="sparse"){
+    el.innerHTML='<p style="color:var(--muted);font-size:12px">'+
+      (auditLevel==="sparse"?'Not enough source provenance or support edges to run collapse test. Add source attribution and support relationships to enable this analysis.':
+      'No source documents.')+'</p>';
+    return;
+  }
+  var sorted=docs.slice().sort(function(a,b){
+    var ai=docImpact.get(a.doc_id),bi=docImpact.get(b.doc_id);
+    return(bi?bi.score:0)-(ai?ai.score:0);
+  });
+  var maxScore=1;sorted.forEach(function(d){var imp=docImpact.get(d.id||d.doc_id);if(imp&&imp.score>maxScore)maxScore=imp.score});
+  var h='';
+  sorted.forEach(function(d){
+    var imp=docImpact.get(d.id||d.doc_id);
+    if(!imp)return;
+    var name=d.name.length>30?d.name.slice(0,27)+'...':d.name;
+    var isActive=collapseHighlight===(d.id||d.doc_id);
+    var barW=Math.max(4,Math.round(imp.score/maxScore*100));
+    var barColor=imp.broken.length>0?'var(--bad)':imp.weakened.length>0?'var(--warn)':'var(--good)';
+    h+='<div class="collapse-bar'+(isActive?' active':'')+'" data-collapse="'+esc(d.id||d.doc_id)+'">';
+    h+='<div class="cb-name">'+esc(name)+'</div>';
+    h+='<div class="cb-impact">';
+    if(imp.broken.length)h+='<span class="chip" style="font-size:8px;color:var(--bad);border-color:var(--bad)">'+imp.broken.length+' break</span>';
+    if(imp.weakened.length)h+='<span class="chip" style="font-size:8px;color:var(--warn);border-color:var(--warn)">'+imp.weakened.length+' weaken</span>';
+    if(imp.hiddenContras.length)h+='<span class="chip" style="font-size:8px;color:var(--muted)">'+imp.hiddenContras.length+' clash hidden</span>';
+    if(!imp.broken.length&&!imp.weakened.length)h+='<span class="chip" style="font-size:8px;color:var(--good)">safe to remove</span>';
+    h+='</div></div>';
+    // Impact bar
+    h+='<div style="height:3px;border-radius:2px;background:rgba(255,255,255,.04);margin:-4px 0 6px 0;overflow:hidden">';
+    h+='<div style="width:'+barW+'%;height:100%;background:'+barColor+';border-radius:2px"></div></div>';
+  });
+  // Summary
+  var totalBroken=0,totalWeakened=0;
+  docImpact.forEach(function(imp){totalBroken+=imp.broken.length;totalWeakened+=imp.weakened.length});
+  if(loadBearingDoc){
+    h+='<div style="margin-top:8px;padding:8px 10px;background:rgba(255,200,87,.04);border:1px solid rgba(255,200,87,.15);border-radius:var(--radius);font-size:11px;color:var(--soft)">';
+    h+='<strong style="color:var(--warn)">Most critical:</strong> Removing <em>'+esc(loadBearingDoc.doc.name.length>30?loadBearingDoc.doc.name.slice(0,27)+'...':loadBearingDoc.doc.name)+'</em>';
+    h+=' breaks '+loadBearingDoc.broken.length+' conclusion'+(loadBearingDoc.broken.length!==1?'s':'')+' and weakens '+loadBearingDoc.weakened.length+'.';
+    h+='</div>';
+  }
+  el.innerHTML=h;
+  // Click handler for collapse bars
+  el.querySelectorAll("[data-collapse]").forEach(function(bar){
+    bar.onclick=function(){
+      var did=bar.dataset.collapse;
+      if(collapseHighlight===did){collapseHighlight=null}else{collapseHighlight=did}
+      simSettled=false;dirty=true;collapseTestPanel();
+    };
+  });
 }
 
 function chainDepth(){
@@ -1058,6 +1198,22 @@ function briefing(){
     return isContradicted||isHighInfluenceLowConf||isCalculation;
   }).slice(0,5);
 
+  // Cross-document synthesis: find edges between entries from different documents (computed early for trust audit)
+  var crossDocEdges=[];
+  edges.forEach(function(e){
+    var a=byId.get(e.s),b=byId.get(e.t);if(!a||!b)return;
+    var aDoc=a.e.source&&a.e.source.document,bDoc=b.e.source&&b.e.source.document;
+    if(aDoc&&bDoc&&aDoc!==bDoc)crossDocEdges.push({edge:e,aDoc:aDoc,bDoc:bDoc,a:a.e,b:b.e});
+  });
+  var crossDocPairs=new Map();
+  crossDocEdges.forEach(function(cd){
+    var key=[cd.aDoc,cd.bDoc].sort().join(":");
+    if(!crossDocPairs.has(key))crossDocPairs.set(key,{docs:[cd.aDoc,cd.bDoc].sort(),supports:[],contradicts:[]});
+    var p=crossDocPairs.get(key);
+    if(cd.edge.k==="contradicts")p.contradicts.push(cd);
+    else p.supports.push(cd);
+  });
+
   // Generate narrative bottom line
   var bottomLine="";
   (function(){
@@ -1074,24 +1230,8 @@ function briefing(){
     if(chains.length>2)bottomLine+=" "+chains.length+" conclusions are backed by multi-source evidence chains.";
   })();
 
-  // Cross-document synthesis: find edges between entries from different documents
-  var crossDocEdges=[];
-  edges.forEach(function(e){
-    var a=byId.get(e.s),b=byId.get(e.t);if(!a||!b)return;
-    var aDoc=a.e.source&&a.e.source.document,bDoc=b.e.source&&b.e.source.document;
-    if(aDoc&&bDoc&&aDoc!==bDoc)crossDocEdges.push({edge:e,aDoc:aDoc,bDoc:bDoc,a:a.e,b:b.e});
-  });
-  var crossDocPairs=new Map();
-  crossDocEdges.forEach(function(cd){
-    var key=[cd.aDoc,cd.bDoc].sort().join(":");
-    if(!crossDocPairs.has(key))crossDocPairs.set(key,{docs:[cd.aDoc,cd.bDoc].sort(),supports:[],contradicts:[]});
-    var p=crossDocPairs.get(key);
-    if(cd.edge.k==="contradicts")p.contradicts.push(cd);
-    else p.supports.push(cd);
-  });
-
   // Section navigation
-  var navItems=["Bottom Line","Start Here"];
+  var navItems=["Bottom Line","Trust","Start Here"];
   if(crossDocEdges.length)navItems.push("Synthesis");
   navItems.push("Summary");
   if(surprisingFindings.length)navItems.push("Surprises");
@@ -1117,6 +1257,74 @@ function briefing(){
     var topSources=supportedBy.get(topAnalyses[0].id)||[];
     if(topSources.length)h+='<div style="font-size:9px;color:var(--muted);margin-top:4px">Backed by '+topSources.length+' supporting finding'+(topSources.length>1?"s":"")+'</div>';
     h+='</div>';
+  }
+  h+='</section>';
+
+  // --- TRUST AUDIT --- argument structure analysis
+  var auditColor=auditLevel==="ready"?"var(--good)":auditLevel==="partial"?"var(--warn)":"var(--bad)";
+  var auditLabel=auditLevel==="ready"?"Audit-Ready":auditLevel==="partial"?"Partially Auditable":"Sparse";
+  h+='<section id="brief-trust" class="panel" style="border:1px solid rgba(255,200,87,.2);background:linear-gradient(135deg,rgba(255,200,87,.04),rgba(72,215,255,.03))">';
+  h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">';
+  h+='<h2 style="color:var(--warn);margin:0">Trust Audit</h2>';
+  h+='<span class="audit-badge audit-'+auditLevel+'">'+auditLabel+'</span>';
+  h+='</div>';
+  if(auditLevel==="sparse"){
+    h+='<div class="narrative" style="border-color:rgba(255,92,122,.3);background:rgba(255,92,122,.04)">';
+    h+='<strong style="color:var(--bad)">This board is not yet audit-ready.</strong> ';
+    var missing=[];
+    if(hasProvenance<=entries.length*0.2)missing.push((entries.length-hasProvenance)+' of '+entries.length+' findings lack source attribution');
+    if(hasSupportEdgeCount<1)missing.push('no support edges connect findings');
+    if(nonDefaultConf<=entries.length*0.3)missing.push('most confidence scores are default');
+    h+=missing.join('. ')+'. Add source provenance and support edges to enable fragility analysis.';
+    h+='</div>';
+  } else {
+    h+='<div class="trust-metric">';
+    if(fragileConclusions.length>0){
+      h+='<div class="trust-card" style="border-color:var(--bad)">';
+      h+='<div class="tc-label" style="color:var(--bad)">Fragile</div>';
+      h+='<div class="tc-value" style="color:var(--bad)">'+fragileConclusions.length+'</div>';
+      h+='<div class="tc-sub">conclusion'+(fragileConclusions.length!==1?'s':'')+' depend on a single source</div></div>';
+    } else {
+      h+='<div class="trust-card" style="border-color:var(--good)">';
+      h+='<div class="tc-label" style="color:var(--good)">Robust</div>';
+      h+='<div class="tc-value" style="color:var(--good)">0 fragile</div>';
+      h+='<div class="tc-sub">all conclusions have multi-source backing</div></div>';
+    }
+    if(loadBearingDoc){
+      var lbName=loadBearingDoc.doc.name.length>25?loadBearingDoc.doc.name.slice(0,22)+'...':loadBearingDoc.doc.name;
+      h+='<div class="trust-card" style="border-color:var(--warn)">';
+      h+='<div class="tc-label">Load-Bearing Source</div>';
+      h+='<div class="tc-value" style="font-size:12px">'+esc(lbName)+'</div>';
+      h+='<div class="tc-sub">removing it breaks '+loadBearingDoc.broken.length+', weakens '+loadBearingDoc.weakened.length+'</div></div>';
+    }
+    var multiSourceConclusions=conclusions.filter(function(c){var sd=entrySourceDocs.get(c.id);return sd&&sd.size>1});
+    h+='<div class="trust-card" style="border-color:var(--good)">';
+    h+='<div class="tc-label">Multi-Source</div>';
+    h+='<div class="tc-value" style="color:var(--good)">'+multiSourceConclusions.length+'</div>';
+    h+='<div class="tc-sub">conclusion'+(multiSourceConclusions.length!==1?'s':'')+' backed by 2+ sources</div></div>';
+    var crossDocAgree=0,crossDocClash=0;
+    if(typeof crossDocPairs!=="undefined"){crossDocPairs.forEach(function(p){crossDocAgree+=p.supports.length;crossDocClash+=p.contradicts.length})}
+    h+='<div class="trust-card">';
+    h+='<div class="tc-label">Cross-Source</div>';
+    h+='<div class="tc-value">'+crossDocAgree+'<span style="color:var(--good);font-size:10px"> agree</span> '+crossDocClash+'<span style="color:var(--bad);font-size:10px"> clash</span></div>';
+    h+='<div class="tc-sub">inter-document connections</div></div>';
+    h+='</div>';
+    // Fragile conclusions list
+    if(fragileConclusions.length>0){
+      h+='<div style="margin-top:6px">';
+      h+='<div style="font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--bad);margin-bottom:6px">Single-Source Conclusions</div>';
+      fragileConclusions.slice(0,4).forEach(function(c){
+        var sd=entrySourceDocs.get(c.id);
+        var srcDoc=sd?Array.from(sd)[0]:"";
+        var srcName="";docs.forEach(function(d){if((d.id||d.doc_id)===srcDoc)srcName=d.name});
+        h+='<div style="padding:6px 8px;margin-bottom:4px;border-left:2px solid var(--bad);background:rgba(255,92,122,.03);border-radius:0 var(--radius) var(--radius) 0;cursor:pointer" data-jump="'+esc(c.id)+'">';
+        h+='<p style="font-size:11px;line-height:1.4;color:var(--soft);margin:0">'+esc(c.content.length>120?c.content.slice(0,117)+'...':c.content)+'</p>';
+        if(srcName)h+='<div style="font-size:9px;color:var(--muted);margin-top:2px">sole source: '+esc(srcName.length>35?srcName.slice(0,32)+'...':srcName)+'</div>';
+        h+='</div>';
+      });
+      if(fragileConclusions.length>4)h+='<div style="font-size:10px;color:var(--muted)">+'+(fragileConclusions.length-4)+' more</div>';
+      h+='</div>';
+    }
   }
   h+='</section>';
 
@@ -1159,7 +1367,7 @@ function briefing(){
 
   // --- CROSS-DOCUMENT SYNTHESIS --- where different sources connect
   if(crossDocEdges.length){
-    var docNameById=new Map();docs.forEach(function(d){docNameById.set(d.doc_id,d.name.length>35?d.name.slice(0,32)+"...":d.name)});
+    var docNameById=new Map();docs.forEach(function(d){docNameById.set(d.id||d.doc_id,d.name.length>35?d.name.slice(0,32)+"...":d.name)});
     h+='<section id="brief-synthesis" class="panel" style="border:1px solid rgba(199,146,234,.3);background:linear-gradient(135deg,rgba(199,146,234,.05),rgba(72,215,255,.03))">';
     h+='<h2 style="color:#c792ea">Cross-Document Synthesis</h2>';
     h+='<p class="panel-desc">'+crossDocEdges.length+' connection'+(crossDocEdges.length>1?"s":"")+ ' found across '+crossDocPairs.size+' document pair'+(crossDocPairs.size>1?"s":"")+ ' — where independent sources converge or clash</p>';
@@ -1520,6 +1728,13 @@ function briefing(){
     copyBtn.onclick=function(){
       var md="# "+esc(bb.task)+"\\n\\n";
       md+="## Bottom Line\\n\\n"+bottomLine+"\\n\\n";
+      md+="## Trust Audit\\n\\n";
+      md+="**Status:** "+auditLevel.charAt(0).toUpperCase()+auditLevel.slice(1)+"\\n";
+      if(fragileConclusions.length)md+="- **"+fragileConclusions.length+" fragile** conclusion"+(fragileConclusions.length!==1?"s":"")+" (single-source)\\n";
+      var _multiSrc=conclusions.filter(function(c){var sd=entrySourceDocs.get(c.id);return sd&&sd.size>1}).length;
+      if(_multiSrc)md+="- **"+_multiSrc+" robust** conclusion"+(_multiSrc!==1?"s":"")+" (multi-source)\\n";
+      if(loadBearingDoc)md+="- **Load-bearing source:** "+loadBearingDoc.doc.name+" (breaks "+loadBearingDoc.broken.length+", weakens "+loadBearingDoc.weakened.length+")\\n";
+      md+="\\n";
       md+="## Start Here\\n\\n";
       startHere.forEach(function(item,i){
         var e=item.e;
@@ -1533,7 +1748,7 @@ function briefing(){
       if(crossDocEdges.length){
         md+="## Cross-Document Synthesis\\n\\n";
         md+=crossDocEdges.length+" connection"+(crossDocEdges.length>1?"s":"")+" across "+crossDocPairs.size+" document pair"+(crossDocPairs.size>1?"s":"")+"\\n\\n";
-        var docNameById2=new Map();docs.forEach(function(d){docNameById2.set(d.doc_id,d.name.length>40?d.name.slice(0,37)+"...":d.name)});
+        var docNameById2=new Map();docs.forEach(function(d){docNameById2.set(d.id||d.doc_id,d.name.length>40?d.name.slice(0,37)+"...":d.name)});
         Array.from(crossDocPairs.values()).forEach(function(pair){
           var d1=docNameById2.get(pair.docs[0])||pair.docs[0];
           var d2=docNameById2.get(pair.docs[1])||pair.docs[1];
@@ -1826,6 +2041,20 @@ var labelRanks=new Map();
 })();
 var totalNodes=entries.length;
 
+// Pre-compute fragile/skeptic sets for graph rendering
+var fragileIds=new Set(fragileConclusions.map(function(c){return c.id}));
+var highImpactLowConf=entries.filter(function(e){
+  var inf=(influence.get(e.id)||{score:0}).score;
+  var medianInf=0;influence.forEach(function(v){medianInf+=v.score});
+  medianInf=influence.size?medianInf/influence.size:0;
+  return inf>medianInf&&(e.confidence||0)<0.5&&e.status==="active";
+});
+var skepticIds=new Set();
+fragileConclusions.forEach(function(c){skepticIds.add(c.id)});
+highImpactLowConf.forEach(function(e){skepticIds.add(e.id)});
+allContradictEdges.forEach(function(ce){skepticIds.add(ce.s);skepticIds.add(ce.t)});
+entries.filter(function(e){return e.type==="gap"&&e.status==="active"}).forEach(function(e){skepticIds.add(e.id)});
+
 function drawNode(n,rel){
   var elapsed=Date.now()-entranceStart;
   var nodeDelay=(n.idx||0)/totalNodes*entranceDur*0.7;
@@ -1833,26 +2062,60 @@ function drawNode(n,rel){
   var easeOut=nodeProgress<1?1-Math.pow(1-nodeProgress,3):1;
   if(easeOut<=0)return;
   var p=w2s(n.x,n.y),act=!rel.size||rel.has(n.id),r=(n.r+(sel===n?5:hov===n?3:0))*cam.z*easeOut;
-  ctx.save();ctx.globalAlpha=(act?1:.18)*easeOut;
+
+  // Skeptic mode: dim safe nodes, highlight fragile
+  var isSkepticTarget=skepticIds.has(n.id);
+  var isFragile=fragileIds.has(n.id);
+  // Collapse highlight: dim nodes not affected by the selected source
+  var isCollapseAffected=false;
+  if(collapseHighlight){
+    var imp=docImpact.get(collapseHighlight);
+    if(imp){
+      var isDirectSource=n.e.source&&n.e.source.document===collapseHighlight;
+      var isBroken=imp.broken.some(function(c){return c.id===n.id});
+      var isWeakened=imp.weakened.some(function(c){return c.id===n.id});
+      isCollapseAffected=isDirectSource||isBroken||isWeakened;
+    }
+  }
+
+  var alphaBase=act?1:.18;
+  if(skepticMode&&!isSkepticTarget&&sel!==n&&hov!==n)alphaBase=0.08;
+  if(collapseHighlight&&!isCollapseAffected&&sel!==n&&hov!==n)alphaBase=0.08;
+
+  ctx.save();ctx.globalAlpha=alphaBase*easeOut;
   ctx.beginPath();ctx.arc(p.x,p.y,Math.max(2,r),0,Math.PI*2);
   ctx.fillStyle=colors[n.e.type]||"#edf3ff";ctx.shadowColor=ctx.fillStyle;ctx.shadowBlur=sel===n||hov===n?28:12*easeOut;ctx.fill();
   ctx.shadowBlur=0;
-  if(n.e.status==="disputed"){ctx.strokeStyle="#ff5c7a";ctx.lineWidth=3;ctx.setLineDash([4,4]);ctx.lineDashOffset=-frame*.3;ctx.stroke();ctx.setLineDash([]);}
-  else{ctx.strokeStyle="rgba(255,255,255,.6)";ctx.lineWidth=1.2;ctx.stroke();}
+
+  // Ring styles for different states
+  if(collapseHighlight&&isCollapseAffected){
+    var imp2=docImpact.get(collapseHighlight);
+    var isBroken2=imp2&&imp2.broken.some(function(c){return c.id===n.id});
+    ctx.strokeStyle=isBroken2?"#ff5c7a":"#ffc857";ctx.lineWidth=3;
+    ctx.setLineDash(isBroken2?[6,4]:[4,4]);ctx.lineDashOffset=-frame*.3;ctx.stroke();ctx.setLineDash([]);
+  } else if(skepticMode&&isFragile){
+    var pulseAlpha=0.5+0.5*Math.sin(frame*0.08);
+    ctx.strokeStyle="rgba(255,92,122,"+pulseAlpha+")";ctx.lineWidth=3;ctx.stroke();
+  } else if(n.e.status==="disputed"){
+    ctx.strokeStyle="#ff5c7a";ctx.lineWidth=3;ctx.setLineDash([4,4]);ctx.lineDashOffset=-frame*.3;ctx.stroke();ctx.setLineDash([]);
+  } else {
+    ctx.strokeStyle="rgba(255,255,255,.6)";ctx.lineWidth=1.2;ctx.stroke();
+  }
+
   // Smart label visibility: show more labels as you zoom in
   var rank=labelRanks.get(n.e.id)||totalNodes;
   var showLabel=sel===n||hov===n;
   if(!showLabel){
-    // At zoom 0.7: top 15%. At zoom 1.0: top 40%. At zoom 1.5+: all.
     var labelBudget=totalNodes<=20?1:Math.min(1,Math.max(.1,(cam.z-.5)*0.6));
     showLabel=rank<totalNodes*labelBudget;
   }
+  // In skeptic/collapse modes, always show labels on highlighted nodes
+  if((skepticMode&&isSkepticTarget)||(collapseHighlight&&isCollapseAffected))showLabel=true;
   if(showLabel){
     var fontSize=Math.max(9,11*cam.z);
     var label=shortLabel(n.e);
     ctx.font=fontSize+"px var(--sans)";
     var tw=ctx.measureText(label).width;
-    // Background for readability
     ctx.fillStyle="rgba(5,6,9,.7)";
     ctx.fillRect(p.x+r+3,p.y-fontSize/2-1,tw+4,fontSize+2);
     ctx.fillStyle=sel===n||hov===n?"rgba(255,255,255,.95)":"rgba(237,243,255,.78)";
@@ -1914,7 +2177,8 @@ function showNarration(text){
 // Keyboard shortcuts
 document.onkeydown=function(e){
   if(e.target.tagName==="INPUT"||e.target.tagName==="TEXTAREA"||e.target.tagName==="BUTTON"||e.target.tagName==="SELECT")return;
-  if(e.key==="f"||e.key==="F"){e.preventDefault();fit()}
+  if(e.key==="s"||e.key==="S"){e.preventDefault();$("#skepticBtn").click()}
+  else if(e.key==="f"||e.key==="F"){e.preventDefault();fit()}
   else if(e.key==="l"||e.key==="L"){e.preventDefault();isListView?$("#viewGraph").click():$("#viewList").click()}
   else if(e.key==="Escape"){sel=null;panels();updateHash();updateFindingsIndex()}
   else if(e.key==="?"){e.preventDefault();guideEl.classList.add("show")}
@@ -1937,6 +2201,12 @@ $("#search").oninput=function(e){fil.q=e.target.value.trim().toLowerCase();apply
 $("#conf").oninput=function(e){fil.min=+e.target.value/100;$("#confLbl").textContent=e.target.value+"%";applyFilters()};
 $("#iterSlider").oninput=function(e){fil.iter=+e.target.value;$("#iterLbl").textContent="iteration "+fil.iter;applyFilters()};
 $("#fitBtn").onclick=fit;
+$("#skepticBtn").onclick=function(){
+  skepticMode=!skepticMode;
+  this.classList.toggle("active",skepticMode);
+  if(skepticMode)collapseHighlight=null;
+  simSettled=false;dirty=true;collapseTestPanel();
+};
 $("#shotBtn").onclick=function(){var a=document.createElement("a");a.download="blackboard-"+bb.id+".png";a.href=canvas.toDataURL("image/png");a.click()};
 $("#playBtn").onclick=function(){
   playing=!playing;$("#playBtn").textContent=playing?"Pause":"Play";
