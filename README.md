@@ -15,6 +15,19 @@
 
 ![Benchmark results](benchmark.png)
 
+## Contents
+
+- [Why this matters](#why-this-matters)
+- [Full benchmark results](#full-benchmark-results)
+- [How stateful swarms reason](#how-stateful-swarms-reason)
+- [Why stateful swarms matter](#why-stateful-swarms-matter)
+- [Beyond legal: domain-agnostic](#beyond-legal-the-stateful-swarm-paradigm-is-domain-agnostic)
+- [Blackboard MCP: Claude Code and Codex](#blackboard-mcp-use-stateful-reasoning-in-claude-code-and-codex)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Contributing](#contributing)
+- [Sources](#sources)
+
 The system doesn't just cost less — it returns dramatically more capability per unit of spend. And this is the *stateless* cost — every task starting from zero with no prior knowledge. With persistent state enabled, subsequent queries would cost a fraction of even this.
 
 For a technical discussion of the stateful swarm paradigm and the ideas behind this system, see [Stateful Swarms Make AI Agents Cheaper, Safer, Better](https://www.linkedin.com/pulse/stateful-swarms-make-ai-agents-cheaper-safer-better-devansh-devansh-8enxe).
