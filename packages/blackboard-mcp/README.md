@@ -1,0 +1,179 @@
+# Blackboard MCP
+
+Persistent structured reasoning for AI agents. Zero API calls, zero cost.
+
+Blackboard MCP gives any AI agent — Claude Code, Codex, or anything that speaks MCP — a shared, typed, provenance-tracked knowledge base that persists across sessions. Instead of treating every interaction as a fresh start, agents build cumulative analytical state: observations grounded in source documents, analyses with confidence scores, calculations with supporting evidence, and gaps that flag what's still missing. The blackboard survives between sessions, so the next agent picks up where the last one left off.
+
+## Quick start
+
+### With Claude Code
+
+Add to your project's `.mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "blackboard": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["@irys/blackboard-mcp"]
+    }
+  }
+}
+```
+
+### With Codex CLI
+
+```json
+{
+  "mcpServers": {
+    "blackboard": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["@irys/blackboard-mcp"]
+    }
+  }
+}
+```
+
+### From source
+
+```bash
+git clone https://github.com/iqidis/ant-irys
+cd ant-irys/packages/blackboard-mcp
+npm install && npm run build
+node dist/index.js
+```
+
+## How it works
+
+An agent working on a complex task creates a blackboard, reads documents, and records typed findings. Each finding carries source provenance (which document, which section, what evidence), confidence scores, and explicit relationships to other findings (supports, contradicts, supersedes). Signals flag open questions the agent needs to answer. The blackboard tracks convergence — how close the analysis is to being complete.
+
+When the analysis is done, `bb_export` creates a self-contained interactive HTML visualization you can open in any browser. No server needed.
+
+When a new agent session starts in the same project directory, it calls `bb_list`, finds existing blackboards, and builds on them instead of starting from scratch.
+
+## Tools
+
+Blackboard MCP exposes 14 tools:
+
+### Core workflow
+
+| Tool | What it does |
+|------|-------------|
+| `bb_create` | Create a new blackboard with a task description |
+| `bb_add_document` | Register a document as a source (text content + metadata) |
+| `bb_add_entries` | Record findings — observations, analyses, calculations, strategies, gaps |
+| `bb_add_signal` | Flag an open question or gap that needs investigation |
+| `bb_iterate` | Advance the blackboard to the next iteration |
+
+### Inspection
+
+| Tool | What it does |
+|------|-------------|
+| `bb_list` | List all blackboards in this project. **Call this first.** |
+| `bb_get_state` | Get full blackboard state — entries, signals, documents, health |
+| `bb_search` | Search entries by content, type, source, or confidence |
+| `bb_mark_read` | Mark a document section as read (tracks reading progress) |
+
+### Synthesis
+
+| Tool | What it does |
+|------|-------------|
+| `bb_convergence` | Check if the analysis is ready — flags blockers, disputed entries, unread sources |
+| `bb_synthesis` | Assemble the final answer from blackboard state — includes must-include entries, disputes, gaps |
+
+### Persistence and visualization
+
+| Tool | What it does |
+|------|-------------|
+| `bb_snapshot` | Save a named milestone snapshot (e.g., "after initial reading", "pre-synthesis") |
+| `bb_diagram` | Generate a Mermaid graph of the reasoning topology |
+| `bb_export` | Export an interactive HTML visualization — self-contained, opens in any browser |
+
+## Entry types
+
+Every finding recorded on the blackboard has a type:
+
+| Type | Purpose | Example |
+|------|---------|---------|
+| `observation` | Source-grounded fact | "Section 2.06 specifies an annual agency fee of $50,000" |
+| `analysis` | Interpretation or conclusion | "The agency fee deviates from the commitment letter by $100,000" |
+| `calculation` | Derived numeric or logical work | "Total exposure across all facilities: $1.2B" |
+| `strategy` | Framing decision or approach | "Compare term sheet against draft clause-by-clause" |
+| `gap` | Missing evidence or unresolved work | "SOFR floor not yet extracted from the credit agreement" |
+
+## Relationships
+
+Entries connect to each other explicitly:
+
+- **supports_entries** — this finding backs up another finding
+- **contradicts_entries** — this finding conflicts with another
+- **supersedes_entries** — this finding replaces an outdated one
+- **addresses_signals** — this finding answers an open question
+- **opens_questions** — this finding raises a new question
+
+These relationships form a directed graph. The HTML export visualizes this graph interactively — you can see how evidence flows, where contradictions exist, and which conclusions are well-supported vs. fragile.
+
+## Interactive HTML export
+
+`bb_export` produces a self-contained HTML file with:
+
+- **Force-directed graph** — nodes are findings, edges are relationships, colors indicate type
+- **Briefing tab** — narrative summary with key conclusions, evidence chains, and contradictions
+- **Detail panel** — click any node to see full content, source evidence, confidence, and connected findings
+- **Insights tab** — cross-document analysis, reasoning chains, source dependency mapping
+- **Sources tab** — document coverage, topic clustering, reading progress
+- **Iteration playback** — step through how the analysis evolved over time
+- **Filters** — by type, status, confidence threshold, iteration, or search query
+- **Keyboard shortcuts** — `1-4` switch tabs, `Tab`/`Shift+Tab` cycle findings, `F` fit view, `Esc` deselect
+
+No server required. Just open the HTML file in a browser.
+
+## Typical workflow
+
+```
+1. Agent calls bb_list → finds no existing blackboards
+2. Agent calls bb_create with task description
+3. Agent reads documents, calls bb_add_document for each
+4. Agent records findings with bb_add_entries
+   - Each entry includes type, content, source, confidence
+   - Entries link to each other via supports/contradicts/addresses
+5. Agent calls bb_add_signal for open questions
+6. Agent calls bb_iterate to advance to next iteration
+7. Repeat steps 4-6 as understanding deepens
+8. Agent calls bb_convergence → checks if analysis is complete
+9. Agent calls bb_synthesis → assembles final answer
+10. Agent calls bb_export → creates interactive HTML
+```
+
+## Continuing from a previous session
+
+```
+1. Agent calls bb_list → finds existing blackboard
+2. Agent calls bb_get_state → sees what was already recorded
+3. Agent adds new entries, resolves open signals, addresses gaps
+4. Agent calls bb_convergence → checks updated completeness
+5. Agent calls bb_synthesis when ready
+```
+
+The blackboard state lives in `.blackboard/` in your project directory. It persists across sessions, across agents, and across tools. Any MCP-compatible agent can read and extend any blackboard in the project.
+
+## Storage
+
+All state is stored as JSON files in `.blackboard/<id>/`:
+
+```
+.blackboard/
+├── <blackboard-id>/
+│   ├── state.json          # Full blackboard state
+│   ├── snapshots/          # Named milestone snapshots
+│   └── exports/            # HTML visualizations
+└── exports/                # Named exports (bb_export with path)
+```
+
+No database. No external services. No API calls. Just files on disk.
+
+## License
+
+MIT
