@@ -421,6 +421,18 @@ The blackboard reasoning system that powers irys-stateful-swarms is available as
 
 **Interactive exports:** Call `bb_export` to generate a self-contained HTML file with an interactive knowledge graph — force-directed layout, cluster detection, cross-document synthesis, evidence chains, confidence gauges, and a structured briefing. The export is a single file with zero dependencies that works offline. Share it with anyone; open it in any browser. Mobile responsive with touch navigation.
 
+**Graph overview with briefing panel** — 146 findings from a Datadog financial analysis, with trust audit and source-attributed conclusions:
+
+![Graph overview with briefing panel](packages/blackboard-mcp/screenshots/graph-overview.png)
+
+**Node detail panel** — click any node to see full content, confidence, provenance, tags, and connected findings with relationship types:
+
+![Node detail panel](packages/blackboard-mcp/screenshots/node-detail.png)
+
+**Source fragility analysis** — the skeptic lens shows what breaks if you remove each source document, with reading progress tracking:
+
+![Source fragility analysis](packages/blackboard-mcp/screenshots/source-analysis.png)
+
 ### Install
 
 Clone this repo, build the server, and point your config at it:
