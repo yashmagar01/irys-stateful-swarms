@@ -4,6 +4,19 @@ Persistent structured reasoning for AI agents. Zero API calls, zero cost.
 
 Blackboard MCP gives any AI agent — Claude Code, Codex, or anything that speaks MCP — a shared, typed, provenance-tracked knowledge base that persists across sessions. Instead of treating every interaction as a fresh start, agents build cumulative analytical state: observations grounded in source documents, analyses with confidence scores, calculations with supporting evidence, and gaps that flag what's still missing. The blackboard survives between sessions, so the next agent picks up where the last one left off.
 
+## Contents
+
+- [Quick start](#quick-start)
+- [How it works](#how-it-works)
+- [Tools](#tools)
+- [Entry types](#entry-types)
+- [Relationships](#relationships)
+- [Interactive HTML export](#interactive-html-export)
+- [Screenshots](#screenshots)
+- [Typical workflow](#typical-workflow)
+- [Continuing from a previous session](#continuing-from-a-previous-session)
+- [Storage](#storage)
+
 ## Quick start
 
 ### With Claude Code
@@ -129,6 +142,20 @@ These relationships form a directed graph. The HTML export visualizes this graph
 - **Keyboard shortcuts** — `1-4` switch tabs, `Tab`/`Shift+Tab` cycle findings, `F` fit view, `Esc` deselect
 
 No server required. Just open the HTML file in a browser.
+
+## Screenshots
+
+**Graph overview with briefing panel** — force-directed graph of 146 findings from a Datadog financial analysis. The briefing tab shows the bottom line, trust audit, and key conclusions with source attribution.
+
+![Graph overview with briefing panel](screenshots/graph-overview.png)
+
+**Node detail panel** — clicking any node reveals full content, confidence score, source provenance, tags, and all connected findings with their relationship types (supports, contradicts).
+
+![Node detail panel](screenshots/node-detail.png)
+
+**Source fragility analysis** — the skeptic lens shows what breaks if you remove each source document. Source coverage bars track reading progress across all documents in the corpus.
+
+![Source fragility analysis](screenshots/source-analysis.png)
 
 ## Typical workflow
 
