@@ -6,6 +6,8 @@ Blackboard MCP gives any AI agent — Claude Code, Codex, or anything that speak
 
 ## Contents
 
+- [SWE-bench Verified results](#swe-bench-verified-results)
+- [Multi-model scaling experiment](#multi-model-scaling-experiment)
 - [Quick start](#quick-start)
 - [How it works](#how-it-works)
 - [Tools](#tools)
@@ -16,6 +18,50 @@ Blackboard MCP gives any AI agent — Claude Code, Codex, or anything that speak
 - [Typical workflow](#typical-workflow)
 - [Continuing from a previous session](#continuing-from-a-previous-session)
 - [Storage](#storage)
+
+## SWE-bench Verified results
+
+On [SWE-bench Verified](https://www.swebench.com/) (500 real GitHub issues), Sonnet 4.6 + Blackboard MCP resolved **73% of evaluated instances** using only a minimal API wrapper — no file navigation, no shell tools, no retry logic. Claude Code's fully-engineered agent scaffold achieves 79.6% with the same model. Codex CLI achieves 69.2% with o4-mini.
+
+A bare-bones scaffold with Blackboard MCP achieved 92% of Claude Code's performance and beat Codex CLI outright. The reasoning quality comes from the blackboard. If you're using Blackboard MCP inside Claude Code or Codex, you're running a better scaffold than what produced these numbers.
+
+Full results: [`benchmarks/swebench/`](../../benchmarks/swebench/)
+
+## Multi-model scaling experiment
+
+We ran a controlled experiment to test whether blackboard state improves output quality — not just cost — across different models. Five configurations (Opus 4.6, Sonnet 4.6, Haiku 4.5, Fable 5 with blackboard, and Fable 5 without) each answered five sequential queries against Datadog's full public SEC filing corpus (1,857 files, 520 MB). Each blackboard-equipped model accumulated state across queries; the control started fresh every time.
+
+The final query — a full investment thesis synthesis requiring integration of product, competitive, financial, and risk analysis — revealed the result:
+
+| Config | Q5 file reads | Q5 tokens | Quality |
+|---|---|---|---|
+| **Fable 5 + BB** | **0 files** | **86K** | **Best** — cross-referenced BB entries to derive early-warning thesis from filing language shifts |
+| Fable 5 (no BB) | 70 pages | 146K | Strong — page-level citations, thorough but no cross-domain connections |
+| Opus 4.6 + BB | 0 files | 66K | Strong — structured analysis, identified competitive moat durability |
+| Sonnet 4.6 + BB | 5 files | 123K | Competent but generic — template-like despite 32 BB entries |
+| Haiku 4.5 + BB | 35 pages | 98K | Material factual errors — wrong revenue multiple, missed $1B debt |
+
+**The blackboard made Fable produce better output than Opus, while reading zero files.** Fable+BB's synthesis included an insight about tracking disclosure language changes across risk factor filings as early warning signals — a connection that emerged from having risk factor data cross-linked with financial trajectory in the blackboard. This kind of structured cross-referencing doesn't happen when reading raw PDFs in isolation.
+
+### What this means
+
+The blackboard is a **quality amplifier**, not just a cost optimization. Structured accumulation forces the model to cross-reference findings across queries, producing analytical connections that wouldn't emerge from a single-pass read. The strongest models (Fable, Opus) leverage this most effectively. Haiku demonstrates the floor: the blackboard can't compensate for a model that makes factual errors during extraction.
+
+### Amortization
+
+Queries 1–4 showed no cost savings because each hit orthogonal sections of the corpus (products, competition, financials, risks). Amortization activated on the synthesis query when accumulated state overlapped with the query's needs. Every additional synthesis query after warming costs near-zero in file reads for blackboard-equipped configs.
+
+| Config | Total tokens (5 queries) | Estimated cost |
+|---|---|---|
+| Opus 4.6 + BB | 569K | $4.55 |
+| Sonnet 4.6 + BB | 684K | $3.29 |
+| Haiku 4.5 + BB | 664K | $1.06 |
+| Fable 5 + BB | 623K | $9.97 |
+| Fable 5 (no BB) | 717K | $11.48 |
+
+Fable+BB used 13% fewer total tokens than the control, and 41% fewer on the synthesis query specifically.
+
+Full experiment outputs: [`examples/datadog-strategic-analysis/comparison/experiment/`](../../examples/datadog-strategic-analysis/comparison/experiment/)
 
 ## Quick start
 
