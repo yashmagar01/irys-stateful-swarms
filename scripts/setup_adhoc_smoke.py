@@ -1,5 +1,6 @@
 """Select 30 random ad-hoc questions (5 per source) and create task directories."""
 import json
+import os
 import random
 import shutil
 import sys
@@ -23,15 +24,15 @@ SOURCES = {
     },
     "animations": {
         "questions": ADHOC_ROOT / "questions.json",
-        "docs": Path(r"C:\Users\devan\Downloads\PXiiNtVNTBGjzcCw8-4nnA\animations\documents\converted\pdf"),
+        "docs": Path(os.getenv("ANIMATIONS_DOCS_PATH", str(Path.home() / "animations" / "documents" / "converted" / "pdf"))),
     },
     "datadog": {
-        "questions": Path(r"C:\Users\devan\OneDrive\Desktop\Projects\Data Dog\questions.json"),
-        "docs": Path(r"C:\Users\devan\OneDrive\Desktop\Projects\Data Dog"),
+        "questions": Path(os.getenv("DATADOG_QUESTIONS_PATH", str(Path.home() / "Projects" / "Data Dog" / "questions.json"))),
+        "docs": Path(os.getenv("DATADOG_DOCS_PATH", str(Path.home() / "Projects" / "Data Dog"))),
     },
     "servicenow": {
-        "questions": Path(r"C:\Users\devan\OneDrive\Desktop\Projects\ServiceNow\questions.json"),
-        "docs": Path(r"C:\Users\devan\OneDrive\Desktop\Projects\ServiceNow"),
+        "questions": Path(os.getenv("SERVICENOW_QUESTIONS_PATH", str(Path.home() / "Projects" / "ServiceNow" / "questions.json"))),
+        "docs": Path(os.getenv("SERVICENOW_DOCS_PATH", str(Path.home() / "Projects" / "ServiceNow"))),
     },
 }
 
