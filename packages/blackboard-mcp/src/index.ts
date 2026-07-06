@@ -4,17 +4,18 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import { randomUUID } from "crypto";
-import { mkdirSync, writeFileSync } from "fs";
+import { mkdirSync, writeFileSync, rmSync, renameSync } from "fs";
 import { join } from "path";
 
 import type { Blackboard, Document, Signal } from "./types.js";
-import { blackboards, saveState, loadState, listAllBlackboards, stateDir, genSignalId } from "./store.js";
-import { bbSummary, addEntriesToBb, entryDict, signalDict, docDict } from "./logic.js";
+import { blackboards, saveState, loadState, listAllBlackboards, stateDir, genSignalId, STORE_ROOT } from "./store.js";
+import { bbSummary, addEntriesToBb, entryDict, signalDict, docDict, retractEntry } from "./logic.js";
 import {
   renderCreate, renderList, renderAddDocument, renderAddEntries,
   renderAddSignal, renderGetState, renderMarkRead, renderSearch,
   renderConvergence, renderSynthesis, renderIterate, renderSnapshot,
   renderExportConfirmation, renderDiagramConfirmation, convergenceScore,
+  renderArchive, renderDeletePreview, renderDeleteConfirmed, renderRetract,
 } from "./render/fmt.js";
 import { renderMermaidDiagram } from "./render/mermaid.js";
 import { renderBlackboardExportHtml } from "./render/html.js";
@@ -641,6 +642,89 @@ server.tool(
     };
 
     return toolResult(payload, renderExportConfirmation(outPath, bb, counts.nodes, counts.edges));
+  }
+);
+
+// ── Lifecycle: Archive, Delete, Retract ──────────────────────────────
+
+server.tool(
+  "bb_archive",
+  "Move a blackboard to cold storage under .blackboard/_archive/. " +
+  "Archived blackboards stop appearing in bb_list but remain on disk.",
+  {
+    blackboard_id: z.string().describe("The blackboard ID to archive."),
+  },
+  async ({ blackboard_id }) => {
+    const bb = loadState(blackboard_id);
+    if (!bb) return errorResult("Blackboard not found");
+
+    const archiveRoot = join(STORE_ROOT, "_archive");
+    mkdirSync(archiveRoot, { recursive: true });
+    const src = stateDir(blackboard_id);
+    const dest = join(archiveRoot, blackboard_id);
+    renameSync(src, dest);
+    blackboards.delete(blackboard_id);
+
+    const payload = { blackboard_id, archived_to: dest };
+    return toolResult(payload, renderArchive(blackboard_id, dest));
+  }
+);
+
+server.tool(
+  "bb_delete",
+  "Permanently delete a blackboard and all its state. Cannot be undone. " +
+  "Pass confirm: true to proceed; without it, returns a dry-run preview only.",
+  {
+    blackboard_id: z.string().describe("The blackboard ID to delete."),
+    confirm: z.boolean().optional()
+      .describe("Must be true to actually delete. Omit for a dry run."),
+  },
+  async ({ blackboard_id, confirm }) => {
+    const bb = loadState(blackboard_id);
+    if (!bb) return errorResult("Blackboard not found");
+
+    if (!confirm) {
+      const payload = {
+        would_delete: blackboard_id,
+        entries: bb.entries.length,
+        signals: bb.signals.length,
+        documents: bb.documents.length,
+        confirm_required: true,
+      };
+      return toolResult(payload, renderDeletePreview(bb));
+    }
+
+    const dir = stateDir(blackboard_id);
+    rmSync(dir, { recursive: true, force: true });
+    blackboards.delete(blackboard_id);
+
+    return toolResult(
+      { deleted: blackboard_id },
+      renderDeleteConfirmed(blackboard_id)
+    );
+  }
+);
+
+server.tool(
+  "bb_retract",
+  "Retract an entry: mark it status='retracted' without deleting it, " +
+  "preserving provenance. Use instead of leaving a wrong entry active.",
+  {
+    blackboard_id: z.string(),
+    entry_id: z.string().describe("The entry ID to retract."),
+    reason: z.string().optional()
+      .describe("Optional reason tag stored on the entry."),
+  },
+  async ({ blackboard_id, entry_id, reason }) => {
+    const bb = loadState(blackboard_id);
+    if (!bb) return errorResult("Blackboard not found");
+
+    const entry = retractEntry(bb, entry_id, reason);
+    if (!entry) return errorResult(`Entry ${entry_id} not found`);
+
+    saveState(bb);
+    const payload = { entry: entryDict(entry) };
+    return toolResult(payload, renderRetract(entry, bb));
   }
 );
 

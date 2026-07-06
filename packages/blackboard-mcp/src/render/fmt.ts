@@ -771,3 +771,69 @@ function renderAsciiGraph(bb: Blackboard, entries: Entry[]): string {
 
   return lines.join("\n");
 }
+
+// ── Lifecycle Render Functions ────────────────────────────────────────
+
+export function renderArchive(blackboardId: string, archivedTo: string): string {
+  const lines = [
+    `╔══ bb_archive ════════════════════════════════════════════════╗`,
+    `║  Blackboard archived                                         ║`,
+    `╟──────────────────────────────────────────────────────────────╢`,
+    `║  ID   ${blackboardId}`,
+    `║  Path ${archivedTo}`,
+    `╚══════════════════════════════════════════════════════════════╝`,
+    ``,
+    `Blackboard moved to cold storage. It no longer appears in bb_list`,
+    `but all state remains on disk and can be restored by moving it back.`,
+  ];
+  return lines.join("\n");
+}
+
+export function renderDeletePreview(bb: Blackboard): string {
+  const lines = [
+    `╔══ bb_delete — DRY RUN ═══════════════════════════════════════╗`,
+    `║  ⚠  This is a preview. Nothing has been deleted yet.         ║`,
+    `╟──────────────────────────────────────────────────────────────╢`,
+    `║  Blackboard  ${bb.id}`,
+    `║  Entries     ${bb.entries.length}`,
+    `║  Signals     ${bb.signals.length}`,
+    `║  Documents   ${bb.documents.length}`,
+    `╚══════════════════════════════════════════════════════════════╝`,
+    ``,
+    `To permanently delete, call bb_delete again with confirm: true.`,
+    `This action CANNOT be undone. Consider bb_archive instead.`,
+  ];
+  return lines.join("\n");
+}
+
+export function renderDeleteConfirmed(blackboardId: string): string {
+  const lines = [
+    `╔══ bb_delete — CONFIRMED ═════════════════════════════════════╗`,
+    `║  ✓  Blackboard permanently deleted.                          ║`,
+    `╟──────────────────────────────────────────────────────────────╢`,
+    `║  ID   ${blackboardId}`,
+    `╚══════════════════════════════════════════════════════════════╝`,
+    ``,
+    `All entries, signals, and documents for this blackboard have been`,
+    `removed from disk and cannot be recovered.`,
+  ];
+  return lines.join("\n");
+}
+
+export function renderRetract(entry: Entry, _bb: Blackboard): string {
+  const lines = [
+    `╔══ bb_retract ════════════════════════════════════════════════╗`,
+    `║  Entry retracted                                             ║`,
+    `╟──────────────────────────────────────────────────────────────╢`,
+    `║  ID      ${entry.id}`,
+    `║  Status  retracted  (was: ${entry.type})`,
+    `║  Tags    ${entry.tags.join(", ") || "(none)"}`,
+    `╟──────────────────────────────────────────────────────────────╢`,
+    `║  ${truncate(entry.content, BOX_W - 5)}`,
+    `╚══════════════════════════════════════════════════════════════╝`,
+    ``,
+    `Entry marked retracted. Prior confidence bumps from supports_entries`,
+    `are NOT reversed (consistent with supersedes behaviour).`,
+  ];
+  return lines.join("\n");
+}

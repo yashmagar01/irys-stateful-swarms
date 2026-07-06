@@ -154,3 +154,17 @@ export function docDict(d: { id: string; name: string; text: string; sections: s
     text_length: d.text.length,
   };
 }
+
+export function retractEntry(
+  bb: Blackboard,
+  entryId: string,
+  reason?: string
+): Entry | null {
+  const entry = bb.entries.find((e) => e.id === entryId);
+  if (!entry) return null;
+  entry.status = "retracted";
+  if (reason) {
+    entry.tags = [...entry.tags, `retracted:${reason}`];
+  }
+  return entry;
+}

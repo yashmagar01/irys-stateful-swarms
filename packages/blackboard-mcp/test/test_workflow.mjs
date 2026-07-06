@@ -61,7 +61,7 @@ async function main() {
   ]);
 
   const toolsList = findById(phase1, 2);
-  check("tools/list returns 14 tools", toolsList?.result?.tools?.length === 14);
+  check("tools/list returns 17 tools", toolsList?.result?.tools?.length === 17);
 
   const toolNames = (toolsList?.result?.tools || []).map(t => t.name);
   check("has bb_create", toolNames.includes("bb_create"));
