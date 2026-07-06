@@ -14,11 +14,7 @@
       --line: #2b3342;
       --accent: #7dd3fc;
     }
-
-    * {
-      box-sizing: border-box;
-    }
-
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       min-height: 100vh;
@@ -26,37 +22,32 @@
       background: var(--bg);
       color: var(--text);
     }
-
     main {
-      width: min(980px, calc(100% - 32px));
+      width: min(1120px, calc(100% - 32px));
       margin: 0 auto;
       padding: 56px 0;
     }
-
     h1 {
       margin: 0 0 12px;
       font-size: clamp(2rem, 4vw, 3.2rem);
       line-height: 1.05;
       letter-spacing: 0;
     }
-
     p {
       margin: 0 0 28px;
-      max-width: 680px;
+      max-width: 720px;
       color: var(--muted);
       font-size: 1rem;
       line-height: 1.6;
     }
-
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
       gap: 14px;
     }
-
     a {
       display: block;
-      min-height: 142px;
+      min-height: 154px;
       padding: 18px;
       color: inherit;
       text-decoration: none;
@@ -64,20 +55,17 @@
       border: 1px solid var(--line);
       border-radius: 8px;
     }
-
     a:hover,
     a:focus-visible {
       border-color: var(--accent);
       outline: none;
     }
-
     strong {
       display: block;
       margin-bottom: 10px;
       font-size: 1.05rem;
       line-height: 1.3;
     }
-
     span {
       display: block;
       color: var(--muted);
@@ -89,23 +77,79 @@
 <body>
   <main>
     <h1>Blackboard Demo Exports</h1>
-    <p>Standalone interactive HTML exports selected for public demos.</p>
+    <p>Standalone interactive HTML exports selected for public demos. Pages with internal-style allocation or pricing details are redacted in this public copy.</p>
     <section class="grid" aria-label="Demo exports">
+      <a href="ai-engineering-2026-demo.html">
+        <strong>AI-Assisted Software Engineering 2026</strong>
+        <span>Autonomous coding agents, productivity tradeoffs, and human review patterns.</span>
+      </a>
+      <a href="analysis-of-latent-space-s-diffusion-based-reasoning-spend-g.html">
+        <strong>Reasoning Allocation Review</strong>
+        <span>A redacted public demo of allocation-policy reasoning and open questions.</span>
+      </a>
+      <a href="analysis-of-mapu-s-memory-control-plane-evaluating-recall-me.html">
+        <strong>Memory Control Plane Analysis</strong>
+        <span>Persistent memory, state-machine design, and continuity replay evaluation.</span>
+      </a>
+      <a href="analyze-kubernetes-vs-nomad-for-container-orchestration-comp.html">
+        <strong>Kubernetes vs Nomad</strong>
+        <span>Container orchestration tradeoffs, contradictions, and open questions.</span>
+      </a>
       <a href="architecture-analysis.html">
         <strong>Architecture Analysis</strong>
-        <span>A compact graph showing observations, analysis, gaps, and convergence state.</span>
+        <span>A compact graph of observations, analyses, gaps, and convergence state.</span>
+      </a>
+      <a href="architecture-analysis-of-gemini-cli-s-agent-tooling-system-e.html">
+        <strong>Agent Tooling Architecture Analysis</strong>
+        <span>Tool dispatch, MCP integration, memory persistence, and extensibility patterns.</span>
+      </a>
+      <a href="comparative-analysis-of-three-cloud-infrastructure-providers.html">
+        <strong>Cloud Infrastructure Provider Comparison</strong>
+        <span>Cost, reliability, developer experience, and lock-in tradeoffs.</span>
+      </a>
+      <a href="compare-internal-engineering-assessment-and-external-securit.html">
+        <strong>Engineering Assessment vs Security Audit</strong>
+        <span>A go/no-go comparison with risk, audit, and contract conditions.</span>
+      </a>
+      <a href="comprehensive-analysis-of-449-ai-ml-research-papers-across-2.html">
+        <strong>AI/ML Research Paper Analysis</strong>
+        <span>A broad research synthesis across architecture, privacy, robustness, reasoning, and policy.</span>
+      </a>
+      <a href="comprehensive-analysis-of-the-gemini-cli-gold-standard-docum.html">
+        <strong>Agent CLI Gold-Standard Document Analysis</strong>
+        <span>A large document-analysis board covering architecture, memory, safety, and coordination.</span>
+      </a>
+      <a href="comprehensive-financial-strategic-and-security-analysis-of-d.html">
+        <strong>Datadog Financial and Security Analysis</strong>
+        <span>A public-filings analysis of growth, margins, strategy, and security risk.</span>
+      </a>
+      <a href="cost-optimization.html">
+        <strong>Cost Optimization</strong>
+        <span>A redacted public demo of cost-aware blackboard reasoning.</span>
+      </a>
+      <a href="financial-and-strategic-analysis-of-servicenow-inc-evaluatin.html">
+        <strong>ServiceNow Financial and Strategic Analysis</strong>
+        <span>A public-filings analysis of subscription revenue, AI strategy, and competitive dynamics.</span>
+      </a>
+      <a href="meta-analysis-evaluate-blackboard-mcp-architecture-capabilit.html">
+        <strong>Blackboard MCP Meta-Analysis</strong>
+        <span>Architecture, capabilities, limitations, and production-readiness reasoning.</span>
       </a>
       <a href="security-audit.html">
         <strong>Security Audit</strong>
         <span>A small audit-style board with risk and mitigation reasoning.</span>
       </a>
-      <a href="test-confidence-decay-feature.html">
-        <strong>Confidence Decay</strong>
-        <span>A focused example of how confidence and evidence age can be visualized.</span>
+      <a href="technical-review-of-rfc-migration-from-monolithic-auth-to-di.html">
+        <strong>Distributed Identity RFC Review</strong>
+        <span>A technical review of migration risks, missing assumptions, and approval conditions.</span>
       </a>
-      <a href="analyze-kubernetes-vs-nomad-for-container-orchestration-comp.html">
-        <strong>Kubernetes vs Nomad</strong>
-        <span>A technical comparison board with tradeoffs, contradictions, and open questions.</span>
+      <a href="test-confidence-decay-feature.html">
+        <strong>Confidence Decay Demo</strong>
+        <span>A focused example of confidence and evidence-age visualization.</span>
+      </a>
+      <a href="understanding-the-ant-irys-project-architecture.html">
+        <strong>Project Architecture Overview</strong>
+        <span>A public architecture overview of the blackboard-based workflow.</span>
       </a>
     </section>
   </main>

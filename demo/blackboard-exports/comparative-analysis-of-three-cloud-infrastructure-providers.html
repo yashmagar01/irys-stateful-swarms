@@ -1,0 +1,2305 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%2306070a'/><circle cx='10' cy='12' r='3' fill='%2348d7ff'/><circle cx='22' cy='10' r='3' fill='%23c792ea'/><circle cx='16' cy='22' r='3' fill='%2369f0ae'/><line x1='10' y1='12' x2='22' y2='10' stroke='%2348d7ff' stroke-width='1' opacity='.5'/><line x1='22' y1='10' x2='16' y2='22' stroke='%23c792ea' stroke-width='1' opacity='.5'/><line x1='16' y1='22' x2='10' y2='12' stroke='%2369f0ae' stroke-width='1' opacity='.5'/></svg>">
+<title>Comparative analysis of three cloud infrastructure providers (AWS, Azure, GCP) for a Series B startup migrating from on-premise to cloud — evaluating cost, reliability, developer experience, and vendor lock-in risk — Blackboard MCP</title>
+<meta name="description" content="25 findings from 4 sources with 31 connections — interactive knowledge map by Blackboard MCP.">
+<meta property="og:title" content="Comparative analysis of three cloud infrastructure providers (AWS, Azure, GCP) for a Series B startup migrating from on-premise to cloud — evaluating cost, reliability, developer experience, and vendor lock-in risk">
+<meta property="og:description" content="25 findings, 31 connections across 4 sources. 22 active, 2 disputed, avg 87% confidence. Interactive knowledge map.">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Comparative analysis of three cloud infrastructure providers (AWS, Azure, GCP) for a Series B startup migrating from on-premise to cloud — evaluating cost, reliability, developer experience, and vendor lock-in risk">
+<meta name="twitter:description" content="25 findings with 31 connections — interactive AI knowledge map.">
+<style>
+:root{
+  --bg:#06070a;--panel:rgba(13,17,25,.88);--panel2:rgba(18,24,35,.94);
+  --line:rgba(155,176,210,.16);--strong:rgba(195,212,240,.32);
+  --text:#edf3ff;--muted:#8d9bb3;--soft:#c1cbe0;--accent:#48d7ff;
+  --good:#69f0ae;--warn:#ffc857;--bad:#ff5c7a;
+  --obs:#6dd6ff;--anl:#c792ea;--calc:#ffd166;--str:#7ee787;--gap:#ff7b72;
+  --radius:8px;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --sans:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box;margin:0}html,body{width:100%;height:100%;overflow:hidden}
+body{font-family:var(--sans);color:var(--text);background:
+  radial-gradient(circle at 25% 0%,rgba(72,215,255,.16),transparent 34%),
+  radial-gradient(circle at 76% 18%,rgba(199,146,234,.13),transparent 32%),
+  linear-gradient(135deg,#050609,#0a0d13 48%,#050609)}
+.shell{display:grid;grid-template-rows:60px minmax(0,1fr) 54px;grid-template-columns:minmax(0,1fr);height:100vh;overflow:hidden}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:0 16px;min-width:0;
+  border-bottom:1px solid var(--line);background:rgba(6,7,10,.82);backdrop-filter:blur(18px);z-index:5}
+.title{min-width:0;overflow:hidden}
+.title h1{font-size:17px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meta{display:flex;gap:6px;margin-top:4px;color:var(--muted);font-size:11px}
+.chip{display:inline-flex;align-items:center;padding:2px 7px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.04);font-size:11px}
+.actions{display:flex;gap:6px;align-items:center}
+.actions button{padding:6px 12px;font-size:12px}
+.workspace{display:grid;grid-template-columns:280px minmax(0,1fr) 380px;min-height:0;overflow:hidden;max-width:100vw}
+aside{overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--line) transparent;background:linear-gradient(180deg,rgba(9,12,18,.96),rgba(7,9,14,.92))}
+.left{border-right:1px solid var(--line)}.right{border-left:1px solid var(--line);overflow-x:hidden;word-wrap:break-word;overflow-wrap:break-word}
+.panel{padding:12px;border-bottom:1px solid var(--line);min-width:0;overflow-wrap:break-word}
+.panel h2{margin:0 0 4px;color:var(--soft);font-size:10px;text-transform:uppercase;letter-spacing:.08em}
+.panel-desc{color:var(--muted);font-size:10.5px;line-height:1.35;margin-bottom:8px}
+.search{width:100%;height:34px;padding:0 10px;color:var(--text);background:rgba(0,0,0,.26);border:1px solid var(--line);border-radius:var(--radius);outline:none;font-size:13px}
+.search:focus{border-color:var(--accent)}
+input[type=range]{width:100%;margin:8px 0;accent-color:var(--accent)}
+.filter-row{display:flex;flex-wrap:wrap;gap:5px}
+button{color:var(--text);background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:var(--radius);cursor:pointer;transition:.12s}
+button:hover,button.on{border-color:var(--accent);background:rgba(72,215,255,.12)}
+.mg{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.mc{padding:8px;border:1px solid var(--line);border-radius:var(--radius);background:rgba(255,255,255,.035)}
+.mc b{display:block;font-size:22px;line-height:1}.mc span{display:block;margin-top:4px;color:var(--muted);font-size:11px}
+.hist{display:grid;grid-template-columns:repeat(10,1fr);gap:3px;align-items:end;height:70px}
+.hist i{display:block;min-height:2px;border-radius:3px 3px 0 0;background:linear-gradient(180deg,var(--accent),rgba(72,215,255,.22))}
+.stage{position:relative;min-width:0;min-height:0;background-size:32px 32px;background-image:
+  linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px)}
+#graph{position:absolute;inset:0;width:100%;height:100%}
+.hud{position:absolute;top:12px;left:12px;padding:6px 10px;border:1px solid var(--strong);border-radius:var(--radius);
+  background:rgba(6,7,10,.74);backdrop-filter:blur(14px);color:var(--muted);font:11px var(--mono);pointer-events:none}
+.tooltip{display:none;position:absolute;max-width:340px;padding:10px;border:1px solid var(--strong);border-radius:var(--radius);
+  background:rgba(6,7,10,.88);backdrop-filter:blur(14px);color:var(--soft);font-size:12px;line-height:1.4;z-index:4;pointer-events:none;
+  box-shadow:0 16px 48px rgba(0,0,0,.5)}
+.minimap{position:absolute;right:12px;bottom:12px;width:160px;height:110px;border:1px solid var(--strong);border-radius:var(--radius);
+  background:rgba(6,7,10,.74);backdrop-filter:blur(14px);overflow:hidden}
+.minimap canvas{width:100%;height:100%}
+.timeline{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 16px;min-width:0;
+  border-top:1px solid var(--line);background:rgba(6,7,10,.88);backdrop-filter:blur(18px);z-index:5}
+.stamp{color:var(--muted);font:11px var(--mono);text-align:right}
+.item{display:block;width:100%;text-align:left;padding:8px;border:1px solid var(--line);border-radius:var(--radius);
+  background:rgba(255,255,255,.035);margin-bottom:6px;cursor:pointer;transition:.12s}
+.item:hover{border-color:var(--accent);background:rgba(72,215,255,.06)}
+.item b{font-size:11px}.item p{margin:3px 0 0;color:var(--muted);font-size:11px;line-height:1.35}
+.bar{height:6px;overflow:hidden;border-radius:999px;background:rgba(255,255,255,.08);margin-top:6px}
+.bar>i{display:block;height:100%;border-radius:999px;transition:width .3s}
+.bar-good>i{background:linear-gradient(90deg,var(--good),rgba(105,240,174,.6))}
+.bar-conv>i{background:linear-gradient(90deg,var(--bad),var(--warn),var(--good))}
+.kv{display:grid;grid-template-columns:100px minmax(0,1fr);gap:4px 8px;margin-top:8px;font-size:11px;overflow-wrap:break-word;word-break:break-word}
+.kv div:nth-child(odd){color:var(--muted)}
+.evidence{margin-top:10px;padding:8px;border-left:3px solid var(--accent);background:rgba(72,215,255,.06);color:var(--soft);font-size:11px;line-height:1.4;border-radius:0 var(--radius) var(--radius) 0;overflow-wrap:break-word;word-break:break-word}
+.footer-note{color:var(--muted);font-size:10px;text-align:center}
+.workspace.briefing-wide{grid-template-columns:220px minmax(0,1fr) 520px;transition:grid-template-columns .25s ease}
+.briefing-nav{position:sticky;top:0;z-index:3;display:flex;gap:4px;padding:8px 12px;flex-wrap:wrap;
+  background:rgba(6,7,10,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);margin:-0px -0px 0}
+.briefing-nav a{font-size:10px;color:var(--muted);text-decoration:none;padding:3px 8px;border-radius:var(--radius);
+  border:1px solid transparent;transition:.12s;white-space:nowrap}
+.briefing-nav a:hover,.briefing-nav a.active{color:var(--accent);border-color:var(--accent);background:rgba(72,215,255,.08)}
+.right{scroll-behavior:smooth}
+#tabBriefing .panel{margin-bottom:2px;border-bottom:none;border-top:1px solid rgba(155,176,210,.08)}
+#tabBriefing .panel:first-child{border-top:none}
+#tabBriefing .panel h2{font-size:11px;margin-bottom:6px;letter-spacing:.06em}
+#tabBriefing .item{margin-bottom:8px;padding:10px;border-radius:var(--radius)}
+.footer-note a{color:var(--accent);text-decoration:none}
+
+/* Guide overlay — hidden by default for poster-view first screenshot */
+.guide-overlay{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;
+  background:rgba(4,5,8,.88);backdrop-filter:blur(24px);animation:fadeIn .3s ease}
+.guide-overlay.show{display:flex}
+.guide-card{max-width:560px;width:90%;padding:32px;border:1px solid var(--strong);border-radius:16px;
+  background:linear-gradient(135deg,rgba(13,17,25,.97),rgba(18,24,35,.97));
+  box-shadow:0 24px 80px rgba(0,0,0,.6),0 0 120px rgba(72,215,255,.08)}
+.guide-card h2{font-size:22px;margin-bottom:6px;background:linear-gradient(135deg,var(--accent),#c792ea);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.guide-card .subtitle{color:var(--muted);font-size:13px;margin-bottom:20px;line-height:1.5}
+.guide-steps{list-style:none;padding:0;margin:0 0 24px}
+.guide-steps li{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px;line-height:1.45;color:var(--soft)}
+.guide-steps li:last-child{border-bottom:none}
+.guide-steps .step-icon{flex-shrink:0;width:32px;height:32px;display:flex;align-items:center;justify-content:center;
+  border-radius:8px;font-size:16px;background:rgba(72,215,255,.1);border:1px solid rgba(72,215,255,.2)}
+.guide-steps .step-text b{color:var(--text);display:block;margin-bottom:2px}
+.guide-btn{display:block;width:100%;padding:12px;font-size:14px;font-weight:600;color:var(--bg);
+  background:linear-gradient(135deg,var(--accent),#a78bfa);border:none;border-radius:var(--radius);cursor:pointer;
+  transition:.15s;letter-spacing:.02em}
+.guide-btn:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(72,215,255,.3)}
+
+/* Legend overlay */
+.legend{position:absolute;bottom:12px;left:12px;padding:12px 14px;border:1px solid var(--strong);border-radius:var(--radius);
+  background:rgba(6,7,10,.82);backdrop-filter:blur(14px);z-index:3;font-size:11px;max-width:220px}
+.legend.hidden{display:none}
+.legend h3{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--soft);margin-bottom:8px}
+.legend-item{display:flex;align-items:center;gap:8px;margin-bottom:5px;color:var(--soft)}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.legend-line{width:20px;height:0;flex-shrink:0;border-top:2px solid}
+.legend-line.dashed{border-top-style:dashed}
+.legend-line.thick{border-top-width:3px}
+.legend-sep{height:1px;background:var(--line);margin:8px 0}
+.legend-toggle{position:absolute;bottom:134px;left:12px;padding:5px 10px;font-size:11px;z-index:3;
+  border:1px solid var(--strong);border-radius:var(--radius);background:rgba(6,7,10,.74);backdrop-filter:blur(14px);color:var(--muted);cursor:pointer}
+
+.help-btn{width:32px;height:32px;border-radius:50%;font-size:15px;font-weight:700;display:flex;align-items:center;
+  justify-content:center;border:1px solid var(--accent);color:var(--accent);background:rgba(72,215,255,.08);cursor:pointer}
+.help-btn:hover{background:rgba(72,215,255,.2)}
+
+.mob-brief-btn{display:none;position:fixed;bottom:62px;right:12px;z-index:7;padding:10px 16px;font-size:13px;font-weight:600;
+  color:var(--bg);background:linear-gradient(135deg,var(--accent),#a78bfa);border:none;border-radius:24px;cursor:pointer;
+  box-shadow:0 4px 20px rgba(72,215,255,.35);transition:.15s;gap:6px;align-items:center}
+.mob-brief-btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(72,215,255,.4)}
+.mob-brief-btn svg{width:16px;height:16px;fill:currentColor}
+.mob-backdrop{display:none;position:fixed;inset:0;z-index:5;background:rgba(0,0,0,.5);backdrop-filter:blur(4px)}
+.mob-backdrop.show{display:block}
+.right .close-drawer{display:none;position:absolute;top:8px;right:12px;z-index:8;width:28px;height:28px;border-radius:50%;
+  font-size:16px;border:1px solid var(--line);background:rgba(0,0,0,.4);color:var(--muted);cursor:pointer;align-items:center;justify-content:center}
+@media(max-width:1100px){.right .close-drawer{display:flex}}
+
+.narrative{padding:14px;background:linear-gradient(135deg,rgba(72,215,255,.06),rgba(199,146,234,.04));
+  border:1px solid rgba(72,215,255,.15);border-radius:var(--radius);margin-bottom:10px;font-size:12px;line-height:1.5;color:var(--soft)}
+.narrative strong{color:var(--text)}
+
+/* Insight strip */
+.insight-strip{position:absolute;top:12px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:3;pointer-events:auto;
+  max-width:calc(100% - 24px);flex-wrap:wrap;justify-content:center}
+.insight-card{padding:8px 12px;border:1px solid var(--strong);border-radius:var(--radius);
+  background:rgba(6,7,10,.82);backdrop-filter:blur(14px);cursor:pointer;transition:.15s;min-width:min(140px,calc(50% - 8px));max-width:200px}
+.insight-card:hover{border-color:var(--accent);background:rgba(72,215,255,.08)}
+.insight-card .ic-label{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:3px}
+.insight-card .ic-value{font-size:12px;color:var(--text);line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.insight-card .ic-sub{font-size:10px;color:var(--muted);margin-top:2px}
+
+.xref{display:inline-block;padding:1px 6px;margin:1px 2px;font-size:10px;color:var(--accent);background:rgba(72,215,255,.08);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;
+  border:1px solid rgba(72,215,255,.25);border-radius:4px;cursor:pointer;transition:.12s;font-family:var(--mono)}
+.xref:hover{background:rgba(72,215,255,.2);border-color:var(--accent)}
+.exp-toggle{color:var(--accent);cursor:pointer;font-size:10px;border:none;background:none;padding:0;margin-left:4px;font-family:var(--mono)}
+.exp-toggle:hover{text-decoration:underline}
+.exp-full{display:none}.exp-full.open{display:inline}
+
+.tab-bar{display:flex;gap:0;border-bottom:1px solid var(--line);background:rgba(0,0,0,.2)}
+.tab-btn{flex:1;padding:8px 4px;font-size:11px;text-align:center;color:var(--muted);background:none;border:none;
+  border-bottom:2px solid transparent;cursor:pointer;transition:.12s;border-radius:0}
+.tab-btn:hover{color:var(--soft);background:rgba(255,255,255,.03)}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);background:rgba(72,215,255,.04)}
+.tab-content{display:none}.tab-content.active{display:block}
+
+.findings-list{max-height:300px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+.finding-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid var(--line);border-radius:var(--radius);
+  background:rgba(255,255,255,.025);margin-bottom:4px;cursor:pointer;transition:.12s;font-size:11px}
+.finding-row:hover{border-color:var(--accent);background:rgba(72,215,255,.06)}
+.finding-row.selected{border-color:var(--accent);background:rgba(72,215,255,.1)}
+.finding-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.finding-content{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--soft)}
+.finding-conf{flex-shrink:0;font-family:var(--mono);font-size:10px;color:var(--muted)}
+.finding-sort{display:flex;gap:4px;margin-bottom:6px}
+.finding-sort button{font-size:10px;padding:2px 6px}
+
+.view-toggle{display:flex;gap:0;margin-left:8px}
+.view-toggle button{padding:4px 10px;font-size:11px;border-radius:0;border-right:none}
+.view-toggle button:first-child{border-radius:var(--radius) 0 0 var(--radius)}
+.view-toggle button:last-child{border-radius:0 var(--radius) var(--radius) 0;border-right:1px solid var(--line)}
+.view-toggle button.active{background:rgba(72,215,255,.15);border-color:var(--accent);color:var(--accent)}
+
+.list-view{position:absolute;inset:0;overflow-y:auto;padding:12px;background:rgba(6,7,10,.95);z-index:2;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+.list-view.hidden{display:none}
+.list-view table{width:100%;border-collapse:collapse;font-size:12px}
+.list-view th{position:sticky;top:0;background:rgba(6,7,10,.98);text-align:left;padding:8px 6px;color:var(--muted);
+  font-size:10px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--strong);cursor:pointer;user-select:none}
+.list-view th:hover{color:var(--accent)}
+.list-view th.sorted{color:var(--accent)}
+.list-view th.sorted::after{content:" \25BC";font-size:8px}
+.list-view th.sorted.asc::after{content:" \25B2"}
+.list-view td{padding:6px;border-bottom:1px solid var(--line);color:var(--soft);cursor:pointer}
+.list-view tr:hover td{background:rgba(72,215,255,.04)}
+
+/* Progression narration bar */
+.narration{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);max-width:600px;width:90%;padding:8px 14px;
+  border:1px solid var(--strong);border-radius:var(--radius);background:rgba(6,7,10,.86);backdrop-filter:blur(14px);
+  color:var(--soft);font-size:12px;line-height:1.4;z-index:3;text-align:center;pointer-events:none;
+  transition:opacity .3s;opacity:0}
+.narration.show{opacity:1}
+
+/* Convergence sparkline */
+.sparkline{display:flex;align-items:end;gap:2px;height:40px;margin-top:8px}
+.sparkline i{display:block;min-width:4px;flex:1;border-radius:2px 2px 0 0;transition:height .2s}
+
+.kbd-hint{position:absolute;bottom:12px;right:180px;padding:4px 8px;border:1px solid var(--strong);border-radius:var(--radius);
+  background:rgba(6,7,10,.74);backdrop-filter:blur(14px);color:var(--muted);font:10px var(--mono);z-index:3;pointer-events:none}
+
+.trust-card{padding:10px 12px;border:1px solid var(--strong);border-radius:var(--radius);background:rgba(255,255,255,.025);margin-bottom:6px}
+.trust-card .tc-label{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:3px}
+.trust-card .tc-value{font-size:14px;font-weight:700;color:var(--text)}
+.trust-card .tc-sub{font-size:10px;color:var(--muted);margin-top:2px}
+.trust-metric{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.collapse-bar{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius);
+  background:rgba(255,255,255,.02);margin-bottom:6px;cursor:pointer;transition:.15s}
+.collapse-bar:hover{border-color:var(--accent);background:rgba(72,215,255,.04)}
+.collapse-bar.active{border-color:var(--accent);background:rgba(72,215,255,.08)}
+.collapse-bar .cb-name{flex:1;font-size:11px;color:var(--soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.collapse-bar .cb-impact{display:flex;gap:4px;flex-shrink:0}
+.skeptic-btn{padding:4px 10px;font-size:11px;border-radius:var(--radius);transition:.15s}
+.skeptic-btn.active{background:rgba(255,92,122,.15);border-color:var(--bad);color:var(--bad)}
+.audit-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:600}
+.audit-ready{background:rgba(105,240,174,.12);color:var(--good);border:1px solid rgba(105,240,174,.3)}
+.audit-partial{background:rgba(255,200,87,.12);color:var(--warn);border:1px solid rgba(255,200,87,.3)}
+.audit-sparse{background:rgba(255,92,122,.12);color:var(--bad);border:1px solid rgba(255,92,122,.3)}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@media(max-width:1100px){.workspace,.workspace.briefing-wide{grid-template-columns:260px minmax(0,1fr)}.right{position:absolute;right:0;top:60px;bottom:54px;width:min(420px,90vw);
+  transform:translateX(calc(100% + 4px));transition:.2s ease;z-index:6;box-shadow:-8px 0 32px rgba(0,0,0,.4)}.right.open{transform:translateX(0)}
+  .mob-brief-btn{display:flex}}
+@media(max-width:900px){.workspace,.workspace.briefing-wide{grid-template-columns:1fr}.left{display:none}}
+@media(max-width:720px){.shell{grid-template-rows:auto minmax(0,1fr) 48px}.title h1{font-size:15px;white-space:normal}
+  .guide-card{padding:20px}.guide-card h2{font-size:18px}.insight-strip{display:none!important}
+  .right.open{width:100vw;border-radius:16px 16px 0 0;top:15vh;bottom:0;border-top:1px solid var(--accent)}
+  .hud,.legend,.legend-toggle,.minimap,.kbd-hint{display:none!important}
+  .stamp{display:none}}
+@media print{
+  .shell{display:block;height:auto}.topbar{position:static;background:#fff;border-bottom:2px solid #ccc;backdrop-filter:none}
+  .workspace,.workspace.briefing-wide{display:block}.left,.stage,.timeline,.guide-overlay,.minimap,.legend,.hud,.actions,.tooltip,.briefing-nav button{display:none!important}
+  .right{border:none;width:100%;max-width:none;overflow:visible}
+  .tab-content{display:block!important}.tab-content:not(#tabBriefing){display:none!important}
+  *{color:#222!important;background:transparent!important;border-color:#ddd!important;box-shadow:none!important;backdrop-filter:none!important}
+  .panel{break-inside:avoid;border-bottom:1px solid #ddd;padding:16px 0}
+  .chip{border:1px solid #aaa;background:#f5f5f5!important}
+  h1,h2{color:#000!important}.title h1{white-space:normal}
+  .item{border:1px solid #ddd;background:#fafafa!important}
+  .mc{border:1px solid #ddd;background:#f9f9f9!important}
+  .mc b{color:#000!important}
+  a{color:#0066cc!important}
+  .footer-note{margin-top:24px}
+}
+</style>
+</head>
+<body>
+<script id="bb-state" type="application/json">{"id":"0b1d0db4","task":"Comparative analysis of three cloud infrastructure providers (AWS, Azure, GCP) for a Series B startup migrating from on-premise to cloud — evaluating cost, reliability, developer experience, and vendor lock-in risk","iteration":3,"entries":[{"id":"e1","type":"observation","content":"AWS has the broadest service catalog (200+ services) and largest geographic footprint (33 regions, 105 AZs), providing the most deployment flexibility","source":{"document":"doc_1","section":"Compute Pricing","evidence":"200+ fully featured services, 33 geographic regions"},"confidence":0.95,"status":"active","tags":["aws","coverage"],"created_by":"cloud-analyst","iteration":0,"opens_questions":["How many of the 200+ AWS services would this startup actually use vs pay overhead for?"],"supports_entries":[],"contradicts_entries":[],"supersedes_entries":[],"addresses_signals":[]},{"id":"e2","type":"observation","content":"AWS reserved instances require 1-3 year commitments for 72% discount, creating significant vendor lock-in for cost optimization","source":{"document":"doc_1","section":"Reserved vs On-Demand","evidence":"Reserved instances offer up to 72% discount with 1-3 year commitments"},"confidence":0.75,"status":"disputed","tags":["aws","pricing","lock-in"],"created_by":"cloud-analyst","iteration":0,"opens_questions":[],"supports_entries":[],"contradicts_entries":[],"supersedes_entries":[],"addresses_signals":[]},{"id":"e3","type":"observation","content":"GCP sustained use discounts apply automatically at 30% after consistent monthly usage — no commitments or reservations needed","source":{"document":"doc_3","section":"Sustained Use Discounts","evidence":"Sustained use discounts automatically apply 30% discount after sustained monthly usage"},"confidence":1,"status":"active","tags":["gcp","pricing","flexibility"],"created_by":"cloud-analyst","iteration":0,"opens_questions":[],"supports_entries":[],"contradicts_entries":[],"supersedes_entries":[],"addresses_signals":[]},{"id":"e4","type":"observation","content":"Azure Hybrid Benefit saves up to 40% by reusing existing Windows/SQL Server licenses","source":{"document":"doc_2","section":"Hybrid Integration","evidence":"Azure Hybrid Benefit allows reuse of existing Windows Server and SQL Server licenses, saving up to 40%"},"confidence":0.78,"status":"disputed","tags":["azure","pricing"],"created_by":"cloud-analyst","iteration":0,"opens_questions":["Does the startup have existing Microsoft licenses to leverage Azure Hybrid Benefit?"],"supports_entries":[],"contradicts_entries":[],"supersedes_entries":[],"addresses_signals":[]},{"id":"e5","type":"observation","content":"Team has 8 engineers with AWS experience vs 3 with GCP and 6 with Azure/AD — strong AWS skill bias","source":{"document":"doc_4","section":"Team Skills","evidence":"8 with AWS experience, 3 with GCP, 6 with Azure/AD"},"confidence":1,"status":"active","tags":["team","skills","aws"],"created_by":"cloud-analyst","iteration":0,"opens_questions":[],"supports_entries":[],"contradicts_entries":[],"supersedes_entries":[],"addresses_signals":[]},{"id":"e6","type":"observation","content":"Applications are containerized with Docker but not yet on Kubernetes — migration to any provider requires orchestration decision","source":{"document":"doc_4","section":"Current Architecture","evidence":"Applications are containerized with Docker but not yet on Kubernetes"},"confidence":0.9800000000000001,"status":"active","tags":["architecture","containers"],"created_by":"cloud-analyst","iteration":0,"opens_questions":["Should the migration adopt Kubernetes or use provider-specific container services (ECS, Cloud Run, ACI)?"],"supports_entries":[],"contradicts_entries":[],"supersedes_entries":[],"addresses_signals":[]},{"id":"e7","type":"observation","content":"HIPAA compliance needed by Q2 2025 — all three providers support it but certification paths differ","source":{"document":"doc_4","section":"Compliance Requirements","evidence":"HIPAA needed by Q2 2025"},"confidence":0.9500000000000001,"status":"active","tags":["compliance","hipaa"],"created_by":"cloud-analyst","iteration":0,"opens_questions":[],"supports_entries":[],"contradicts_entries":[],"supersedes_entries":[],"addresses_signals":[]},{"id":"e8","type":"observation","content":"GCP has the most mature managed Kubernetes offering (GKE) and contributes to open-source standards reducing lock-in","source":{"document":"doc_3","section":"Kubernetes Native","evidence":"most mature managed Kubernetes offering... contributes heavily to open source"},"confidence":0.9700000000000001,"status":"active","tags":["gcp","kubernetes","lock-in"],"created_by":"cloud-analyst","iteration":0,"opens_questions":[],"supports_entries":[],"contradicts_entries":[],"supersedes_entries":[],"addresses_signals":[]},{"id":"e9","type":"analysis","content":"AWS team skill advantage (8/12 engineers) significantly reduces migration risk and training cost — estimated 2-3 month faster ramp vs GCP","source":{"document":"doc_4","section":"Team Skills","evidence":"8 with AWS experience"},"confidence":1,"status":"active","tags":["aws","team","risk"],"created_by":"cloud-analyst","iteration":1,"opens_questions":[],"supports_entries":["e5"],"contradicts_entries":[],"supersedes_entries":[],"addresses_signals":[]},{"id":"e10","type":"analysis","content":"GCP's automatic sustained use discounts are strategically superior for a startup with unpredictable growth — no commitment risk during scaling phase","source":null,"confidence":0.6699999999999999,"status":"superseded","tags":["gcp","pricing","strategy"],"created_by":"cloud-analyst","iteration":1,"opens_questions":[],"supports_entries":["e3"],"contradicts_entries":["e2"],"supersedes_entries":[],"addresses_signals":["s1"]},{"id":"e11","type":"calculation","content":"Estimated monthly cloud cost comparison: AWS on-demand $38,500, AWS reserved (1yr) $26,950, GCP with sustained use $31,200, Azure with hybrid benefit $29,400","source":{"document":"doc_4","section":"Budget Constraints","evidence":"Monthly infrastructure cost: $42,000. Target: $35,000-45,000"},"confidence":0.77,"status":"active","tags":["cost","comparison"],"created_by":"cloud-analyst","iteration":1,"opens_questions":["Are these estimates accounting for network egress costs which vary significantly between providers?"],"supports_entries":["e2","e3","e4"],"contradicts_entries":[],"supersedes_entries":[],"addresses_signals":[]},{"id":"e12","type":"analysis","content":"Azure Hybrid Benefit is irrelevant — startup uses PostgreSQL and Linux, not Windows Server or SQL Server licenses","source":{"document":"doc_4","section":"Current Architecture","evidence":"3 PostgreSQL clusters"},"confidence":0.9600000000000001,"status":"active","tags":["azure","pricing","irrelevant"],"created_by":"cloud-analyst","iteration":1,"opens_questions":[],"supports_entries":[],"contradicts_entries":["e4"],"supersedes_entries":[],"addresses_signals":["s2"]},{"id":"e13","type":"strategy","content":"Recommend Kubernetes adoption over provider-specific services to maintain portability and reduce lock-in across all three providers","source":null,"confidence":0.8800000000000001,"status":"active","tags":["kubernetes","strategy","lock-in"],"created_by":"cloud-analyst","iteration":1,"opens_questions":["What is the operational overhead of managing Kubernetes vs using managed container services?"],"supports_entries":["e6","e8"],"contradicts_entries":[],"supersedes_entries":[],"addresses_signals":["s3"]},{"id":"e14","type":"gap","content":"No data on actual network egress patterns — critical for cost modeling since egress pricing varies 3-5x between providers","source":{"document":"doc_1","section":"Network Egress","evidence":"Network egress is $0.09/GB for first 10TB"},"confidence":0.7000000000000001,"status":"active","tags":["cost","network","missing-data"],"created_by":"cloud-analyst","iteration":1,"opens_questions":[],"supports_entries":[],"contradicts_entries":[],"supersedes_entries":[],"addresses_signals":[]},{"id":"e15","type":"analysis","content":"Kubernetes learning curve is 3-4 months for a team without experience, but AWS EKS reduces operational burden vs self-managed — team's AWS skills transfer directly to EKS","source":{"document":"doc_4","section":"Migration Timeline","evidence":"Migration must complete within 6 months"},"confidence":0.9400000000000001,"status":"active","tags":["kubernetes","aws","timeline"],"created_by":"senior-architect","iteration":2,"opens_questions":[],"supports_entries":["e9","e13"],"contradicts_entries":[],"supersedes_entries":[],"addresses_signals":["s6"]},{"id":"e16","type":"analysis","content":"Cost estimates without egress are misleading — adding estimated 5TB/month egress increases AWS cost by $450/mo, GCP by $600/mo, Azure by $435/mo","source":{"document":"doc_1","section":"Network Egress","evidence":"$0.09/GB for first 10TB"},"confidence":0.76,"status":"active","tags":["cost","network","egress"],"created_by":"senior-architect","iteration":2,"opens_questions":[],"supports_entries":["e14"],"contradicts_entries":[],"supersedes_entries":[],"addresses_signals":["s4"]},{"id":"e17","type":"calculation","content":"Revised 3-year TCO: AWS (EKS + reserved) $1.02M, GCP (GKE + sustained) $1.18M, Azure $1.31M. AWS wins on cost when team ramp-up savings are included","source":null,"confidence":0.8900000000000001,"status":"active","tags":["cost","tco","comparison"],"created_by":"senior-architect","iteration":2,"opens_questions":["Does the 3-year TCO account for the startup potentially outgrowing initial reserved instance sizing?"],"supports_entries":["e11","e9"],"contradicts_entries":["e10"],"supersedes_entries":[],"addresses_signals":[]},{"id":"e18","type":"analysis","content":"GCP's open-source strategy provides the strongest exit path if the startup needs to switch providers or go multi-cloud later","source":null,"confidence":0.88,"status":"active","tags":["gcp","lock-in","portability"],"created_by":"senior-architect","iteration":2,"opens_questions":[],"supports_entries":["e8","e3"],"contradicts_entries":[],"supersedes_entries":[],"addresses_signals":[]},{"id":"e19","type":"strategy","content":"Recommended approach: AWS as primary provider (team skills + cost), with Kubernetes on EKS for portability, and architecture patterns that avoid AWS-specific services where possible","source":null,"confidence":0.9000000000000001,"status":"active","tags":["recommendation","aws","kubernetes"],"created_by":"senior-architect","iteration":2,"opens_questions":["How to handle the PostgreSQL migration — RDS (convenient but lock-in) vs self-managed on EKS (portable but complex)?"],"supports_entries":["e9","e13"],"contradicts_entries":[],"supersedes_entries":[],"addresses_signals":[]},{"id":"e20","type":"analysis","content":"Azure's strongest value proposition (AD integration, hybrid benefit, enterprise tools) does not align with this startup's Linux/PostgreSQL/container stack","source":null,"confidence":0.89,"status":"active","tags":["azure","mismatch"],"created_by":"senior-architect","iteration":2,"opens_questions":[],"supports_entries":["e12"],"contradicts_entries":[],"supersedes_entries":[],"addresses_signals":["s5"]},{"id":"e21","type":"analysis","content":"Reserved instance sizing risk is manageable — AWS Savings Plans offer flexibility across instance families unlike old reserved instances, and startup can start with 1-year terms to limit exposure","source":null,"confidence":0.81,"status":"active","tags":["aws","pricing","risk"],"created_by":"senior-architect","iteration":3,"opens_questions":[],"supports_entries":["e17","e2"],"contradicts_entries":[],"supersedes_entries":[],"addresses_signals":["s7"]},{"id":"e22","type":"strategy","content":"PostgreSQL migration: use AWS RDS for initial migration speed, but containerize the application layer on EKS so the database can be swapped to self-managed or Aurora later without app changes","source":null,"confidence":0.83,"status":"active","tags":["postgresql","migration","strategy"],"created_by":"senior-architect","iteration":3,"opens_questions":[],"supports_entries":["e19","e15"],"contradicts_entries":[],"supersedes_entries":[],"addresses_signals":["s8"]},{"id":"e23","type":"analysis","content":"The AWS vs GCP cost debate is a false binary — team productivity savings from AWS familiarity ($15-25K/month in eng time) dwarf the $4K/month GCP discount advantage","source":null,"confidence":0.86,"status":"active","tags":["cost","productivity","synthesis"],"created_by":"senior-architect","iteration":3,"opens_questions":[],"supports_entries":["e9","e17"],"contradicts_entries":[],"supersedes_entries":["e10"],"addresses_signals":[]},{"id":"e24","type":"strategy","content":"Final recommendation: AWS with EKS, phased migration over 4 months (not 6), RDS PostgreSQL initially, CI/CD on GitHub Actions (replacing Jenkins), with explicit lock-in boundaries documented per service","source":null,"confidence":0.85,"status":"active","tags":["recommendation","final","migration-plan"],"created_by":"senior-architect","iteration":3,"opens_questions":[],"supports_entries":["e19","e15","e17"],"contradicts_entries":[],"supersedes_entries":[],"addresses_signals":[]},{"id":"e25","type":"gap","content":"No disaster recovery or multi-region failover strategy has been evaluated — critical for HIPAA compliance and business continuity","source":null,"confidence":0.7,"status":"active","tags":["dr","compliance","missing"],"created_by":"senior-architect","iteration":3,"opens_questions":["What is the RPO/RTO requirement and does AWS multi-AZ satisfy HIPAA DR requirements?"],"supports_entries":["e7"],"contradicts_entries":[],"supersedes_entries":[],"addresses_signals":[]}],"signals":[{"id":"s1","type":"question","content":"How many of the 200+ AWS services would this startup actually use vs pay overhead for?","origin_entry":"e1","priority":"medium","status":"addressed","addressed_by":"e10","iteration_created":0},{"id":"s2","type":"question","content":"Does the startup have existing Microsoft licenses to leverage Azure Hybrid Benefit?","origin_entry":"e4","priority":"medium","status":"addressed","addressed_by":"e12","iteration_created":0},{"id":"s3","type":"question","content":"Should the migration adopt Kubernetes or use provider-specific container services (ECS, Cloud Run, ACI)?","origin_entry":"e6","priority":"medium","status":"addressed","addressed_by":"e13","iteration_created":0},{"id":"s4","type":"question","content":"Are these estimates accounting for network egress costs which vary significantly between providers?","origin_entry":"e11","priority":"medium","status":"addressed","addressed_by":"e16","iteration_created":1},{"id":"s5","type":"question","content":"What is the operational overhead of managing Kubernetes vs using managed container services?","origin_entry":"e13","priority":"medium","status":"addressed","addressed_by":"e20","iteration_created":1},{"id":"s6","type":"question","content":"Can the team meet the 6-month migration deadline if they also have to learn Kubernetes from scratch?","origin_entry":"e13","priority":"critical","status":"addressed","addressed_by":"e15","iteration_created":1},{"id":"s7","type":"question","content":"Does the 3-year TCO account for the startup potentially outgrowing initial reserved instance sizing?","origin_entry":"e17","priority":"medium","status":"addressed","addressed_by":"e21","iteration_created":2},{"id":"s8","type":"question","content":"How to handle the PostgreSQL migration — RDS (convenient but lock-in) vs self-managed on EKS (portable but complex)?","origin_entry":"e19","priority":"medium","status":"addressed","addressed_by":"e22","iteration_created":2},{"id":"s9","type":"question","content":"What is the RPO/RTO requirement and does AWS multi-AZ satisfy HIPAA DR requirements?","origin_entry":"e25","priority":"medium","status":"open","addressed_by":null,"iteration_created":3}],"documents":[{"id":"doc_1","name":"AWS Pricing & Architecture Review 2024","sections":["Compute Pricing","Storage Tiers","Network Egress","Reserved vs On-Demand","Enterprise Support","Migration Tools"],"sections_read":["Compute Pricing","Storage Tiers","Network Egress","Reserved vs On-Demand","Enterprise Support","Migration Tools"],"read_status":"fully_read"},{"id":"doc_2","name":"Azure Enterprise Assessment Q4 2024","sections":["VM Pricing","Hybrid Integration","Active Directory","Compliance Certifications","Azure Arc","Cost Management"],"sections_read":["VM Pricing","Hybrid Integration","Active Directory","Compliance Certifications"],"read_status":"partially_read"},{"id":"doc_3","name":"GCP Developer Experience Report 2024","sections":["Kubernetes Native","BigQuery Analytics","Network Performance","Sustained Use Discounts","AI/ML Platform","Open Source Strategy"],"sections_read":["Kubernetes Native","BigQuery Analytics","Network Performance","Sustained Use Discounts","AI/ML Platform","Open Source Strategy"],"read_status":"fully_read"},{"id":"doc_4","name":"Internal Infrastructure Audit - Current State","sections":["Current Architecture","Team Skills","Compliance Requirements","Budget Constraints","Migration Timeline"],"sections_read":["Current Architecture","Team Skills","Compliance Requirements","Budget Constraints","Migration Timeline"],"read_status":"fully_read"}],"created_at":"2026-06-24T19:12:20.544Z","updated_at":"2026-06-24T19:14:37.553Z"}</script>
+
+<!-- Guide overlay — hidden by default for poster-view first screenshot -->
+<div id="guide" class="guide-overlay">
+  <div class="guide-card">
+    <h2>Knowledge Map</h2>
+    <p class="subtitle">An AI analyzed <strong>"Comparative analysis of three cloud infrastructure providers (AWS, Azure, GCP) for a Series B startup migrating from on-premise to cloud — evaluating cost, reliability, developer experience, and vendor lock-in risk"</strong> and produced <strong>22 findings</strong> with 31 connections. This is the full reasoning trace.</p>
+    <ul class="guide-steps">
+      <li>
+        <div class="step-icon">&#x1f4d6;</div>
+        <div class="step-text"><b>Briefing (right panel)</b>Start here. The briefing gives you the 3 most important findings, evidence chains, cross-topic connections, disputes, and knowledge gaps. Use the section nav to jump between sections. Click Copy to share as markdown.</div>
+      </li>
+      <li>
+        <div class="step-icon">&#x1f4ca;</div>
+        <div class="step-text"><b>Knowledge Graph (center)</b>Every dot is a finding. Colors = type: blue = observation, purple = analysis, yellow = calculation, green = strategy, red = gap. Clusters show topic groups. Drag to rearrange, scroll to zoom.</div>
+      </li>
+      <li>
+        <div class="step-icon">&#x1f50d;</div>
+        <div class="step-text"><b>Findings Index (left)</b>All findings ranked by influence. Click any row to inspect it on the graph. Use search and type/status filters to narrow down.</div>
+      </li>
+      <li>
+        <div class="step-icon">&#x2328;</div>
+        <div class="step-text"><b>Navigate</b><b>1-4</b> switch tabs. <b>Tab</b>/<b>Shift+Tab</b> cycle findings. <b>F</b> fit view. <b>L</b> list mode. <b>Esc</b> deselect. Click any finding in the briefing to jump to it on the graph.</div>
+      </li>
+    </ul>
+    <button class="guide-btn" id="guideClose">Got it</button>
+  </div>
+</div>
+
+<div class="shell">
+  <header class="topbar">
+    <div class="title">
+      <h1>Comparative analysis of three cloud infrastructure providers (AWS, Azure, GCP) for a Series B startup migrating from on-premise to cloud — evaluating cost, reliability, developer experience, and vendor lock-in risk</h1>
+      <div class="meta">
+        <span class="chip">25 findings</span>
+        <span class="chip">9 signals</span>
+        <span class="chip">Iteration 3</span>
+        <span class="chip">4 sources</span>
+      </div>
+    </div>
+    <div class="actions">
+      <div class="view-toggle">
+        <button id="viewGraph" class="active" title="Graph view">Graph</button>
+        <button id="viewList" title="Table view">List</button>
+      </div>
+      <button id="skepticBtn" class="skeptic-btn" title="Skeptic lens: highlight fragile claims (S)">Skeptic</button>
+      <button id="resetBtn" title="Reset all views (R)">Reset</button>
+      <button id="fitBtn" title="Fit all nodes (F)">Fit</button>
+      <button id="shotBtn" title="Download PNG">PNG</button>
+      <button class="help-btn" id="helpBtn" title="Show guide (?)">?</button>
+    </div>
+  </header>
+
+  <div class="workspace briefing-wide">
+    <aside class="left">
+      <section class="panel">
+        <h2>Search</h2>
+        <p class="panel-desc">Find findings by content, tags, or source</p>
+        <input id="search" class="search" type="search" placeholder="Type to filter findings...">
+      </section>
+      <section class="panel">
+        <h2>Confidence Filter</h2>
+        <p class="panel-desc">Show only findings above this confidence level</p>
+        <input id="conf" type="range" min="0" max="100" value="0"><span id="confLbl" class="chip">0%</span>
+      </section>
+      <section class="panel">
+        <h2>Finding Types</h2>
+        <div id="typeF" class="filter-row"></div>
+      </section>
+      <section class="panel">
+        <h2>Status</h2>
+        <div id="statusF" class="filter-row"></div>
+      </section>
+      <section class="panel">
+        <h2>Findings Index</h2>
+        <p class="panel-desc">All findings ranked. Click to jump.</p>
+        <div class="finding-sort">
+          <button class="on" data-sort="influence">Influence</button>
+          <button data-sort="confidence">Confidence</button>
+          <button data-sort="iteration">Newest</button>
+        </div>
+        <div id="findingsIndex" class="findings-list"></div>
+      </section>
+      <section class="panel">
+        <h2>Analysis Overview</h2>
+        <div id="stats" class="mg"></div>
+      </section>
+      <section class="panel">
+        <h2>Confidence Distribution</h2>
+        <p class="panel-desc">Left = low, right = high</p>
+        <div id="hist" class="hist"></div>
+      </section>
+      <section class="panel" style="background:linear-gradient(135deg,rgba(72,215,255,.04),rgba(199,146,234,.03));border:1px solid rgba(72,215,255,.12);border-radius:var(--radius);margin:8px">
+        <p class="footer-note" style="font-size:11px;line-height:1.6">
+          Made with <a href="https://github.com/dl1683/irys-stateful-swarms/tree/master/packages/blackboard-mcp" target="_blank" style="font-weight:600">Blackboard MCP</a> &mdash; persistent structured reasoning for AI agents
+        </p>
+        <p class="footer-note" style="margin-top:4px"><code style="font-size:10px;padding:2px 6px;background:rgba(255,255,255,.06);border-radius:4px;color:var(--accent)">npx @irys/blackboard-mcp</code></p>
+      </section>
+    </aside>
+
+    <main class="stage">
+      <canvas id="graph"></canvas>
+      <div class="hud"><span id="nVis">0</span> nodes &middot; <span id="nEdge">0</span> edges &middot; <span id="zLbl">100%</span></div>
+      <div id="insightStrip" class="insight-strip"></div>
+      <div id="tip" class="tooltip"></div>
+      <button id="legendToggle" class="legend-toggle">Legend</button>
+      <div id="legend" class="legend hidden">
+        <h3>Node Colors</h3>
+        <div class="legend-item"><span class="legend-dot" style="background:#6dd6ff"></span> Observation</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#c792ea"></span> Analysis</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#ffd166"></span> Calculation</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#7ee787"></span> Strategy</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#ff7b72"></span> Gap</div>
+        <div class="legend-sep"></div>
+        <h3>Connections</h3>
+        <div class="legend-item"><span class="legend-line" style="border-color:rgba(150,210,255,.56)"></span> Supports</div>
+        <div class="legend-item"><span class="legend-line dashed" style="border-color:#ff5c7a"></span> Contradicts</div>
+        <div class="legend-item"><span class="legend-line thick" style="border-color:#ffc857"></span> Supersedes</div>
+        <div class="legend-sep"></div>
+        <div class="legend-item" style="color:var(--muted)">Larger = higher confidence</div>
+        <div class="legend-item" style="color:var(--muted)">Dashed ring = disputed</div>
+      </div>
+      <div id="listView" class="list-view hidden"></div>
+      <div id="narration" class="narration"></div>
+      <div class="kbd-hint">Tab: next &middot; R: reset &middot; F: fit &middot; L: list &middot; S: skeptic &middot; 1-4: tabs &middot; Space: play</div>
+      <div class="minimap"><canvas id="mini"></canvas></div>
+    </main>
+
+    <div id="mobBackdrop" class="mob-backdrop"></div>
+    <button id="mobBriefBtn" class="mob-brief-btn"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 2l5 5h-5V4zM6 20V4h5v7h7v9H6z"/><path d="M8 13h8v1.5H8zm0 3h5v1.5H8z"/></svg> Briefing</button>
+
+    <aside id="dp" class="right">
+      <button class="close-drawer" id="closeDrawer">&times;</button>
+      <div class="tab-bar">
+        <button class="tab-btn active" data-tab="briefing">Briefing</button>
+        <button class="tab-btn" data-tab="detail">Detail</button>
+        <button class="tab-btn" data-tab="insights">Insights</button>
+        <button class="tab-btn" data-tab="sources">Sources</button>
+      </div>
+
+      <div id="tabBriefing" class="tab-content active">
+        <div id="briefing"></div>
+      </div>
+
+      <div id="tabDetail" class="tab-content">
+        <section class="panel" id="detail">
+          <h2>Finding Details</h2>
+          <p class="panel-desc">Click any node or row in the findings index to inspect it.</p>
+          <div class="narrative">
+            <strong>Quick summary:</strong> 25 findings across 4 sources.
+            22 active, 2 disputed.
+            Avg confidence: 87%.
+            1 unresolved question.
+          </div>
+        </section>
+      </div>
+
+      <div id="tabInsights" class="tab-content">
+        <section class="panel">
+          <h2>Analysis Readiness</h2>
+          <p class="panel-desc">How complete the analysis is. Drops for disputes, open questions, unread sources.</p>
+          <div id="conv"></div>
+        </section>
+        <section class="panel">
+          <h2>Coverage Pressure</h2>
+          <p class="panel-desc">Findings vs open questions and contradictions over time</p>
+          <div id="convTrajectory"></div>
+        </section>
+        <section class="panel">
+          <h2>Conflicting Findings</h2>
+          <p class="panel-desc">Findings that disagree. Click to inspect.</p>
+          <div id="contras"></div>
+        </section>
+        <section class="panel">
+          <h2>Reasoning Depth</h2>
+          <p class="panel-desc">How many layers deep the reasoning chains go</p>
+          <div id="depth"></div>
+        </section>
+        <section class="panel">
+          <h2>Unresolved Questions</h2>
+          <p class="panel-desc">Questions flagged as needing investigation</p>
+          <div id="qs"></div>
+        </section>
+      </div>
+
+      <div id="tabSources" class="tab-content">
+        <section class="panel">
+          <h2>Source Fragility</h2>
+          <p class="panel-desc">What breaks if you remove a source? Click to highlight affected conclusions.</p>
+          <div id="collapseTest"></div>
+        </section>
+        <section class="panel">
+          <h2>Source Documents</h2>
+          <p class="panel-desc">How much of each source has been analyzed</p>
+          <div id="cov"></div>
+        </section>
+        <section class="panel">
+          <h2>Source Dependency</h2>
+          <p class="panel-desc">Which sources produced the most findings and where disputes originate</p>
+          <div id="srcDep"></div>
+        </section>
+        <section class="panel">
+          <h2>Progression</h2>
+          <p class="panel-desc">What changed at each iteration of analysis</p>
+          <div id="progression"></div>
+        </section>
+      </div>
+    </aside>
+  </div>
+
+  <footer class="timeline">
+    <button id="playBtn" title="Replay analysis progression (Space)">Play</button>
+    <input id="iterSlider" type="range" min="0" max="3" value="3" title="Drag to replay analysis at any iteration">
+    <div id="iterLbl" class="stamp">iteration 3</div>
+  </footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+var bb=JSON.parse(document.getElementById("bb-state").textContent);
+var entries=bb.entries||[],signals=bb.signals||[],docs=bb.documents||[];
+var colors={observation:"#6dd6ff",analysis:"#c792ea",calculation:"#ffd166",strategy:"#7ee787",gap:"#ff7b72"};
+var typeLabels={observation:"Observation",analysis:"Analysis",calculation:"Calculation",strategy:"Strategy",gap:"Gap"};
+var types=["observation","analysis","calculation","strategy","gap"];
+var statuses=["active","disputed","superseded","retracted"];
+var statusLabels={active:"Active",disputed:"Disputed",superseded:"Superseded",retracted:"Retracted"};
+var $=function(id){return document.querySelector(id)};
+var esc=function(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]})};
+var _expId=0;
+function expandable(text,limit){
+  if(!text||text.length<=limit)return esc(text||"");
+  var id="exp"+(_expId++);
+  return esc(text.slice(0,limit))+'<span id="'+id+'" class="exp-full">'+esc(text.slice(limit))+'</span>'
+    +'<span class="exp-toggle" data-exp="'+id+'">show more</span>';
+}
+var labelMap=new Map();
+function shortLabel(e){
+  if(labelMap.has(e.id))return labelMap.get(e.id);
+  if(e.label){labelMap.set(e.id,e.label);return e.label}
+  var c=e.content||"";
+  var w=c.split(/[s,.:;!?()]+/).filter(function(x){return x.length>2});
+  var label=w.slice(0,5).join(" ");
+  if(label.length>40)label=label.slice(0,37)+"...";
+  if(!label)label=e.type;
+  labelMap.set(e.id,label);return label;
+}
+
+// Guide overlay
+var guideEl=$("#guide");
+var guideKey="bb-guide-seen-"+bb.id;
+function dismissGuide(){guideEl.classList.remove("show");try{localStorage.setItem(guideKey,"1")}catch(e){}}
+$("#guideClose").onclick=dismissGuide;
+$("#helpBtn").onclick=function(){guideEl.classList.add("show")};
+var skipGuide=location.hash.indexOf("no-guide")!==-1;
+try{if(!skipGuide&&!localStorage.getItem(guideKey)){guideEl.classList.add("show");setTimeout(dismissGuide,12000)}}catch(e){}
+
+// Legend toggle
+$("#legendToggle").onclick=function(){$("#legend").classList.toggle("hidden")};
+
+// Right panel tabs
+var tabBtns=document.querySelectorAll(".tab-btn");
+var tabContents=document.querySelectorAll(".tab-content");
+var workspace=document.querySelector(".workspace");
+function switchTab(name){
+  tabBtns.forEach(function(b){b.classList.remove("active");if(b.dataset.tab===name)b.classList.add("active")});
+  tabContents.forEach(function(c){c.classList.remove("active")});
+  var t=document.getElementById("tab"+name.charAt(0).toUpperCase()+name.slice(1));
+  if(t)t.classList.add("active");
+  if(workspace){
+    if(name==="briefing")workspace.classList.add("briefing-wide");
+    else workspace.classList.remove("briefing-wide");
+  }
+}
+tabBtns.forEach(function(btn){btn.onclick=function(){switchTab(btn.dataset.tab)}});
+
+// Cluster nodes by source section for topic grouping
+var clusterMap=new Map();
+entries.forEach(function(e){
+  var sec=(e.source&&e.source.section)?e.source.section:"";
+  if(sec&&!clusterMap.has(sec))clusterMap.set(sec,clusterMap.size);
+});
+var clusterCount=Math.max(1,clusterMap.size);
+var clusterColors=["rgba(72,215,255,.08)","rgba(199,146,234,.08)","rgba(126,231,135,.08)","rgba(255,209,102,.08)","rgba(255,123,114,.08)","rgba(105,240,174,.08)","rgba(130,170,255,.08)","rgba(255,200,87,.08)"];
+var nodes=entries.map(function(e,i){
+  var sec=(e.source&&e.source.section)?e.source.section:"";
+  var ci=clusterMap.has(sec)?clusterMap.get(sec):0;
+  var ca=ci*(2*Math.PI/clusterCount),cr=180+60*Math.floor(ci/8);
+  var jitter=i*2.399963,jr=30+6*Math.sqrt(i%20);
+  return{id:e.id,e:e,idx:i,x:Math.cos(ca)*cr+Math.cos(jitter)*jr,y:Math.sin(ca)*cr+Math.sin(jitter)*jr,vx:0,vy:0,r:4+(e.confidence||0)*8,vis:true,cluster:ci,clusterKey:sec};
+});
+var byId=new Map(nodes.map(function(n){return[n.id,n]}));
+var edges=[];
+entries.forEach(function(e){
+  (e.supports_entries||[]).forEach(function(t){if(byId.has(t))edges.push({s:e.id,t:t,k:"supports"})});
+  (e.contradicts_entries||[]).forEach(function(t){if(byId.has(t))edges.push({s:e.id,t:t,k:"contradicts"})});
+  (e.supersedes_entries||[]).forEach(function(t){if(byId.has(t))edges.push({s:e.id,t:t,k:"supersedes"})});
+});
+var fil={types:new Set(types),statuses:new Set(statuses),min:0,q:"",iter:Math.max(bb.iteration||0)};
+entries.forEach(function(e){if((e.iteration||0)>fil.iter)fil.iter=e.iteration});
+
+// Influence scores (indexed for O(entries + edges) instead of O(entries * edges))
+var influence=new Map();
+var _inD=new Map(),_outD=new Map(),_contradD=new Map();
+edges.forEach(function(ed){
+  _inD.set(ed.t,(_inD.get(ed.t)||0)+1);
+  _outD.set(ed.s,(_outD.get(ed.s)||0)+1);
+  if(ed.k==="contradicts"){_contradD.set(ed.s,(_contradD.get(ed.s)||0)+1);_contradD.set(ed.t,(_contradD.get(ed.t)||0)+1)}
+});
+entries.forEach(function(e){
+  var inD=_inD.get(e.id)||0,outD=_outD.get(e.id)||0,contrad=_contradD.get(e.id)||0;
+  var score=inD*2+outD+(e.addresses_signals||[]).length*3+(e.opens_questions||[]).length;
+  influence.set(e.id,{score:score,inD:inD,outD:outD,contrad:contrad});
+});
+
+// Support graph (IIFE-scope for collapse test + detail + tooltip)
+var supportedBy=new Map();
+var supportsWhat=new Map();
+edges.forEach(function(e){
+  if(e.k==="supports"){
+    if(!supportedBy.has(e.t))supportedBy.set(e.t,[]);
+    supportedBy.get(e.t).push(e.s);
+    if(!supportsWhat.has(e.s))supportsWhat.set(e.s,[]);
+    supportsWhat.get(e.s).push(e.t);
+  }
+});
+
+// Collapse test: source docs reachable through support chains
+var entrySourceDocs=new Map();
+entries.forEach(function(e){
+  var s=new Set();
+  if(e.source&&e.source.document)s.add(e.source.document);
+  entrySourceDocs.set(e.id,s);
+});
+var _changed=true,_rounds=20;
+while(_changed&&_rounds-->0){
+  _changed=false;
+  edges.forEach(function(e){
+    if(e.k!=="supports")return;
+    var ss=entrySourceDocs.get(e.s),ts=entrySourceDocs.get(e.t);
+    if(!ss||!ts)return;
+    ss.forEach(function(doc){if(!ts.has(doc)){ts.add(doc);_changed=true}});
+  });
+}
+var allContradictEdges=edges.filter(function(e){return e.k==="contradicts"});
+var importance=[];
+var conclusions=entries.filter(function(e){
+  return e.status==="active"&&(e.type==="analysis"||e.type==="strategy"||e.type==="calculation");
+});
+var _contrasByDoc=new Map();
+allContradictEdges.forEach(function(ce){
+  var a=byId.get(ce.s),b=byId.get(ce.t);
+  if(!a||!b)return;
+  if(a.e.source&&a.e.source.document){var ad=a.e.source.document;if(!_contrasByDoc.has(ad))_contrasByDoc.set(ad,[]);_contrasByDoc.get(ad).push(ce)}
+  if(b.e.source&&b.e.source.document){var bd=b.e.source.document;if(bd!==(a.e.source&&a.e.source.document)){if(!_contrasByDoc.has(bd))_contrasByDoc.set(bd,[]);_contrasByDoc.get(bd).push(ce)}}
+});
+var docImpact=new Map();
+docs.forEach(function(d){
+  var did=d.id||d.doc_id;
+  var broken=[],weakened=[],robust=[];
+  conclusions.forEach(function(c){
+    var sd=entrySourceDocs.get(c.id);
+    if(!sd||sd.size===0)return;
+    if(!sd.has(did)){robust.push(c);return}
+    if(sd.size===1)broken.push(c);else weakened.push(c);
+  });
+  var hiddenContras=_contrasByDoc.get(did)||[];
+  docImpact.set(did,{doc:d,broken:broken,weakened:weakened,robust:robust,
+    hiddenContras:hiddenContras,score:broken.length*10+weakened.length*3+hiddenContras.length*2});
+});
+var fragileConclusions=conclusions.filter(function(c){
+  var sd=entrySourceDocs.get(c.id);return sd&&sd.size===1;
+});
+var loadBearingDoc=null,maxImpactScore=-1;
+docImpact.forEach(function(imp){if(imp.score>maxImpactScore){maxImpactScore=imp.score;loadBearingDoc=imp}});
+var hasProvenance=entries.filter(function(e){return e.source&&e.source.document}).length;
+var hasSupportEdgeCount=edges.filter(function(e){return e.k==="supports"}).length;
+var nonDefaultConf=entries.filter(function(e){return e.confidence!==undefined&&e.confidence!==0.5&&e.confidence!==0}).length;
+var auditLevel=(hasProvenance>=entries.length*0.4&&hasSupportEdgeCount>=3&&nonDefaultConf>=entries.length*0.3)?"ready":
+  (hasProvenance>=entries.length*0.15||hasSupportEdgeCount>=1)?"partial":"sparse";
+var skepticMode=false;
+var collapseHighlight=null;
+
+// Progression narration — auto-generate per-iteration summaries
+var maxIter=Math.max(bb.iteration||0);
+entries.forEach(function(e){maxIter=Math.max(maxIter,e.iteration||0)});
+signals.forEach(function(s){maxIter=Math.max(maxIter,s.iteration_created||0)});
+var iterNarration=[];
+for(var ni=0;ni<=maxIter;ni++){
+  var iEntries=entries.filter(function(e){return(e.iteration||0)===ni});
+  var iSignals=signals.filter(function(s){return(s.iteration_created||0)===ni});
+  var iTypes={};iEntries.forEach(function(e){iTypes[e.type]=(iTypes[e.type]||0)+1});
+  var iContrad=0;iEntries.forEach(function(e){iContrad+=(e.contradicts_entries||[]).length});
+  var iResolved=iEntries.filter(function(e){return(e.addresses_signals||[]).length>0}).length;
+  var parts=[];
+  if(ni===0){
+    if(iTypes.observation)parts.push("Started with "+iTypes.observation+" observation"+(iTypes.observation>1?"s":""));
+    if(iTypes.analysis)parts.push(iTypes.analysis+" analysis finding"+(iTypes.analysis>1?"s":""));
+    if(!parts.length)parts.push(iEntries.length+" initial findings");
+  }else{
+    if(iEntries.length)parts.push("Added "+iEntries.length+" finding"+(iEntries.length>1?"s":""));
+    if(iTypes.analysis)parts.push(iTypes.analysis+" new analys"+(iTypes.analysis>1?"es":"is"));
+    if(iTypes.calculation)parts.push(iTypes.calculation+" calculation"+(iTypes.calculation>1?"s":""));
+    if(iContrad)parts.push("discovered "+iContrad+" contradiction"+(iContrad>1?"s":""));
+    if(iResolved)parts.push("resolved "+iResolved+" question"+(iResolved>1?"s":""));
+  }
+  if(iSignals.length)parts.push(iSignals.length+" new signal"+(iSignals.length>1?"s":"")+" raised");
+  // Name the most important finding per iteration
+  var topIterEntry=iEntries.slice().sort(function(a,b){return(influence.get(b.id)||{score:0}).score-(influence.get(a.id)||{score:0}).score})[0];
+  if(topIterEntry&&ni>0)parts.push("Key: "+topIterEntry.content.slice(0,80));
+  if(!parts.length)parts.push("No new findings recorded");
+  iterNarration.push({iter:ni,count:iEntries.length,text:parts.join(". ")+"."});
+}
+
+// Accumulation trajectory — findings, signals, contradictions per iteration
+var convTrajectory=[];
+for(var ci=0;ci<=maxIter;ci++){
+  var cumEntries=entries.filter(function(e){return(e.iteration||0)<=ci});
+  var cumSignals=signals.filter(function(s){return(s.iteration_created||0)<=ci});
+  var cumContrad=0;cumEntries.forEach(function(e){cumContrad+=(e.contradicts_entries||[]).length});
+  var complexity=cumSignals.length*3+cumContrad*5;
+  var cov=cumEntries.length*2;
+  var cScore=Math.max(0,Math.min(100,Math.round(cov/(cov+complexity+1)*100)));
+  convTrajectory.push(cScore);
+}
+
+var canvas=$("#graph"),ctx=canvas.getContext("2d"),mini=$("#mini"),mctx=mini.getContext("2d"),tip=$("#tip");
+// DPI-correct: use CSS-space viewW/viewH
+var viewW=0,viewH=0,dpr=1;
+var cam={x:0,y:0,z:1},sel=null,hov=null,drag=null,pan=false,last={x:0,y:0},frame=0,playing=false,timer=null;
+var flashId=null,flashFrame=0;
+var entranceStart=Date.now(),entranceDur=2200;
+var cachedVis=[];var cachedVisEdges=[];var simSettled=false;var dirty=true;
+var narrationEl=$("#narration");
+
+function cacheVis(){
+  cachedVis=nodes.filter(function(n){return n.vis});
+  cachedVisEdges=edges.filter(function(e){var a=byId.get(e.s),b=byId.get(e.t);return a&&a.vis&&b&&b.vis});
+}
+function vis(){return cachedVis}
+
+function w2s(x,y){return{x:(x+cam.x)*cam.z+viewW/2,y:(y+cam.y)*cam.z+viewH/2}}
+function s2w(x,y){return{x:(x-viewW/2)/cam.z-cam.x,y:(y-viewH/2)/cam.z-cam.y}}
+
+function jumpToEntry(id,stayOnTab){
+  var n=byId.get(id);if(!n)return;
+  if(!n.vis){
+    fil.types.add(n.e.type);fil.statuses.add(n.e.status);
+    fil.iter=Math.max(fil.iter,n.e.iteration||0);
+    if((n.e.confidence||0)<fil.min)fil.min=0;
+    fil.q="";$("#search").value="";$("#conf").value=Math.round(fil.min*100);$("#confLbl").textContent=Math.round(fil.min*100)+"%";
+    $("#iterSlider").value=fil.iter;
+    syncFilterButtons();
+    applyFilters();
+  }
+  sel=n;cam.x=-n.x;cam.y=-n.y;cam.z=Math.max(cam.z,1.15);
+  $("#zLbl").textContent=Math.round(cam.z*100)+"%";
+  flashId=id;flashFrame=0;simSettled=false;dirty=true;
+  $("#dp").classList.add("open");
+  if(!stayOnTab)switchTab("detail");
+  panels();updateHash();updateFindingsIndex();
+}
+
+document.body.addEventListener("click",function(ev){
+  var t=ev.target;
+  while(t&&t!==document.body){
+    if(t.dataset&&t.dataset.jump){
+      ev.preventDefault();
+      var fromBriefing=!!t.closest("#tabBriefing");
+      jumpToEntry(t.dataset.jump,fromBriefing);
+      break;
+    }
+    t=t.parentElement;
+  }
+  t=ev.target;
+  if(t.classList&&t.classList.contains("copy-link-btn")){
+    var eid=t.dataset.entry;
+    navigator.clipboard.writeText(location.origin+location.pathname+"#entry="+eid);
+    t.textContent="Copied!";setTimeout(function(){t.textContent="Copy link"},1200);
+  }
+  if(t.classList&&t.classList.contains("exp-toggle")){
+    ev.stopPropagation();
+    var expEl=document.getElementById(t.dataset.exp);
+    if(expEl){var isOpen=expEl.classList.toggle("open");t.textContent=isOpen?"show less":"show more"}
+  }
+  if(t.classList&&t.classList.contains("share-card-btn")){
+    var sid=t.dataset.entry;
+    var sn=byId.get(sid);
+    if(sn){
+      var se=sn.e,sInf=influence.get(se.id)||{score:0};
+      var sConf=Math.round((se.confidence||0)*100);
+      var sType=(typeLabels[se.type]||se.type).toUpperCase();
+      var card="["+sType+"] "+(se.label?se.label+"\n":"");
+      card+=se.content+"\n\n";
+      card+="Confidence: "+sConf+"% | Influence: "+sInf.score;
+      var sSups=(supportedBy.get(se.id)||[]).length;
+      if(sSups)card+=" | "+sSups+" supporting evidence";
+      var sContras=edges.filter(function(ed){return ed.k==="contradicts"&&(ed.s===se.id||ed.t===se.id)}).length;
+      if(sContras)card+=" | "+sContras+" disputed";
+      card+="\n";
+      if(se.source&&se.source.document)card+="Source: "+se.source.document+(se.source.section?" > "+se.source.section:"")+"\n";
+      if(se.source&&se.source.evidence)card+='Quote: "'+se.source.evidence+'"\n';
+      card+="---\nFrom: "+bb.task+"\nAnalyzed by Blackboard MCP";
+      navigator.clipboard.writeText(card);
+      t.textContent="Copied!";t.style.color="var(--good)";
+      setTimeout(function(){t.textContent="Copy as card";t.style.color="var(--accent)"},1500);
+    }
+  }
+});
+
+function updateHash(){if(sel)history.replaceState(null,"","#entry="+sel.id);else history.replaceState(null,"","#")}
+function parseHash(){
+  var h=location.hash.slice(1);if(!h)return;
+  var m=h.match(/entry=([^&]+)/);
+  if(m){var n=byId.get(m[1]);if(n)jumpToEntry(m[1])}
+}
+
+function xref(id){var n=byId.get(id);var lbl=n?shortLabel(n.e):id;return'<button class="xref" data-jump="'+esc(id)+'" title="'+esc(id)+'">'+esc(lbl)+'</button>'}
+function xrefList(ids){return ids.map(xref).join(" ")}
+
+function applyFilters(){
+  nodes.forEach(function(n){
+    var e=n.e,hay=[e.id,e.type,e.status,e.content,(e.tags||[]).join(" "),
+      e.source?e.source.document:"",e.source?e.source.section:"",e.source?e.source.evidence:""].join(" ").toLowerCase();
+    n.vis=fil.types.has(e.type)&&fil.statuses.has(e.status)&&(e.confidence||0)>=fil.min&&(e.iteration||0)<=fil.iter&&(!fil.q||hay.indexOf(fil.q)>=0);
+  });
+  cacheVis();if(sel&&!sel.vis)sel=null;simSettled=false;dirty=true;panels();updateFindingsIndex();if(isListView)renderListView();
+}
+
+function panels(){briefing();stats();histogram();detail();convergence();convTraj();contradictions();coverage();chainDepth();progression();questions();srcDependency();collapseTestPanel();insightStrip()}
+
+function stats(){
+  var v=vis(),ve=v.map(function(n){return n.e});
+  var avg=ve.length?ve.reduce(function(s,e){return s+(e.confidence||0)},0)/ve.length:0;
+  var cr=ve.length?cachedVisEdges.filter(function(e){return e.k==="contradicts"}).length/ve.length:0;
+  var visSignals=signals.filter(function(s){return(s.iteration_created||0)<=fil.iter});
+  var os=visSignals.filter(function(s){return s.status==="open"}).length;
+  $("#stats").innerHTML=mc(v.length,"visible findings")+mc(Math.round(avg*100)+"%","avg confidence")+mc(Math.round(cr*100)+"%","contradiction rate")+mc(os,"open questions");
+}
+function mc(v,l){return'<div class="mc"><b>'+esc(v)+'</b><span>'+esc(l)+'</span></div>'}
+
+function histogram(){
+  var bins=Array(10).fill(0);
+  entries.forEach(function(e){bins[Math.min(9,Math.floor((e.confidence||0)*10))]++});
+  var mx=Math.max.apply(null,[1].concat(bins));
+  $("#hist").innerHTML=bins.map(function(c,i){
+    return'<i style="height:'+Math.max(2,Math.round(c/mx*66))+'px" title="'+(i*10)+"-"+(i*10+10)+"%: "+c+' findings"></i>'
+  }).join("");
+}
+
+function detail(){
+  if(!sel){
+    var sum='<h2>Finding Details</h2><p style="color:var(--muted);font-size:12px;margin-bottom:10px">Click any node or row to inspect it.</p>';
+    sum+='<div class="narrative"><strong>Quick summary:</strong> '+entries.length+' findings across '+docs.length+' source'+(docs.length!==1?"s":"")+'. ';
+    var act=entries.filter(function(e){return e.status==="active"}).length;
+    var disp=entries.filter(function(e){return e.status==="disputed"}).length;
+    if(act)sum+=act+' active';if(disp)sum+=', '+disp+' disputed';
+    sum+='. Avg confidence: '+Math.round((entries.length?entries.reduce(function(s,e){return s+(e.confidence||0)},0)/entries.length:0)*100)+'%.</div>';
+    $("#detail").innerHTML=sum;return;
+  }
+  var e=sel.e,s=e.source||{},inf=influence.get(e.id)||{score:0,inD:0,outD:0,contrad:0};
+  var confPct=Math.round((e.confidence||0)*100);
+  var confColor=confPct>=80?"var(--good)":confPct>=60?"var(--warn)":"var(--bad)";
+  var h='<h2>Finding Details</h2>';
+  h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">';
+  h+='<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:'+(colors[e.type]||"#edf3ff")+'"></span>';
+  h+='<b style="color:'+(colors[e.type]||"#edf3ff")+'">'+(typeLabels[e.type]||e.type)+'</b>';
+  if(e.label)h+='<span style="font-size:12px;font-weight:600;color:var(--text)">'+esc(e.label)+'</span>';
+  if(e.status==="disputed")h+='<span class="chip" style="border-color:var(--bad);color:var(--bad)">Disputed</span>';
+  h+='</div>';
+  // Confidence gauge bar
+  h+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">';
+  h+='<div style="flex:1;height:6px;border-radius:3px;background:rgba(255,255,255,.06);overflow:hidden">';
+  h+='<div style="width:'+confPct+'%;height:100%;border-radius:3px;background:linear-gradient(90deg,'+confColor+','+confColor+');transition:width .3s"></div></div>';
+  h+='<span style="font-size:12px;font-weight:700;color:'+confColor+';min-width:36px;text-align:right">'+confPct+'%</span>';
+  h+='<span style="font-size:10px;color:var(--muted)">confidence</span>';
+  h+='</div>';
+  // Narrative context — why this finding matters
+  var narrativeParts=[];
+  var rank=-1;importance.forEach(function(item,i){if(item.e.id===e.id)rank=i});
+  if(rank===0)narrativeParts.push("the most influential finding in this analysis");
+  else if(rank>0&&rank<3)narrativeParts.push("#"+(rank+1)+" most influential finding");
+  else if(rank>=3&&rank<10)narrativeParts.push("top "+Math.round((rank+1)/entries.length*100)+"% by influence");
+  var supportsCount=(supportsWhat.get(e.id)||[]).length;
+  var supportedCount=(supportedBy.get(e.id)||[]).length;
+  if(supportsCount>0)narrativeParts.push("backs "+supportsCount+" other conclusion"+(supportsCount>1?"s":""));
+  if(supportedCount>0)narrativeParts.push("supported by "+supportedCount+" finding"+(supportedCount>1?"s":""));
+  var contraCount=edges.filter(function(ed){return ed.k==="contradicts"&&(ed.s===e.id||ed.t===e.id)}).length;
+  if(contraCount>0)narrativeParts.push("contested by "+contraCount+" finding"+(contraCount>1?"s":""));
+  if(narrativeParts.length){
+    h+='<div style="padding:8px 10px;background:rgba(72,215,255,.04);border:1px solid rgba(72,215,255,.12);border-radius:var(--radius);margin-bottom:10px;font-size:11px;line-height:1.5;color:var(--soft)">';
+    h+=narrativeParts.join(" &middot; ");
+    h+='</div>';
+  }
+  h+='<p style="margin:8px 0;line-height:1.6;font-size:13px">'+esc(e.content)+'</p>';
+  // Share card button
+  h+='<div style="display:flex;gap:6px;margin:10px 0">';
+  h+='<button class="share-card-btn" data-entry="'+esc(e.id)+'" style="font-size:10px;padding:4px 10px;color:var(--accent);border-color:var(--accent);background:rgba(72,215,255,.06)">Copy as card</button>';
+  h+='<button class="copy-link-btn" data-entry="'+esc(e.id)+'" style="font-size:10px;padding:4px 10px">Copy link</button>';
+  h+='</div>';
+  h+='<div class="kv">';
+  h+='<div>ID</div><div style="font-family:var(--mono);font-size:10px;color:var(--muted)">'+esc(e.id)+'</div>';
+  h+='<div>Status</div><div>'+(statusLabels[e.status]||e.status)+'</div>';
+  h+='<div>Iteration</div><div>'+esc(e.iteration)+'</div>';
+  h+='<div>Created by</div><div>'+esc(e.created_by)+'</div>';
+  if((e.supports_entries||[]).length)h+='<div>Supports</div><div>'+xrefList(e.supports_entries)+'</div>';
+  if((e.contradicts_entries||[]).length)h+='<div>Contradicts</div><div>'+xrefList(e.contradicts_entries)+'</div>';
+  if((e.supersedes_entries||[]).length)h+='<div>Replaces</div><div>'+xrefList(e.supersedes_entries)+'</div>';
+  if((e.addresses_signals||[]).length)h+='<div>Addresses</div><div>'+e.addresses_signals.map(function(id){return'<span class="chip" style="font-size:10px">'+esc(id)+'</span>'}).join(" ")+'</div>';
+  if((e.tags||[]).length)h+='<div>Tags</div><div>'+e.tags.map(function(t){return'<span class="chip" style="font-size:10px">'+esc(t)+'</span>'}).join(" ")+'</div>';
+  h+='</div>';
+  if(s.document){
+    h+='<div class="evidence"><div style="color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Source Evidence</div>';
+    var docName=docs.find(function(d){return(d.id||d.doc_id)===s.document});
+    h+='<b>'+esc(docName?docName.name:s.document)+'</b>';
+    if(s.section)h+='<br><span style="color:var(--muted)">Section:</span> '+esc(s.section);
+    if(s.evidence)h+='<br><span style="color:var(--muted)">Quote:</span> "'+esc(s.evidence)+'"';
+    h+='</div>';
+  }
+  var connected=[];
+  edges.forEach(function(ed){
+    if(ed.s===e.id&&byId.has(ed.t)){var n=byId.get(ed.t);connected.push({id:ed.t,k:ed.k,label:n.e.label,content:n.e.content,type:n.e.type})}
+    if(ed.t===e.id&&byId.has(ed.s)){var n2=byId.get(ed.s);connected.push({id:ed.s,k:ed.k+"_by",label:n2.e.label,content:n2.e.content,type:n2.e.type})}
+  });
+  if(connected.length){
+    h+='<div style="margin-top:12px"><div style="color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Connected Findings ('+connected.length+')</div>';
+    connected.forEach(function(c){
+      var kLabel=c.k==="supports"?"supports":c.k==="contradicts"?"contradicts":c.k==="supersedes"?"supersedes":c.k==="supports_by"?"supported by":c.k==="contradicts_by"?"contradicted by":"superseded by";
+      var kColor=c.k.indexOf("contradict")>=0?"var(--bad)":c.k.indexOf("supersede")>=0?"var(--warn)":"var(--good)";
+      h+='<div style="margin-bottom:8px;padding:6px 8px;background:rgba(255,255,255,.02);border-radius:var(--radius);border-left:2px solid '+kColor+';cursor:pointer" data-jump="'+esc(c.id)+'">';
+      h+='<div style="font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:'+kColor+';margin-bottom:3px">'+kLabel+'</div>';
+      if(c.label)h+='<div style="font-size:11px;font-weight:600;color:var(--text);margin-bottom:2px">'+esc(c.label)+'</div>';
+      h+='<p style="font-size:11px;line-height:1.4;color:var(--soft);margin:0">'+expandable(c.content,220)+'</p>';
+      h+='</div>';
+    });
+    h+='</div>';
+  }
+  $("#detail").innerHTML=h;
+}
+
+function convergence(){
+  var visSignals=signals.filter(function(s){return(s.iteration_created||0)<=fil.iter});
+  var visEntries=cachedVis.map(function(n){return n.e});
+  var crit=visSignals.filter(function(s){return s.status==="open"&&s.priority==="critical"}).length;
+  var high=visSignals.filter(function(s){return s.status==="open"&&s.priority==="high"}).length;
+  var disp=visEntries.filter(function(e){return e.status==="disputed"}).length;
+  var unr=docs.filter(function(d){return d.read_status==="unread"}).length;
+  var score=Math.max(0,Math.min(100,100-crit*22-high*9-disp*7-unr*11));
+  var label=score>=80?"Ready":score>=50?"Needs work":"Not ready";
+  var lc=score>=80?"var(--good)":score>=50?"var(--warn)":"var(--bad)";
+  var h='<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px"><span style="font-size:28px;font-weight:700;color:'+lc+'">'+score+'%</span><span style="color:'+lc+';font-size:12px">'+label+'</span></div>';
+  h+='<div class="bar bar-conv"><i style="width:'+score+'%"></i></div>';
+  if(crit||high||disp||unr){
+    h+='<div style="margin-top:10px;font-size:11px">';
+    if(crit)h+='<div style="color:var(--bad);margin-bottom:3px">'+crit+' critical question'+(crit>1?"s":"")+" unresolved</div>";
+    if(high)h+='<div style="color:var(--warn);margin-bottom:3px">'+high+' high-priority question'+(high>1?"s":"")+" unresolved</div>";
+    if(disp)h+='<div style="color:var(--warn);margin-bottom:3px">'+disp+' disputed finding'+(disp>1?"s":"")+"</div>";
+    if(unr)h+='<div style="color:var(--muted);margin-bottom:3px">'+unr+' source'+(unr>1?"s":"")+" not yet read</div>";
+    h+='</div>';
+  }
+  $("#conv").innerHTML=h;
+}
+
+function convTraj(){
+  if(convTrajectory.length<=1){$("#convTrajectory").innerHTML='<p style="color:var(--muted);font-size:12px">Single iteration.</p>';return}
+  var h='<div class="sparkline">';
+  convTrajectory.forEach(function(s,i){
+    var color=s>=80?"var(--good)":s>=50?"var(--warn)":"var(--bad)";
+    var active=i<=fil.iter;
+    h+='<i style="height:'+Math.max(2,Math.round(s/100*38))+'px;background:'+color+';opacity:'+(active?1:.25)+'" title="Iteration '+i+': '+s+'%"></i>';
+  });
+  h+='</div>';
+  var first=convTrajectory[0],last=convTrajectory[convTrajectory.length-1],delta=last-first;
+  h+='<p style="font-size:11px;color:var(--muted);margin-top:6px">';
+  if(delta>0)h+='Coverage grew '+delta+' points across '+convTrajectory.length+' iterations as findings outpaced open questions.';
+  else if(delta<0)h+='Complexity outpaced findings — dropped '+Math.abs(delta)+' points as new questions and contradictions accumulated.';
+  else h+='Stable at '+last+'% across iterations.';
+  h+='</p>';
+  $("#convTrajectory").innerHTML=h;
+}
+
+function contradictions(){
+  var ces=cachedVisEdges.filter(function(e){return e.k==="contradicts"}).slice(0,8);
+  if(!ces.length){$("#contras").innerHTML='<p style="color:var(--good);font-size:12px">No conflicting findings.</p>';return}
+  $("#contras").innerHTML=ces.map(function(e){
+    var a=byId.get(e.s),b=byId.get(e.t);
+    var aLabel=a?expandable(a.e.content,160):"?";
+    var bLabel=b?expandable(b.e.content,160):"?";
+    return'<div class="item"><div style="display:flex;gap:4px;margin-bottom:4px">'+xref(e.s)+'<span style="color:var(--bad);font-size:10px">vs</span>'+xref(e.t)+'</div><p style="line-height:1.4">'+aLabel+'</p><p style="margin-top:4px;color:var(--bad);font-style:italic;line-height:1.4">vs: '+bLabel+'</p></div>';
+  }).join("");
+}
+
+function coverage(){
+  if(!docs.length){$("#cov").innerHTML='<p style="color:var(--muted);font-size:12px">No source documents.</p>';return}
+  $("#cov").innerHTML=docs.map(function(d){
+    var pct=d.sections&&d.sections.length?Math.round((d.sections_read||[]).length/d.sections.length*100):(d.read_status==="fully_read"?100:0);
+    var st=d.read_status==="fully_read"?"Fully analyzed":d.read_status==="partially_read"?"Partially analyzed":"Not yet read";
+    var sc=d.read_status==="fully_read"?"var(--good)":d.read_status==="partially_read"?"var(--warn)":"var(--muted)";
+    return'<div style="margin-bottom:8px"><p style="font-size:12px;margin-bottom:2px">'+esc(d.name)+'</p><p style="font-size:10px;color:'+sc+'">'+st+(pct?' ('+pct+'%)':'')+'</p><div class="bar bar-good"><i style="width:'+pct+'%"></i></div></div>';
+  }).join("");
+}
+
+function srcDependency(){
+  var docFindings=new Map(),docDisputed=new Map(),unsourced=0;
+  cachedVis.map(function(n){return n.e}).forEach(function(e){
+    if(!e.source||!e.source.document){unsourced++;return}
+    var d=e.source.document;docFindings.set(d,(docFindings.get(d)||0)+1);
+    if(e.status==="disputed")docDisputed.set(d,(docDisputed.get(d)||0)+1);
+  });
+  var sorted=Array.from(docFindings.entries()).sort(function(a,b){return b[1]-a[1]});
+  var h="";
+  if(sorted.length){
+    h+='<div style="font-size:11px;margin-bottom:8px">';
+    sorted.forEach(function(p){
+      var disp=docDisputed.get(p[0])||0;
+      h+='<div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="color:var(--soft)">'+esc(p[0])+'</span><span>'+p[1]+' findings'+(disp?' <span style="color:var(--bad)">('+disp+' disputed)</span>':'')+'</span></div>';
+    });
+    h+='</div>';
+  }
+  if(unsourced)h+='<p style="font-size:11px;color:var(--warn)">'+unsourced+' finding'+(unsourced>1?"s":"")+' without source attribution</p>';
+  if(!h)h='<p style="color:var(--muted);font-size:12px">No source dependency data.</p>';
+  $("#srcDep").innerHTML=h;
+}
+
+function collapseTestPanel(){
+  var el=$("#collapseTest");if(!el)return;
+  if(!docs.length||auditLevel==="sparse"){
+    el.innerHTML='<p style="color:var(--muted);font-size:12px">'+
+      (auditLevel==="sparse"?'Not enough source provenance or support edges to run collapse test. Add source attribution and support relationships to enable this analysis.':
+      'No source documents.')+'</p>';
+    return;
+  }
+  var sorted=docs.slice().sort(function(a,b){
+    var ai=docImpact.get(a.doc_id),bi=docImpact.get(b.doc_id);
+    return(bi?bi.score:0)-(ai?ai.score:0);
+  });
+  var maxScore=1;sorted.forEach(function(d){var imp=docImpact.get(d.id||d.doc_id);if(imp&&imp.score>maxScore)maxScore=imp.score});
+  var h='';
+  sorted.forEach(function(d){
+    var imp=docImpact.get(d.id||d.doc_id);
+    if(!imp)return;
+    var name=d.name.length>50?d.name.slice(0,47)+'...':d.name;
+    var isActive=collapseHighlight===(d.id||d.doc_id);
+    var barW=Math.max(4,Math.round(imp.score/maxScore*100));
+    var barColor=imp.broken.length>0?'var(--bad)':imp.weakened.length>0?'var(--warn)':'var(--good)';
+    h+='<div class="collapse-bar'+(isActive?' active':'')+'" data-collapse="'+esc(d.id||d.doc_id)+'">';
+    h+='<div class="cb-name">'+esc(name)+'</div>';
+    h+='<div class="cb-impact">';
+    if(imp.broken.length)h+='<span class="chip" style="font-size:8px;color:var(--bad);border-color:var(--bad)">'+imp.broken.length+' break</span>';
+    if(imp.weakened.length)h+='<span class="chip" style="font-size:8px;color:var(--warn);border-color:var(--warn)">'+imp.weakened.length+' weaken</span>';
+    if(imp.hiddenContras.length)h+='<span class="chip" style="font-size:8px;color:var(--muted)">'+imp.hiddenContras.length+' clash hidden</span>';
+    if(!imp.broken.length&&!imp.weakened.length)h+='<span class="chip" style="font-size:8px;color:var(--good)">safe to remove</span>';
+    h+='</div></div>';
+    // Impact bar
+    h+='<div style="height:3px;border-radius:2px;background:rgba(255,255,255,.04);margin:-4px 0 6px 0;overflow:hidden">';
+    h+='<div style="width:'+barW+'%;height:100%;background:'+barColor+';border-radius:2px"></div></div>';
+  });
+  // Summary
+  var totalBroken=0,totalWeakened=0;
+  docImpact.forEach(function(imp){totalBroken+=imp.broken.length;totalWeakened+=imp.weakened.length});
+  if(loadBearingDoc){
+    h+='<div style="margin-top:8px;padding:8px 10px;background:rgba(255,200,87,.04);border:1px solid rgba(255,200,87,.15);border-radius:var(--radius);font-size:11px;color:var(--soft)">';
+    h+='<strong style="color:var(--warn)">Most critical:</strong> Removing <em>'+esc(loadBearingDoc.doc.name.length>50?loadBearingDoc.doc.name.slice(0,47)+'...':loadBearingDoc.doc.name)+'</em>';
+    h+=' breaks '+loadBearingDoc.broken.length+' conclusion'+(loadBearingDoc.broken.length!==1?'s':'')+' and weakens '+loadBearingDoc.weakened.length+'.';
+    h+='</div>';
+  }
+  el.innerHTML=h;
+  // Click handler for collapse bars
+  el.querySelectorAll("[data-collapse]").forEach(function(bar){
+    bar.onclick=function(){
+      var did=bar.dataset.collapse;
+      if(collapseHighlight===did){collapseHighlight=null}else{collapseHighlight=did;if(skepticMode){skepticMode=false;$("#skepticBtn").classList.remove("active")}}
+      simSettled=false;dirty=true;collapseTestPanel();
+    };
+  });
+}
+
+function chainDepth(){
+  var memo=new Map();
+  var visIds=new Set(cachedVis.map(function(n){return n.id}));
+  function d(id,seen){
+    if(!seen)seen=new Set();if(seen.has(id))return 0;if(!visIds.has(id))return 0;if(memo.has(id))return memo.get(id);
+    seen.add(id);var mx=0;
+    cachedVisEdges.filter(function(e){return e.k==="supports"&&e.s===id}).forEach(function(e){mx=Math.max(mx,d(e.t,new Set(seen)))});
+    var v=1+mx;memo.set(id,v);return v;
+  }
+  var mx=0;cachedVis.forEach(function(n){mx=Math.max(mx,d(n.id))});
+  var h=mc(mx,"layers deep");
+  h+='<p style="color:var(--muted);font-size:11px;margin-top:6px">';
+  if(mx>=4)h+="Deep reasoning chains — thorough multi-step analysis.";
+  else if(mx>=2)h+="Moderate depth with chain of thought.";
+  else h+="Shallow — most findings are independent.";
+  h+='</p>';
+  $("#depth").innerHTML=h;
+}
+
+function progression(){
+  if(iterNarration.length<=1){$("#progression").innerHTML='<p style="color:var(--muted);font-size:12px">Single-iteration analysis.</p>';return}
+  var h=iterNarration.map(function(n){
+    var active=n.iter<=fil.iter;
+    return'<div class="item" data-it="'+n.iter+'" style="opacity:'+(active?1:.4)+'">'
+      +'<b>Iteration '+n.iter+(n.iter===0?" — Start":"")+'</b>'
+      +'<p>'+esc(n.text)+'</p></div>';
+  }).join("");
+  $("#progression").innerHTML=h;
+  document.querySelectorAll("#progression [data-it]").forEach(function(el){
+    el.onclick=function(){var v=parseInt(el.dataset.it);$("#iterSlider").value=v;fil.iter=v;$("#iterLbl").textContent="iteration "+v;applyFilters();var nr=iterNarration[v];if(nr)showNarration("Iteration "+v+": "+nr.text)};
+  });
+}
+
+function questions(){
+  var open=signals.filter(function(s){return s.status==="open"&&(s.iteration_created||0)<=fil.iter});
+  if(!open.length){$("#qs").innerHTML='<p style="color:var(--good);font-size:12px">All questions resolved.</p>';return}
+  $("#qs").innerHTML=open.map(function(s){
+    var prColor=s.priority==="critical"?"var(--bad)":s.priority==="high"?"var(--warn)":"var(--muted)";
+    var jumpTarget=null;
+    if(s.origin_entry&&byId.has(s.origin_entry))jumpTarget=s.origin_entry;
+    return'<div class="item"'+(jumpTarget?' data-jump="'+esc(jumpTarget)+'"':'')+'><b style="color:'+prColor+'">'+esc(s.priority)+' '+esc(s.type)+'</b><p>'+esc(s.content)+'</p></div>';
+  }).join("");
+}
+
+function insightStrip(){
+  var strip=$("#insightStrip");var visEntries=cachedVis.map(function(n){return n.e});
+  if(!visEntries.length){strip.innerHTML="";return}
+  var cards=[];
+  var topInf=null,topInfScore=-1;
+  visEntries.forEach(function(e){var s=influence.get(e.id);if(s&&s.score>topInfScore&&e.status==="active"){topInfScore=s.score;topInf=e}});
+  if(topInf)cards.push({label:"Most Central",value:topInf.content.slice(0,80),sub:"influence: "+topInfScore,id:topInf.id});
+
+  var topConf=null,topConfVal=0;
+  visEntries.forEach(function(e){if(e.type==="analysis"&&e.status==="active"&&(e.confidence||0)>topConfVal){topConfVal=e.confidence;topConf=e}});
+  if(topConf)cards.push({label:"Top Conclusion",value:topConf.content.slice(0,80),sub:Math.round(topConfVal*100)+"% confidence",id:topConf.id});
+
+  var visSignals=signals.filter(function(s){return(s.iteration_created||0)<=fil.iter});
+  var critSignal=visSignals.find(function(s){return s.status==="open"&&s.priority==="critical"});
+  if(!critSignal)critSignal=visSignals.find(function(s){return s.status==="open"&&s.priority==="high"});
+  if(critSignal){
+    var blockerId=critSignal.origin_entry&&byId.has(critSignal.origin_entry)?critSignal.origin_entry:null;
+    cards.push({label:"Main Blocker",value:critSignal.content.slice(0,80),sub:critSignal.priority+" priority",id:blockerId});
+  }
+
+  var topContrad=null;
+  cachedVisEdges.forEach(function(e){
+    if(e.k!=="contradicts")return;
+    var a=byId.get(e.s),b=byId.get(e.t);if(!a||!b)return;
+    var combined=(a.e.confidence||0)+(b.e.confidence||0);
+    if(!topContrad||combined>topContrad.combined)topContrad={s:e.s,t:e.t,combined:combined,content:a.e.content};
+  });
+  if(topContrad){var tcA=byId.get(topContrad.s),tcB=byId.get(topContrad.t);
+    cards.push({label:"Key Conflict",value:topContrad.content.slice(0,80),sub:(tcA?shortLabel(tcA.e):topContrad.s)+" vs "+(tcB?shortLabel(tcB.e):topContrad.t),id:topContrad.s});
+  }
+
+  strip.innerHTML=cards.map(function(c){
+    return'<div class="insight-card" '+(c.id?'data-jump="'+esc(c.id)+'"':'')+'>'
+      +'<div class="ic-label">'+esc(c.label)+'</div>'
+      +'<div class="ic-value">'+esc(c.value)+'</div>'
+      +'<div class="ic-sub">'+esc(c.sub)+'</div></div>';
+  }).join("");
+}
+
+// Briefing tab — knowledge-focused content
+function briefing(){
+  var h="";
+  var activeEntries=entries.filter(function(e){return e.status==="active"});
+  var strategies=activeEntries.filter(function(e){return e.type==="strategy"})
+    .sort(function(a,b){return(influence.get(b.id)||{score:0}).score-(influence.get(a.id)||{score:0}).score});
+  var topAnalyses=activeEntries.filter(function(e){return e.type==="analysis"&&(e.confidence||0)>=0.7})
+    .sort(function(a,b){return(influence.get(b.id)||{score:0}).score-(influence.get(a.id)||{score:0}).score});
+  var gapEntries=activeEntries.filter(function(e){return e.type==="gap"});
+  var contradictEdges=edges.filter(function(e){return e.k==="contradicts"});
+  var openSigs=signals.filter(function(s){return s.status==="open"});
+  var avgConf=entries.length?entries.reduce(function(s,e){return s+(e.confidence||0)},0)/entries.length:0;
+
+  // Compute composite importance: influence + support count + confidence
+  importance=activeEntries.map(function(e){
+    var inf=(influence.get(e.id)||{score:0}).score;
+    var supportCount=(supportsWhat.get(e.id)||[]).length;
+    var supportedCount=(supportedBy.get(e.id)||[]).length;
+    var typeMult=e.type==="analysis"?1.5:e.type==="strategy"?1.3:e.type==="calculation"?1.2:1;
+    return{e:e,score:inf*typeMult+supportCount*2+supportedCount+(e.confidence||0)*3};
+  }).sort(function(a,b){return b.score-a.score});
+
+  // Pre-compute chains and cross-edges for nav
+  var chains=[];
+  activeEntries.forEach(function(e){
+    var sups=supportedBy.get(e.id)||[];
+    if(sups.length<2)return;
+    var chain={conclusion:e,evidence:[]};
+    sups.forEach(function(sid){
+      var sn=byId.get(sid);
+      if(sn)chain.evidence.push(sn.e);
+    });
+    if(chain.evidence.length>=2)chains.push(chain);
+  });
+  chains.sort(function(a,b){
+    var aInf=(influence.get(a.conclusion.id)||{score:0}).score;
+    var bInf=(influence.get(b.conclusion.id)||{score:0}).score;
+    return bInf-aInf;
+  });
+
+  var crossEdges=[];
+  edges.forEach(function(e){
+    var a=byId.get(e.s),b=byId.get(e.t);if(!a||!b)return;
+    var aS=(a.e.source&&a.e.source.section)||"",bS=(b.e.source&&b.e.source.section)||"";
+    if(aS&&bS&&aS!==bS)crossEdges.push({edge:e,aS:aS,bS:bS});
+  });
+
+  // Identify surprising findings: high-influence but low-confidence, or contradicted
+  var contradictedIds=new Set();
+  contradictEdges.forEach(function(ce){contradictedIds.add(ce.s);contradictedIds.add(ce.t)});
+  var surprisingFindings=importance.filter(function(item){
+    var e=item.e;
+    var isContradicted=contradictedIds.has(e.id);
+    var isHighInfluenceLowConf=item.score>importance[Math.floor(importance.length/3)]?.score&&(e.confidence||0)<0.6;
+    var isCalculation=e.type==="calculation"&&(e.confidence||0)>=0.7;
+    return isContradicted||isHighInfluenceLowConf||isCalculation;
+  }).slice(0,5);
+
+  // Cross-document synthesis: find edges between entries from different documents (computed early for trust audit)
+  var crossDocEdges=[];
+  edges.forEach(function(e){
+    var a=byId.get(e.s),b=byId.get(e.t);if(!a||!b)return;
+    var aDoc=a.e.source&&a.e.source.document,bDoc=b.e.source&&b.e.source.document;
+    if(aDoc&&bDoc&&aDoc!==bDoc)crossDocEdges.push({edge:e,aDoc:aDoc,bDoc:bDoc,a:a.e,b:b.e});
+  });
+  var crossDocPairs=new Map();
+  crossDocEdges.forEach(function(cd){
+    var key=[cd.aDoc,cd.bDoc].sort().join(":");
+    if(!crossDocPairs.has(key))crossDocPairs.set(key,{docs:[cd.aDoc,cd.bDoc].sort(),supports:[],contradicts:[]});
+    var p=crossDocPairs.get(key);
+    if(cd.edge.k==="contradicts")p.contradicts.push(cd);
+    else p.supports.push(cd);
+  });
+
+  // Generate narrative bottom line
+  var bottomLine="";
+  (function(){
+    var topType="";var typeCounts={};
+    activeEntries.forEach(function(e){typeCounts[e.type]=(typeCounts[e.type]||0)+1});
+    var maxCount=0;Object.keys(typeCounts).forEach(function(t){if(typeCounts[t]>maxCount){maxCount=typeCounts[t];topType=t}});
+    var confLevel=avgConf>=0.8?"high":avgConf>=0.6?"moderate":"preliminary";
+    var scopeWord=docs.length>5?"comprehensive":docs.length>2?"multi-source":"focused";
+    var tensionWord=contradictEdges.length>3?"significant tensions":contradictEdges.length>0?"some tensions":"broad alignment";
+    var gapWord=gapEntries.length>5?"several open questions":gapEntries.length>0?"a few gaps":"strong coverage";
+    bottomLine="This "+scopeWord+" analysis of "+docs.length+" source"+(docs.length!==1?"s":"")+" produced "+activeEntries.length+" findings with "+confLevel+" confidence. ";
+    bottomLine+="The evidence shows "+tensionWord+" across topics, with "+gapWord+" remaining. ";
+    if(strategies.length)bottomLine+=strategies.length+" actionable recommendation"+(strategies.length!==1?"s":"")+" emerged.";
+    if(chains.length>2)bottomLine+=" "+chains.length+" conclusions are backed by multi-source evidence chains.";
+  })();
+
+  // Section navigation
+  var navItems=["Bottom Line","Trust","Start Here"];
+  if(crossDocEdges.length)navItems.push("Synthesis");
+  navItems.push("Summary");
+  if(surprisingFindings.length)navItems.push("Surprises");
+  if(contradictEdges.length)navItems.push("Disputes");
+  navItems.push("Connections");
+  if(chains.length)navItems.push("Evidence");
+  navItems.push("Findings","Topics","Gaps");
+  h+='<div class="briefing-nav">';
+  navItems.forEach(function(n){
+    var anchor="brief-"+n.toLowerCase().replace(/\s+/g,"-");
+    h+='<a href="#'+anchor+'">'+n+'</a>';
+  });
+  h+='<button id="copyBriefing" style="margin-left:auto;font-size:9px;padding:2px 8px;color:var(--accent);border-color:var(--accent);background:rgba(72,215,255,.06)" title="Copy briefing as markdown">Copy</button>';
+  h+='</div>';
+
+  // --- BOTTOM LINE --- narrative summary
+  h+='<section id="brief-bottom-line" class="panel" style="background:linear-gradient(135deg,rgba(72,215,255,.06),rgba(199,146,234,.04));border:1px solid rgba(72,215,255,.2);border-radius:var(--radius)">';
+  h+='<h2 style="color:var(--accent);font-size:12px;letter-spacing:.04em">The Bottom Line</h2>';
+  h+='<p style="font-size:13px;line-height:1.7;color:var(--text);margin:8px 0">'+esc(bottomLine)+'</p>';
+  if(topAnalyses.length){
+    h+='<div style="margin-top:8px;padding:10px 12px;background:rgba(0,0,0,.2);border-radius:var(--radius);border-left:3px solid var(--accent);cursor:pointer" data-jump="'+esc(topAnalyses[0].id)+'">';
+    h+='<p style="font-size:12px;line-height:1.6;color:var(--soft);font-style:italic">'+expandable(topAnalyses[0].content,300)+'</p>';
+    var topSources=supportedBy.get(topAnalyses[0].id)||[];
+    if(topSources.length)h+='<div style="font-size:9px;color:var(--muted);margin-top:4px">Backed by '+topSources.length+' supporting finding'+(topSources.length>1?"s":"")+'</div>';
+    h+='</div>';
+  }
+  h+='</section>';
+
+  // --- TRUST AUDIT --- argument structure analysis
+  var auditColor=auditLevel==="ready"?"var(--good)":auditLevel==="partial"?"var(--warn)":"var(--bad)";
+  var auditLabel=auditLevel==="ready"?"Audit-Ready":auditLevel==="partial"?"Partially Auditable":"Sparse";
+  h+='<section id="brief-trust" class="panel" style="border:1px solid rgba(255,200,87,.2);background:linear-gradient(135deg,rgba(255,200,87,.04),rgba(72,215,255,.03))">';
+  h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">';
+  h+='<h2 style="color:var(--warn);margin:0">Trust Audit</h2>';
+  h+='<span class="audit-badge audit-'+auditLevel+'">'+auditLabel+'</span>';
+  h+='</div>';
+  if(auditLevel==="sparse"){
+    h+='<div class="narrative" style="border-color:rgba(255,92,122,.3);background:rgba(255,92,122,.04)">';
+    h+='<strong style="color:var(--bad)">This board is not yet audit-ready.</strong> ';
+    var missing=[];
+    if(hasProvenance<=entries.length*0.2)missing.push((entries.length-hasProvenance)+' of '+entries.length+' findings lack source attribution');
+    if(hasSupportEdgeCount<1)missing.push('no support edges connect findings');
+    if(nonDefaultConf<=entries.length*0.3)missing.push('most confidence scores are default');
+    h+=missing.join('. ')+'. Add source provenance and support edges to enable fragility analysis.';
+    h+='</div>';
+  } else {
+    h+='<div class="trust-metric">';
+    if(fragileConclusions.length>0){
+      h+='<div class="trust-card" style="border-color:var(--bad)">';
+      h+='<div class="tc-label" style="color:var(--bad)">Fragile</div>';
+      h+='<div class="tc-value" style="color:var(--bad)">'+fragileConclusions.length+'</div>';
+      h+='<div class="tc-sub">conclusion'+(fragileConclusions.length!==1?'s':'')+' depend on a single source</div></div>';
+    } else {
+      h+='<div class="trust-card" style="border-color:var(--good)">';
+      h+='<div class="tc-label" style="color:var(--good)">Robust</div>';
+      h+='<div class="tc-value" style="color:var(--good)">0 fragile</div>';
+      h+='<div class="tc-sub">all conclusions have multi-source backing</div></div>';
+    }
+    if(loadBearingDoc){
+      var lbName=loadBearingDoc.doc.name.length>45?loadBearingDoc.doc.name.slice(0,42)+'...':loadBearingDoc.doc.name;
+      h+='<div class="trust-card" style="border-color:var(--warn)">';
+      h+='<div class="tc-label">Load-Bearing Source</div>';
+      h+='<div class="tc-value" style="font-size:12px">'+esc(lbName)+'</div>';
+      h+='<div class="tc-sub">removing it breaks '+loadBearingDoc.broken.length+', weakens '+loadBearingDoc.weakened.length+'</div></div>';
+    }
+    var multiSourceConclusions=conclusions.filter(function(c){var sd=entrySourceDocs.get(c.id);return sd&&sd.size>1});
+    h+='<div class="trust-card" style="border-color:var(--good)">';
+    h+='<div class="tc-label">Multi-Source</div>';
+    h+='<div class="tc-value" style="color:var(--good)">'+multiSourceConclusions.length+'</div>';
+    h+='<div class="tc-sub">conclusion'+(multiSourceConclusions.length!==1?'s':'')+' backed by 2+ sources</div></div>';
+    var crossDocAgree=0,crossDocClash=0;
+    if(typeof crossDocPairs!=="undefined"){crossDocPairs.forEach(function(p){crossDocAgree+=p.supports.length;crossDocClash+=p.contradicts.length})}
+    h+='<div class="trust-card">';
+    h+='<div class="tc-label">Cross-Source</div>';
+    h+='<div class="tc-value">'+crossDocAgree+'<span style="color:var(--good);font-size:10px"> agree</span> '+crossDocClash+'<span style="color:var(--bad);font-size:10px"> clash</span></div>';
+    h+='<div class="tc-sub">inter-document connections</div></div>';
+    h+='</div>';
+    // Fragile conclusions list
+    if(fragileConclusions.length>0){
+      h+='<div style="margin-top:6px">';
+      h+='<div style="font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--bad);margin-bottom:6px">Single-Source Conclusions</div>';
+      fragileConclusions.slice(0,4).forEach(function(c){
+        var sd=entrySourceDocs.get(c.id);
+        var srcDoc=sd?Array.from(sd)[0]:"";
+        var srcName="";docs.forEach(function(d){if((d.id||d.doc_id)===srcDoc)srcName=d.name});
+        h+='<div style="padding:6px 8px;margin-bottom:4px;border-left:2px solid var(--bad);background:rgba(255,92,122,.03);border-radius:0 var(--radius) var(--radius) 0;cursor:pointer" data-jump="'+esc(c.id)+'">';
+        h+='<p style="font-size:11px;line-height:1.4;color:var(--soft);margin:0">'+expandable(c.content,200)+'</p>';
+        if(srcName)h+='<div style="font-size:9px;color:var(--muted);margin-top:2px">sole source: '+esc(srcName.length>50?srcName.slice(0,47)+'...':srcName)+'</div>';
+        h+='</div>';
+      });
+      if(fragileConclusions.length>4)h+='<div style="font-size:10px;color:var(--muted)">+'+(fragileConclusions.length-4)+' more</div>';
+      h+='</div>';
+    }
+  }
+  h+='</section>';
+
+  // --- START HERE --- top 3 must-reads
+  var startHere=importance.slice(0,3);
+  h+='<section id="brief-start-here" class="panel" style="border:1px solid var(--accent);background:rgba(72,215,255,.04)">';
+  h+='<h2 style="color:var(--accent)">Start Here</h2>';
+  h+='<p class="panel-desc">'+activeEntries.length+' findings distilled — read these 3 first</p>';
+  startHere.forEach(function(item,i){
+    var e=item.e;
+    var supCount=(supportedBy.get(e.id)||[]).length;
+    var confPct=Math.round((e.confidence||0)*100);
+    h+='<div class="item" data-jump="'+esc(e.id)+'" style="cursor:pointer">';
+    h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">';
+    h+='<span style="font-size:18px;font-weight:800;color:var(--accent);min-width:22px">'+(i+1)+'</span>';
+    h+='<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+(colors[e.type]||"#edf3ff")+';flex-shrink:0;margin-top:3px"></span>';
+    h+='<b style="font-size:11px;color:'+(colors[e.type]||"#edf3ff")+';text-transform:uppercase">'+(typeLabels[e.type]||e.type)+'</b>';
+    if(e.label)h+='<span style="font-size:11px;font-weight:600;color:var(--text)">'+esc(e.label)+'</span>';
+    h+='<div style="display:flex;gap:4px;margin-left:auto">';
+    h+='<span class="chip" style="font-size:8px;color:'+(confPct>=80?"var(--good)":confPct>=60?"var(--warn)":"var(--bad)")+'">'+confPct+'%</span>';
+    if(supCount>0)h+='<span class="chip" style="font-size:8px;color:var(--accent)">'+supCount+' evidence</span>';
+    h+='</div>';
+    h+='</div>';
+    h+='<p style="font-size:12.5px;line-height:1.65;color:var(--soft);margin-left:30px">'+expandable(e.content,280)+'</p>';
+    // Show what supports this entry
+    var supporters=supportedBy.get(e.id)||[];
+    if(supporters.length){
+      h+='<div style="margin-left:30px;margin-top:6px;padding-left:8px;border-left:2px solid rgba(72,215,255,.2)">';
+      h+='<div style="font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:4px">Supporting evidence</div>';
+      supporters.slice(0,2).forEach(function(sid){
+        var sn=byId.get(sid);
+        if(sn)h+='<p style="font-size:10.5px;line-height:1.4;color:var(--muted);margin-bottom:3px">'+expandable(sn.e.content,120)+'</p>';
+      });
+      h+='</div>';
+    }
+    if(e.source&&e.source.section)h+='<div style="font-size:10px;color:var(--muted);margin-top:4px;margin-left:30px">'+esc(e.source.section)+'</div>';
+    h+='</div>';
+  });
+  h+='</section>';
+
+  // --- CROSS-DOCUMENT SYNTHESIS --- where different sources connect
+  if(crossDocEdges.length){
+    var docNameById=new Map();docs.forEach(function(d){docNameById.set(d.id||d.doc_id,d.name.length>35?d.name.slice(0,32)+"...":d.name)});
+    h+='<section id="brief-synthesis" class="panel" style="border:1px solid rgba(199,146,234,.3);background:linear-gradient(135deg,rgba(199,146,234,.05),rgba(72,215,255,.03))">';
+    h+='<h2 style="color:#c792ea">Cross-Document Synthesis</h2>';
+    h+='<p class="panel-desc">'+crossDocEdges.length+' connection'+(crossDocEdges.length>1?"s":"")+ ' found across '+crossDocPairs.size+' document pair'+(crossDocPairs.size>1?"s":"")+ ' — where independent sources converge or clash</p>';
+    var sortedDocPairs=Array.from(crossDocPairs.values()).sort(function(a,b){return(b.supports.length+b.contradicts.length)-(a.supports.length+a.contradicts.length)});
+    sortedDocPairs.forEach(function(pair){
+      var d1=docNameById.get(pair.docs[0])||pair.docs[0];
+      var d2=docNameById.get(pair.docs[1])||pair.docs[1];
+      h+='<div class="item">';
+      h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">';
+      h+='<span class="chip" style="font-size:10px;background:rgba(199,146,234,.15);color:#c792ea;border-color:rgba(199,146,234,.3)">'+esc(d1)+'</span>';
+      h+='<span style="color:#c792ea;font-size:14px;font-weight:700">&harr;</span>';
+      h+='<span class="chip" style="font-size:10px;background:rgba(199,146,234,.15);color:#c792ea;border-color:rgba(199,146,234,.3)">'+esc(d2)+'</span>';
+      h+='<div style="display:flex;gap:4px;margin-left:auto">';
+      if(pair.supports.length)h+='<span class="chip" style="font-size:8px;color:var(--good);border-color:rgba(105,240,174,.3)">'+pair.supports.length+' agree</span>';
+      if(pair.contradicts.length)h+='<span class="chip" style="font-size:8px;color:var(--bad);border-color:rgba(255,92,122,.3)">'+pair.contradicts.length+' clash</span>';
+      h+='</div></div>';
+      var examples=pair.contradicts.concat(pair.supports).slice(0,3);
+      examples.forEach(function(cd){
+        var kColor=cd.edge.k==="contradicts"?"var(--bad)":"var(--good)";
+        var kWord=cd.edge.k==="contradicts"?"contradicts":"supports";
+        h+='<div style="margin-bottom:6px;padding:8px;background:rgba(255,255,255,.02);border-radius:4px;border-left:2px solid '+kColor+'">';
+        h+='<p style="font-size:11px;line-height:1.4;color:var(--soft);margin-bottom:2px;cursor:pointer" data-jump="'+esc(cd.a.id)+'">';
+        h+=expandable(cd.a.content,100)+'</p>';
+        h+='<div style="font-size:9px;color:'+kColor+';margin:3px 0;font-weight:600">'+kWord+'</div>';
+        h+='<p style="font-size:11px;line-height:1.4;color:var(--soft);cursor:pointer" data-jump="'+esc(cd.b.id)+'">';
+        h+=expandable(cd.b.content,100)+'</p>';
+        h+='</div>';
+      });
+      h+='</div>';
+    });
+    h+='</section>';
+  }
+
+  // --- EXECUTIVE SUMMARY ---
+  h+='<section id="brief-summary" class="panel"><h2>Executive Summary</h2>';
+  if(topAnalyses.length){
+    h+='<div class="narrative" style="cursor:pointer" data-jump="'+esc(topAnalyses[0].id)+'">';
+    h+='<strong>'+expandable(topAnalyses[0].content,300)+'</strong></div>';
+  }
+  // Confidence distribution
+  var highConf=activeEntries.filter(function(e){return(e.confidence||0)>=0.8}).length;
+  var medConf=activeEntries.filter(function(e){return(e.confidence||0)>=0.5&&(e.confidence||0)<0.8}).length;
+  var lowConf=activeEntries.filter(function(e){return(e.confidence||0)<0.5}).length;
+  // Analysis quality score (0-100)
+  var qSource=Math.min(1,docs.length/5)*25;
+  var qChains=Math.min(1,chains.length/3)*25;
+  var qConf=avgConf*25;
+  var qCoverage=Math.min(1,(activeEntries.length-gapEntries.length)/Math.max(1,activeEntries.length))*25;
+  var qualityScore=Math.round(qSource+qChains+qConf+qCoverage);
+  var qualityLabel=qualityScore>=80?"Strong":qualityScore>=60?"Solid":qualityScore>=40?"Developing":"Preliminary";
+  var qualityColor=qualityScore>=80?"var(--good)":qualityScore>=60?"var(--accent)":qualityScore>=40?"var(--warn)":"var(--bad)";
+
+  h+='<div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px">';
+  h+='<div class="mc"><b>'+entries.length+'</b><span>findings</span></div>';
+  h+='<div class="mc"><b>'+docs.length+'</b><span>source'+(docs.length!==1?"s":"")+'</span></div>';
+  h+='<div class="mc"><b>'+strategies.length+'</b><span>recommendations</span></div>';
+  h+='<div class="mc" style="border-color:'+qualityColor+'"><b style="color:'+qualityColor+'">'+qualityScore+'</b><span>quality</span></div>';
+  h+='</div>';
+  // Confidence bar
+  var total=highConf+medConf+lowConf;if(total===0)total=1;
+  h+='<div style="margin-top:8px">';
+  h+='<div style="font-size:10px;color:var(--muted);margin-bottom:3px">Confidence distribution</div>';
+  h+='<div style="display:flex;height:6px;border-radius:3px;overflow:hidden;background:rgba(255,255,255,.05)">';
+  h+='<div style="width:'+Math.round(highConf/total*100)+'%;background:var(--good)"></div>';
+  h+='<div style="width:'+Math.round(medConf/total*100)+'%;background:var(--warn)"></div>';
+  h+='<div style="width:'+Math.round(lowConf/total*100)+'%;background:var(--bad)"></div>';
+  h+='</div>';
+  h+='<div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:2px">';
+  h+='<span>'+highConf+' strong</span><span>'+medConf+' moderate</span><span>'+lowConf+' tentative</span></div>';
+  h+='</div>';
+  if(strategies.length){
+    h+='<div style="margin-top:10px;padding:10px;border-left:3px solid var(--str);background:rgba(126,231,135,.06);border-radius:0 var(--radius) var(--radius) 0;cursor:pointer" data-jump="'+esc(strategies[0].id)+'">';
+    h+='<div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--str);margin-bottom:4px">Top recommendation</div>';
+    h+='<p style="font-size:12px;line-height:1.5;color:var(--soft)">'+esc(strategies[0].content)+'</p></div>';
+  }
+  h+='</section>';
+
+  // --- SURPRISING FINDINGS --- counter-intuitive or contested
+  if(surprisingFindings.length){
+    h+='<section id="brief-surprises" class="panel" style="border-left:3px solid var(--warn);background:rgba(255,200,87,.03)">';
+    h+='<h2 style="color:var(--warn)">Worth a Double Take</h2>';
+    h+='<p class="panel-desc">Findings that are contested, unexpected, or deserve closer scrutiny</p>';
+    surprisingFindings.forEach(function(item){
+      var e=item.e;
+      var isContradicted=contradictedIds.has(e.id);
+      var supCount=(supportedBy.get(e.id)||[]).length;
+      var contraCount=contradictEdges.filter(function(ce){return ce.s===e.id||ce.t===e.id}).length;
+      h+='<div class="item" data-jump="'+esc(e.id)+'" style="cursor:pointer">';
+      h+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;flex-wrap:wrap">';
+      h+='<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+(colors[e.type]||"#edf3ff")+'"></span>';
+      h+='<b style="font-size:10px;color:'+(colors[e.type]||"#edf3ff")+'">'+(typeLabels[e.type]||e.type)+'</b>';
+      if(e.label)h+='<span style="font-size:11px;font-weight:600;color:var(--text)">'+esc(e.label)+'</span>';
+      // Tags
+      if(isContradicted)h+='<span class="chip" style="font-size:8px;color:var(--bad);border-color:var(--bad)">contested</span>';
+      if((e.confidence||0)<0.6)h+='<span class="chip" style="font-size:8px;color:var(--warn);border-color:var(--warn)">'+Math.round((e.confidence||0)*100)+'% conf</span>';
+      if(supCount>0)h+='<span class="chip" style="font-size:8px;color:var(--good);border-color:var(--good)">'+supCount+' backing</span>';
+      h+='</div>';
+      h+='<p style="font-size:12px;line-height:1.5;color:var(--soft)">'+expandable(e.content,200)+'</p>';
+      // Why it's surprising
+      var reason=isContradicted?"This finding is directly contradicted by "+contraCount+" other finding"+(contraCount>1?"s":"")+".":(e.confidence||0)<0.6?"High-impact but low-confidence — needs verification.":"Quantitative finding worth checking.";
+      h+='<div style="font-size:10px;color:var(--warn);margin-top:4px;font-style:italic">'+esc(reason)+'</div>';
+      h+='</div>';
+    });
+    h+='</section>';
+  }
+
+  // --- DISPUTES & TENSIONS ---
+  if(contradictEdges.length>0){
+    h+='<section id="brief-disputes" class="panel" style="border-left:3px solid var(--bad)">';
+    h+='<h2 style="color:var(--bad)">Disputes and Tensions</h2>';
+    h+='<p class="panel-desc">'+contradictEdges.length+' contradiction'+(contradictEdges.length>1?"s":"")+ ' found — these are where the real questions live</p>';
+    contradictEdges.slice(0,5).forEach(function(ce){
+      var cA=byId.get(ce.s),cB=byId.get(ce.t);
+      if(!cA||!cB)return;
+      h+='<div class="item">';
+      h+='<div style="padding:8px;background:rgba(255,92,122,.04);border-radius:var(--radius)">';
+      h+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">';
+      h+='<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+(colors[cA.e.type]||"#edf3ff")+'"></span>';
+      h+='<b style="font-size:10px;color:'+(colors[cA.e.type]||"#edf3ff")+'">'+(typeLabels[cA.e.type]||cA.e.type)+'</b>';
+      if(cA.e.source&&cA.e.source.section)h+='<span class="chip" style="font-size:8px">'+esc(cA.e.source.section)+'</span>';
+      h+='</div>';
+      h+='<p style="font-size:11px;line-height:1.4;color:var(--soft);cursor:pointer" data-jump="'+esc(cA.e.id)+'">'+expandable(cA.e.content,240)+'</p>';
+      h+='<div style="display:flex;align-items:center;gap:6px;margin:8px 0">';
+      h+='<span style="font-size:18px;color:var(--bad)">vs</span>';
+      h+='<span style="flex:1;height:1px;background:var(--bad);opacity:.3"></span></div>';
+      h+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">';
+      h+='<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+(colors[cB.e.type]||"#edf3ff")+'"></span>';
+      h+='<b style="font-size:10px;color:'+(colors[cB.e.type]||"#edf3ff")+'">'+(typeLabels[cB.e.type]||cB.e.type)+'</b>';
+      if(cB.e.source&&cB.e.source.section)h+='<span class="chip" style="font-size:8px">'+esc(cB.e.source.section)+'</span>';
+      h+='</div>';
+      h+='<p style="font-size:11px;line-height:1.4;color:var(--soft);cursor:pointer" data-jump="'+esc(cB.e.id)+'">'+expandable(cB.e.content,240)+'</p>';
+      h+='</div></div>';
+    });
+    h+='</section>';
+  }
+
+  // --- CROSS-TOPIC CONNECTIONS (moved up — highest-value insight) ---
+  if(crossEdges.length){
+    h+='<section id="brief-connections" class="panel" style="border-left:3px solid var(--accent)">';
+    h+='<h2 style="color:var(--accent)">Cross-Topic Connections</h2>';
+    h+='<p class="panel-desc">'+crossEdges.length+' link'+(crossEdges.length>1?"s":"")+ ' bridge different topics — these are often the most valuable discoveries</p>';
+    var pairMap=new Map();
+    crossEdges.forEach(function(ce){
+      var key=[ce.aS,ce.bS].sort().join(" <> ");
+      if(!pairMap.has(key))pairMap.set(key,{count:0,examples:[],topics:[ce.aS,ce.bS]});
+      var p=pairMap.get(key);p.count++;if(p.examples.length<2)p.examples.push(ce);
+    });
+    var sortedPairs=Array.from(pairMap.entries()).sort(function(a,b){return b[1].count-a[1].count}).slice(0,10);
+    sortedPairs.forEach(function(pair){
+      var label=pair[0],data=pair[1];
+      h+='<div class="item">';
+      h+='<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px">';
+      h+='<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">';
+      h+='<span class="chip" style="font-size:10px;background:rgba(72,215,255,.12);color:var(--accent);cursor:pointer" data-search="'+esc(data.topics[0])+'">'+esc(data.topics[0])+'</span>';
+      h+='<span style="color:var(--accent);font-size:12px;font-weight:700">&#8596;</span>';
+      h+='<span class="chip" style="font-size:10px;background:rgba(72,215,255,.12);color:var(--accent);cursor:pointer" data-search="'+esc(data.topics[1])+'">'+esc(data.topics[1])+'</span>';
+      h+='</div>';
+      h+='<span class="chip" style="font-size:9px">'+data.count+' link'+(data.count>1?"s":"")+'</span></div>';
+      data.examples.forEach(function(ex){
+        var kColor=ex.edge.k==="contradicts"?"var(--bad)":"var(--good)";
+        var sN=byId.get(ex.edge.s),tN=byId.get(ex.edge.t);
+        h+='<div style="margin-top:6px;padding:8px;background:rgba(255,255,255,.02);border-radius:4px">';
+        if(sN){
+          h+='<p style="font-size:11px;line-height:1.35;color:var(--soft);margin-bottom:3px;cursor:pointer" data-jump="'+esc(sN.e.id)+'">';
+          h+=expandable(sN.e.content,120)+'</p>';
+        }
+        h+='<div style="display:flex;align-items:center;gap:6px;margin:3px 0">';
+        h+='<span style="color:'+kColor+';font-size:10px;font-weight:600">'+ex.edge.k+'</span>';
+        h+='<span style="flex:1;height:1px;background:'+kColor+';opacity:.3"></span></div>';
+        if(tN){
+          h+='<p style="font-size:11px;line-height:1.35;color:var(--soft);cursor:pointer" data-jump="'+esc(tN.e.id)+'">';
+          h+=expandable(tN.e.content,120)+'</p>';
+        }
+        h+='</div>';
+      });
+      h+='</div>';
+    });
+    h+='</section>';
+  }
+
+  // --- EVIDENCE CHAINS --- trace how conclusions build from evidence
+  if(chains.length){
+    h+='<section id="brief-evidence" class="panel"><h2>Evidence Chains</h2>';
+    h+='<p class="panel-desc">'+chains.length+' conclusion'+(chains.length>1?"s":"")+ ' built from multiple supporting findings — these are the strongest claims</p>';
+    chains.slice(0,6).forEach(function(ch,ci){
+      var chainSources=new Set();
+      ch.evidence.forEach(function(ev){if(ev.source&&ev.source.document)chainSources.add(ev.source.document)});
+      var sourceCount=chainSources.size;
+      var avgChainConf=0;ch.evidence.forEach(function(ev){avgChainConf+=(ev.confidence||0)});
+      avgChainConf=ch.evidence.length?avgChainConf/ch.evidence.length:0;
+      h+='<div class="item">';
+      h+='<div style="padding:10px;border:1px solid rgba(126,231,135,.2);border-radius:var(--radius);background:rgba(126,231,135,.03);cursor:pointer" data-jump="'+esc(ch.conclusion.id)+'">';
+      h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">';
+      h+='<div style="font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--str)">Conclusion '+(ci+1)+'</div>';
+      h+='<div style="display:flex;gap:4px">';
+      if(sourceCount>1)h+='<span class="chip" style="font-size:8px;color:var(--good);border-color:rgba(105,240,174,.3)">'+sourceCount+' sources</span>';
+      h+='<span class="chip" style="font-size:8px">'+ch.evidence.length+' evidence</span>';
+      h+='<span class="chip" style="font-size:8px;color:'+(avgChainConf>=0.8?"var(--good)":avgChainConf>=0.6?"var(--warn)":"var(--bad)")+'">' +Math.round(avgChainConf*100)+'% avg</span>';
+      h+='</div></div>';
+      h+='<p style="font-size:13px;line-height:1.6;color:var(--text);font-weight:600">'+expandable(ch.conclusion.content,250)+'</p>';
+      h+='</div>';
+      h+='<div style="margin-left:16px;border-left:2px solid rgba(72,215,255,.15);padding-left:10px;margin-top:6px">';
+      h+='<div style="font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px">Because</div>';
+      ch.evidence.slice(0,4).forEach(function(ev){
+        h+='<div style="margin-bottom:6px;display:flex;align-items:baseline;gap:6px;cursor:pointer" data-jump="'+esc(ev.id)+'">';
+        h+='<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:'+(colors[ev.type]||"#edf3ff")+';flex-shrink:0;margin-top:4px"></span>';
+        h+='<div><p style="font-size:11px;line-height:1.4;color:var(--soft);margin:0">'+expandable(ev.content,160)+'</p>';
+        if(ev.source&&ev.source.section)h+='<span style="font-size:9px;color:var(--muted)">'+esc(ev.source.section)+'</span>';
+        h+='</div></div>';
+      });
+      if(ch.evidence.length>4)h+='<div style="font-size:10px;color:var(--muted)">+'+(ch.evidence.length-4)+' more</div>';
+      h+='</div>';
+      h+='</div>';
+    });
+    h+='</section>';
+  }
+
+  // --- KEY FINDINGS --- top 8 by influence, full content
+  var topByInfluence=importance.slice(0,8);
+  h+='<section id="brief-findings" class="panel"><h2>Key Findings</h2>';
+  h+='<p class="panel-desc">Most influential findings — click to inspect on graph</p>';
+  topByInfluence.forEach(function(item,i){
+    var e=item.e;
+    var inf=influence.get(e.id)||{score:0};
+    h+='<div class="item" data-jump="'+esc(e.id)+'">';
+    h+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;flex-wrap:wrap">';
+    h+='<span style="font-size:14px;font-weight:700;color:var(--muted);min-width:18px">'+(i+1)+'</span>';
+    h+='<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+(colors[e.type]||"#edf3ff")+'"></span>';
+    h+='<b style="font-size:11px;color:'+(colors[e.type]||"#edf3ff")+'">'+(typeLabels[e.type]||e.type)+'</b>';
+    if(e.label)h+='<span style="font-size:11px;font-weight:600;color:var(--text)"> '+esc(e.label)+'</span>';
+    h+='<span class="chip" style="font-size:9px">'+Math.round((e.confidence||0)*100)+'%</span>';
+    h+='</div>';
+    h+='<p style="font-size:12px;line-height:1.5;color:var(--soft)">'+esc(e.content)+'</p>';
+    if(e.source&&e.source.section)h+='<div style="font-size:10px;color:var(--muted);margin-top:4px">'+esc(e.source.section)+'</div>';
+    h+='</div>';
+  });
+  h+='</section>';
+
+  // --- TOPIC MAP --- group by source section with coverage bars
+  var clusters=new Map();
+  activeEntries.forEach(function(e){
+    var topic=(e.source&&e.source.section)?e.source.section:"General";
+    if(!clusters.has(topic))clusters.set(topic,[]);
+    clusters.get(topic).push(e);
+  });
+  if(clusters.size>1){
+    var maxClusterSize=0;
+    clusters.forEach(function(ces){if(ces.length>maxClusterSize)maxClusterSize=ces.length});
+    h+='<section id="brief-topics" class="panel"><h2>Topic Map</h2>';
+    h+='<p class="panel-desc">'+clusters.size+' topics across '+activeEntries.length+' findings — click to filter</p>';
+    var sortedClusters=Array.from(clusters.entries()).sort(function(a,b){return b[1].length-a[1].length});
+    sortedClusters.forEach(function(pair){
+      var topic=pair[0],ces=pair[1];
+      var tMap={};ces.forEach(function(e){tMap[e.type]=(tMap[e.type]||0)+1});
+      var avgConf=0;ces.forEach(function(e){avgConf+=(e.confidence||0)});avgConf=ces.length?avgConf/ces.length:0;
+      var hasGap=ces.some(function(e){return e.type==="gap"});
+      var topE=ces.slice().sort(function(a,b){return(influence.get(b.id)||{score:0}).score-(influence.get(a.id)||{score:0}).score})[0];
+      h+='<div class="item" data-search="'+esc(topic)+'" style="cursor:pointer">';
+      h+='<div style="display:flex;justify-content:space-between;align-items:center">';
+      h+='<b style="font-size:12px">'+esc(topic)+'</b>';
+      h+='<div style="display:flex;align-items:center;gap:6px">';
+      if(hasGap)h+='<span style="width:6px;height:6px;border-radius:50%;background:var(--bad);flex-shrink:0" title="Has gaps"></span>';
+      h+='<span class="chip" style="font-size:9px">'+ces.length+'</span>';
+      h+='</div></div>';
+      // Coverage bar
+      h+='<div style="display:flex;height:4px;border-radius:2px;overflow:hidden;margin-top:6px;background:rgba(255,255,255,.05)">';
+      var barW=Math.max(8,Math.round(ces.length/maxClusterSize*100));
+      var barColor=avgConf>=0.8?"var(--good)":avgConf>=0.5?"var(--accent)":"var(--warn)";
+      h+='<div style="width:'+barW+'%;background:'+barColor+'"></div>';
+      h+='</div>';
+      // Type pills
+      h+='<div style="display:flex;gap:3px;margin-top:5px;flex-wrap:wrap">';
+      Object.keys(tMap).forEach(function(t){
+        h+='<span class="chip" style="font-size:8px;border-left:2px solid '+(colors[t]||"#edf3ff")+';padding:1px 5px">'+tMap[t]+" "+t+'</span>';
+      });
+      h+='<span class="chip" style="font-size:8px;padding:1px 5px">'+Math.round(avgConf*100)+'% avg conf</span>';
+      h+='</div>';
+      // Top entries for this topic
+      var topCes=ces.slice().sort(function(a,b){return(influence.get(b.id)||{score:0}).score-(influence.get(a.id)||{score:0}).score}).slice(0,3);
+      h+='<div style="margin-top:6px;padding-left:8px;border-left:2px solid rgba(72,215,255,.1)">';
+      topCes.forEach(function(te){
+        h+='<div style="display:flex;align-items:baseline;gap:5px;margin-bottom:3px;cursor:pointer" data-jump="'+esc(te.id)+'">';
+        h+='<span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:'+(colors[te.type]||"#edf3ff")+';flex-shrink:0;margin-top:4px"></span>';
+        h+='<p style="font-size:10px;line-height:1.35;color:var(--muted);margin:0">';
+        if(te.label)h+='<b style="color:var(--soft)">'+esc(te.label)+'</b> — ';
+        h+=expandable(te.content,100)+'</p>';
+        h+='</div>';
+      });
+      if(ces.length>3)h+='<div style="font-size:9px;color:var(--muted);margin-top:2px">+'+(ces.length-3)+' more findings</div>';
+      h+='</div>';
+      h+='</div>';
+    });
+    h+='</section>';
+  }
+
+  // --- KNOWLEDGE GAPS ---
+  if(gapEntries.length||openSigs.length){
+    h+='<section id="brief-gaps" class="panel"><h2>Knowledge Gaps</h2>';
+    h+='<p class="panel-desc">'+(gapEntries.length+openSigs.length)+' unresolved items — what this analysis could not answer</p>';
+    gapEntries.forEach(function(e){
+      h+='<div class="item" data-jump="'+esc(e.id)+'" style="border-left:3px solid var(--bad);cursor:pointer">';
+      if(e.label)h+='<div style="font-size:11px;font-weight:600;color:var(--text);margin-bottom:3px">'+esc(e.label)+'</div>';
+      h+='<p style="font-size:12px;line-height:1.4;color:var(--soft)">'+esc(e.content)+'</p>';
+      if(e.source&&e.source.section)h+='<div style="font-size:10px;color:var(--muted);margin-top:3px">'+esc(e.source.section)+'</div>';
+      h+='</div>';
+    });
+    var highSigs=openSigs.filter(function(s){return s.priority==="critical"||s.priority==="high"});
+    if(highSigs.length){
+      h+='<div style="margin-top:8px;font-size:11px;color:var(--warn);margin-bottom:6px">'+highSigs.length+' high-priority question'+(highSigs.length>1?"s":"")+':</div>';
+      highSigs.slice(0,8).forEach(function(s){
+        var jumpId=s.origin_entry&&byId.has(s.origin_entry)?s.origin_entry:null;
+        h+='<div class="item" style="border-left:3px solid var(--warn);cursor:pointer"'+(jumpId?' data-jump="'+esc(jumpId)+'"':'')+'>';
+        h+='<p style="font-size:11px;color:var(--soft)">'+esc(s.content)+'</p></div>';
+      });
+    }
+    h+='</section>';
+  }
+
+  // Briefing footer CTA
+  h+='<div style="text-align:center;padding:16px 12px 8px;margin-top:8px;border-top:1px solid var(--line)">';
+  h+='<p style="font-size:10px;color:var(--muted);line-height:1.6">Made with <a href="https://github.com/dl1683/irys-stateful-swarms/tree/master/packages/blackboard-mcp" target="_blank" style="color:var(--accent);text-decoration:none;font-weight:600">Blackboard MCP</a></p>';
+  h+='</div>';
+
+  $("#briefing").innerHTML=h;
+
+  // Scroll spy for briefing nav
+  var navLinks=document.querySelectorAll(".briefing-nav a");
+  var briefSections=[];
+  navLinks.forEach(function(a){
+    var href=a.getAttribute("href");
+    if(href){
+      var el=document.getElementById(href.slice(1));
+      if(el)briefSections.push({el:el,a:a});
+    }
+    a.addEventListener("click",function(ev){
+      ev.preventDefault();
+      var target=document.getElementById(href.slice(1));
+      if(target)target.scrollIntoView({behavior:"smooth",block:"start"});
+    });
+  });
+  var rightPanel=document.querySelector(".right");
+  if(rightPanel&&briefSections.length){
+    rightPanel.addEventListener("scroll",function(){
+      var scrollTop=rightPanel.scrollTop+100;
+      var active=briefSections[0];
+      for(var i=0;i<briefSections.length;i++){
+        if(briefSections[i].el.offsetTop<=scrollTop)active=briefSections[i];
+      }
+      navLinks.forEach(function(a){a.classList.remove("active")});
+      if(active)active.a.classList.add("active");
+    });
+    if(briefSections[0])briefSections[0].a.classList.add("active");
+  }
+
+  // Copy briefing as markdown
+  var copyBtn=document.getElementById("copyBriefing");
+  if(copyBtn){
+    copyBtn.onclick=function(){
+      var md="# "+esc(bb.task)+"\n\n";
+      md+="## Bottom Line\n\n"+bottomLine+"\n\n";
+      md+="## Trust Audit\n\n";
+      md+="**Status:** "+auditLevel.charAt(0).toUpperCase()+auditLevel.slice(1)+"\n";
+      if(fragileConclusions.length)md+="- **"+fragileConclusions.length+" fragile** conclusion"+(fragileConclusions.length!==1?"s":"")+" (single-source)\n";
+      var _multiSrc=conclusions.filter(function(c){var sd=entrySourceDocs.get(c.id);return sd&&sd.size>1}).length;
+      if(_multiSrc)md+="- **"+_multiSrc+" robust** conclusion"+(_multiSrc!==1?"s":"")+" (multi-source)\n";
+      if(loadBearingDoc)md+="- **Load-bearing source:** "+loadBearingDoc.doc.name+" (breaks "+loadBearingDoc.broken.length+", weakens "+loadBearingDoc.weakened.length+")\n";
+      md+="\n";
+      md+="## Start Here\n\n";
+      startHere.forEach(function(item,i){
+        var e=item.e;
+        md+=(i+1)+". **["+e.type.toUpperCase()+"]** "+e.content+"\n";
+        var supporters=supportedBy.get(e.id)||[];
+        if(supporters.length){
+          md+="   - Supported by "+supporters.length+" finding"+(supporters.length>1?"s":"")+"\n";
+        }
+        md+="\n";
+      });
+      if(crossDocEdges.length){
+        md+="## Cross-Document Synthesis\n\n";
+        md+=crossDocEdges.length+" connection"+(crossDocEdges.length>1?"s":"")+" across "+crossDocPairs.size+" document pair"+(crossDocPairs.size>1?"s":"")+"\n\n";
+        var docNameById2=new Map();docs.forEach(function(d){docNameById2.set(d.id||d.doc_id,d.name.length>40?d.name.slice(0,37)+"...":d.name)});
+        Array.from(crossDocPairs.values()).forEach(function(pair){
+          var d1=docNameById2.get(pair.docs[0])||pair.docs[0];
+          var d2=docNameById2.get(pair.docs[1])||pair.docs[1];
+          md+="**"+d1+"** <> **"+d2+"**";
+          if(pair.supports.length)md+=" ("+pair.supports.length+" agree";
+          if(pair.contradicts.length)md+=(pair.supports.length?", ":"")+pair.contradicts.length+" clash";
+          if(pair.supports.length||pair.contradicts.length)md+=")";
+          md+="\n";
+        });
+        md+="\n";
+      }
+      md+="## Executive Summary\n\n";
+      md+="- **"+entries.length+"** findings across **"+docs.length+"** source"+(docs.length!==1?"s":"")+"\n";
+      md+="- **"+strategies.length+"** recommendations, **"+gapEntries.length+"** gaps\n\n";
+      if(topAnalyses.length)md+="> "+topAnalyses[0].content+"\n\n";
+      if(strategies.length)md+="**Top recommendation:** "+strategies[0].content+"\n\n";
+      if(surprisingFindings.length){
+        md+="## Worth a Double Take\n\n";
+        surprisingFindings.forEach(function(item){
+          var e=item.e;
+          var isContradicted=contradictedIds.has(e.id);
+          var reason=isContradicted?"contested":(e.confidence||0)<0.6?"low confidence":"quantitative";
+          md+="- **["+e.type.toUpperCase()+"]** "+e.content.slice(0,150)+" *("+reason+")*\n";
+        });
+        md+="\n";
+      }
+      if(contradictEdges.length){
+        md+="## Disputes ("+contradictEdges.length+")\n\n";
+        contradictEdges.slice(0,3).forEach(function(ce){
+          var cA=byId.get(ce.s),cB=byId.get(ce.t);
+          if(cA&&cB)md+="- "+cA.e.content.slice(0,100)+" **vs** "+cB.e.content.slice(0,100)+"\n";
+        });
+        md+="\n";
+      }
+      if(crossEdges.length){
+        md+="## Cross-Topic Connections ("+crossEdges.length+" links)\n\n";
+        var seen=new Set();
+        crossEdges.slice(0,6).forEach(function(ce){
+          var key=[ce.aS,ce.bS].sort().join(" <> ");
+          if(seen.has(key))return;seen.add(key);
+          md+="- **"+ce.aS+"** <> **"+ce.bS+"**\n";
+        });
+        md+="\n";
+      }
+      if(chains.length){
+        md+="## Evidence Chains\n\n";
+        chains.slice(0,3).forEach(function(ch){
+          md+="- **"+ch.conclusion.content.slice(0,120)+"**\n";
+          ch.evidence.slice(0,3).forEach(function(ev){
+            md+="  - "+ev.content.slice(0,100)+"\n";
+          });
+        });
+        md+="\n";
+      }
+      if(gapEntries.length){
+        md+="## Knowledge Gaps\n\n";
+        gapEntries.forEach(function(e){
+          md+="- "+e.content+"\n";
+        });
+        md+="\n";
+      }
+      md+="---\n*Generated by Blackboard MCP*\n";
+      navigator.clipboard.writeText(md).then(function(){
+        copyBtn.textContent="Copied";
+        setTimeout(function(){copyBtn.textContent="Copy"},2000);
+      });
+    };
+  }
+}
+
+// Topic search handler
+document.body.addEventListener("click",function(ev){
+  var t=ev.target;while(t&&t!==document.body){
+    if(t.dataset&&t.dataset.search){
+      var s=t.dataset.search;
+      $("#search").value=s;fil.q=s.toLowerCase();applyFilters();
+      return;
+    }
+    t=t.parentElement;
+  }
+});
+
+// Findings index
+var currentSort="influence";
+function updateFindingsIndex(){
+  var sorted=vis().slice().sort(function(a,b){
+    if(currentSort==="confidence")return(b.e.confidence||0)-(a.e.confidence||0);
+    if(currentSort==="iteration")return(b.e.iteration||0)-(a.e.iteration||0);
+    var ai=influence.get(a.id)||{score:0},bi=influence.get(b.id)||{score:0};return bi.score-ai.score;
+  });
+  var showCount=fil.q?sorted.length:Math.min(sorted.length,50);
+  var h=sorted.slice(0,showCount).map(function(n){
+    var e=n.e,isSelected=sel&&sel.id===e.id;
+    return'<div class="finding-row'+(isSelected?" selected":"")+'" data-jump="'+esc(e.id)+'">'
+      +'<span class="finding-dot" style="background:'+(colors[e.type]||"#edf3ff")+'"></span>'
+      +'<span class="finding-content">'+esc(e.label||e.content.slice(0,60))+'</span>'
+      +'<span class="finding-conf">'+Math.round((e.confidence||0)*100)+'%</span></div>';
+  }).join("");
+  if(!h)h='<p style="color:var(--muted);font-size:12px;padding:4px">No findings match filters.</p>';
+  if(sorted.length>showCount)h+='<p style="color:var(--muted);font-size:11px;padding:4px 8px;text-align:center">Showing '+showCount+' of '+sorted.length+' — use search to narrow</p>';
+  $("#findingsIndex").innerHTML=h;
+}
+document.querySelectorAll("[data-sort]").forEach(function(btn){
+  btn.onclick=function(){
+    document.querySelectorAll("[data-sort]").forEach(function(b){b.classList.remove("on")});
+    btn.classList.add("on");currentSort=btn.dataset.sort;updateFindingsIndex();
+  };
+});
+
+// List view — uses filtered entries
+var listViewEl=$("#listView");
+var listSortCol="influence",listSortAsc=false;
+function renderListView(){
+  var filtered=vis().map(function(n){return n.e});
+  var sorted=filtered.slice().sort(function(a,b){
+    if(listSortCol==="confidence")return listSortAsc?(a.confidence||0)-(b.confidence||0):(b.confidence||0)-(a.confidence||0);
+    if(listSortCol==="type")return listSortAsc?a.type.localeCompare(b.type):b.type.localeCompare(a.type);
+    if(listSortCol==="label")return listSortAsc?(a.label||"").localeCompare(b.label||""):(b.label||"").localeCompare(a.label||"");
+    if(listSortCol==="iteration")return listSortAsc?(a.iteration||0)-(b.iteration||0):(b.iteration||0)-(a.iteration||0);
+    if(listSortCol==="status")return listSortAsc?a.status.localeCompare(b.status):b.status.localeCompare(a.status);
+    var ai=(influence.get(a.id)||{score:0}).score,bi=(influence.get(b.id)||{score:0}).score;
+    return listSortAsc?ai-bi:bi-ai;
+  });
+  function thC(col){return col===listSortCol?(listSortAsc?"sorted asc":"sorted"):""}
+  var hasLabels=filtered.some(function(e){return!!e.label});
+  var h='<table><thead><tr>';
+  h+='<th class="'+thC("type")+'" data-lcol="type">Type</th>';
+  if(hasLabels)h+='<th class="'+thC("label")+'" data-lcol="label">Label</th>';
+  h+='<th>Content</th>';
+  h+='<th class="'+thC("confidence")+'" data-lcol="confidence">Conf</th>';
+  h+='<th class="'+thC("influence")+'" data-lcol="influence">Influence</th>';
+  h+='<th class="'+thC("status")+'" data-lcol="status">Status</th>';
+  h+='<th class="'+thC("iteration")+'" data-lcol="iteration">Iter</th>';
+  h+='</tr></thead><tbody>';
+  sorted.forEach(function(e){
+    var inf=influence.get(e.id)||{score:0};
+    h+='<tr data-jump="'+esc(e.id)+'">';
+    h+='<td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+(colors[e.type]||"#edf3ff")+';margin-right:6px"></span>'+(typeLabels[e.type]||e.type)+'</td>';
+    if(hasLabels)h+='<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;color:var(--text)">'+esc(e.label||"")+'</td>';
+    h+='<td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(e.content)+'</td>';
+    h+='<td>'+Math.round((e.confidence||0)*100)+'%</td><td>'+inf.score+'</td>';
+    h+='<td>'+(statusLabels[e.status]||e.status)+'</td><td>'+(e.iteration||0)+'</td></tr>';
+  });
+  h+='</tbody></table>';
+  listViewEl.innerHTML=h;
+  listViewEl.querySelectorAll("[data-lcol]").forEach(function(th){
+    th.onclick=function(){if(listSortCol===th.dataset.lcol)listSortAsc=!listSortAsc;else{listSortCol=th.dataset.lcol;listSortAsc=false}renderListView()};
+  });
+}
+var isListView=false;
+$("#viewGraph").onclick=function(){isListView=false;listViewEl.classList.add("hidden");$("#viewGraph").classList.add("active");$("#viewList").classList.remove("active")};
+$("#viewList").onclick=function(){isListView=true;renderListView();listViewEl.classList.remove("hidden");$("#viewList").classList.add("active");$("#viewGraph").classList.remove("active")};
+
+function tick(){
+  frame++;
+  if(!simSettled){simulate();dirty=true}
+  if(flashId)dirty=true;
+  if(Date.now()-entranceStart<entranceDur+200)dirty=true;
+  if(dirty){draw();dirty=false}
+  requestAnimationFrame(tick);
+}
+
+function simulate(){
+  var v=vis();if(!v.length){simSettled=true;return}
+  var rep=v.length>260?520:900,totalV=0;
+  for(var i=0;i<v.length;i++)for(var j=i+1;j<v.length;j++){
+    var a=v[i],b=v[j],dx=b.x-a.x,dy=b.y-a.y,d2=Math.max(24,dx*dx+dy*dy),d=Math.sqrt(d2),f=rep/d2;
+    a.vx-=dx/d*f;a.vy-=dy/d*f;b.vx+=dx/d*f;b.vy+=dy/d*f;
+  }
+  cachedVisEdges.forEach(function(e){
+    var a=byId.get(e.s),b=byId.get(e.t);
+    if(!a||!b)return;
+    var dx=b.x-a.x,dy=b.y-a.y,d=Math.max(1,Math.hypot(dx,dy)),ideal=e.k==="contradicts"?170:118,f=(d-ideal)*.0024;
+    a.vx+=dx/d*f;a.vy+=dy/d*f;b.vx-=dx/d*f;b.vy-=dy/d*f;
+  });
+  // Cluster attraction: same-section nodes attract gently
+  if(clusterCount>1){
+    var centers=new Map();
+    v.forEach(function(n){
+      var k=n.clusterKey||"";if(!k)return;
+      if(!centers.has(k))centers.set(k,{x:0,y:0,c:0});
+      var c=centers.get(k);c.x+=n.x;c.y+=n.y;c.c++;
+    });
+    centers.forEach(function(c){c.x/=c.c;c.y/=c.c});
+    v.forEach(function(n){
+      var k=n.clusterKey||"";if(!k)return;
+      var c=centers.get(k);if(!c)return;
+      var dx=c.x-n.x,dy=c.y-n.y;
+      n.vx+=dx*.003;n.vy+=dy*.003;
+    });
+  }
+  v.forEach(function(n){
+    if(drag===n)return;
+    n.vx+=-n.x*.0008;n.vy+=-n.y*.0008;n.vx*=.86;n.vy*=.86;n.x+=n.vx;n.y+=n.vy;
+    totalV+=Math.abs(n.vx)+Math.abs(n.vy);
+  });
+  if(totalV<0.05*v.length&&frame>120)simSettled=true;
+}
+
+function drawClusters(){
+  if(clusterCount<=1)return;
+  var groups=new Map();
+  cachedVis.forEach(function(n){
+    var k=n.clusterKey||"";if(!k)return;
+    if(!groups.has(k))groups.set(k,[]);
+    groups.get(k).push(n);
+  });
+  var ci=0;
+  groups.forEach(function(gnodes,key){
+    if(gnodes.length<2)return;
+    var cx=0,cy=0;gnodes.forEach(function(n){cx+=n.x;cy+=n.y});
+    cx/=gnodes.length;cy/=gnodes.length;
+    var maxR=0;gnodes.forEach(function(n){maxR=Math.max(maxR,Math.hypot(n.x-cx,n.y-cy))});
+    var r=Math.max(40,(maxR+30))*cam.z;
+    var p=w2s(cx,cy);
+    ctx.save();
+    ctx.globalAlpha=.06;
+    ctx.fillStyle=clusterColors[ci%clusterColors.length].replace(".08",".12");
+    ctx.beginPath();ctx.arc(p.x,p.y,r,0,Math.PI*2);ctx.fill();
+    ctx.globalAlpha=.15;
+    ctx.strokeStyle=clusterColors[ci%clusterColors.length].replace(".08",".3").replace("rgba","rgba");
+    ctx.lineWidth=1;ctx.setLineDash([4,6]);
+    ctx.stroke();ctx.setLineDash([]);
+    if(cam.z>.35){
+      ctx.globalAlpha=.3;
+      ctx.fillStyle="rgba(237,243,255,.5)";
+      var fs=Math.max(8,Math.min(13,10*cam.z));
+      ctx.font=fs+"px var(--sans)";
+      var short=key.replace(/^\d+\.\s*/,"");
+      if(short.length>30)short=short.slice(0,27)+"...";
+      ctx.fillText(short,p.x-ctx.measureText(short).width/2,p.y-r-4);
+    }
+    ctx.restore();
+    ci++;
+  });
+}
+
+function draw(){
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,viewW,viewH);
+  drawClusters();
+  var rel=conn(hov||sel);
+  cachedVisEdges.forEach(function(e){drawEdge(e,rel)});
+  cachedVis.forEach(function(n){drawNode(n,rel)});
+  drawMini();
+  if(flashId){
+    flashFrame++;
+    var fn=byId.get(flashId);
+    if(fn&&flashFrame<45){
+      var fp=w2s(fn.x,fn.y),alpha=Math.max(0,1-flashFrame/45),radius=(20+flashFrame*1.5)*cam.z;
+      ctx.save();ctx.globalAlpha=alpha*.4;ctx.strokeStyle=colors[fn.e.type]||"#48d7ff";ctx.lineWidth=3;
+      ctx.beginPath();ctx.arc(fp.x,fp.y,radius,0,Math.PI*2);ctx.stroke();ctx.restore();
+    }else flashId=null;
+  }
+  $("#nVis").textContent=cachedVis.length;
+  $("#nEdge").textContent=cachedVisEdges.length;
+}
+
+function conn(n){
+  var s=new Set();if(!n)return s;s.add(n.id);
+  edges.forEach(function(e){if(e.s===n.id)s.add(e.t);if(e.t===n.id)s.add(e.s)});
+  return s;
+}
+
+function drawEdge(e,rel){
+  var a=byId.get(e.s),b=byId.get(e.t);if(!a||!b)return;
+  var elapsed=Date.now()-entranceStart;
+  var maxIdx=Math.max(a.idx||0,b.idx||0);
+  var edgeDelay=(maxIdx/totalNodes)*entranceDur*0.7+entranceDur*0.15;
+  var edgeProgress=elapsed<edgeDelay?0:Math.min(1,(elapsed-edgeDelay)/(entranceDur*0.3));
+  if(edgeProgress<=0)return;
+  var pa=w2s(a.x,a.y),pb=w2s(b.x,b.y),act=!rel.size||(rel.has(a.id)&&rel.has(b.id));
+  ctx.save();ctx.globalAlpha=(act?.82:.08)*edgeProgress;ctx.lineWidth=e.k==="contradicts"?2.2:1.2;
+  ctx.strokeStyle=e.k==="contradicts"?"#ff5c7a":e.k==="supersedes"?"#ffc857":"rgba(150,210,255,.56)";
+  if(e.k!=="supports")ctx.setLineDash(e.k==="contradicts"?[7,7]:[4,8]);
+  ctx.lineDashOffset=e.k==="contradicts"?-frame*.45:0;
+  ctx.beginPath();ctx.moveTo(pa.x,pa.y);ctx.lineTo(pb.x,pb.y);ctx.stroke();
+  var angle=Math.atan2(pb.y-pa.y,pb.x-pa.x),sz=8*cam.z;
+  ctx.fillStyle=ctx.strokeStyle;ctx.setLineDash([]);
+  ctx.beginPath();ctx.moveTo(pb.x,pb.y);ctx.lineTo(pb.x-sz*Math.cos(angle-.35),pb.y-sz*Math.sin(angle-.35));
+  ctx.lineTo(pb.x-sz*Math.cos(angle+.35),pb.y-sz*Math.sin(angle+.35));ctx.closePath();ctx.fill();
+  ctx.restore();
+}
+
+// Rank nodes by influence for label priority
+var labelRanks=new Map();
+(function(){
+  var ranked=entries.slice().sort(function(a,b){
+    return(influence.get(b.id)||{score:0}).score-(influence.get(a.id)||{score:0}).score;
+  });
+  ranked.forEach(function(e,i){labelRanks.set(e.id,i)});
+})();
+var totalNodes=entries.length;
+
+// Pre-compute fragile/skeptic sets for graph rendering
+var fragileIds=new Set(fragileConclusions.map(function(c){return c.id}));
+var highImpactLowConf=entries.filter(function(e){
+  var inf=(influence.get(e.id)||{score:0}).score;
+  var medianInf=0;influence.forEach(function(v){medianInf+=v.score});
+  medianInf=influence.size?medianInf/influence.size:0;
+  return inf>medianInf&&(e.confidence||0)<0.5&&e.status==="active";
+});
+var skepticIds=new Set();
+fragileConclusions.forEach(function(c){skepticIds.add(c.id)});
+highImpactLowConf.forEach(function(e){skepticIds.add(e.id)});
+allContradictEdges.forEach(function(ce){skepticIds.add(ce.s);skepticIds.add(ce.t)});
+entries.filter(function(e){return e.type==="gap"&&e.status==="active"}).forEach(function(e){skepticIds.add(e.id)});
+
+function drawNode(n,rel){
+  var elapsed=Date.now()-entranceStart;
+  var nodeDelay=(n.idx||0)/totalNodes*entranceDur*0.7;
+  var nodeProgress=elapsed<nodeDelay?0:Math.min(1,(elapsed-nodeDelay)/(entranceDur*0.3));
+  var easeOut=nodeProgress<1?1-Math.pow(1-nodeProgress,3):1;
+  if(easeOut<=0)return;
+  var p=w2s(n.x,n.y),act=!rel.size||rel.has(n.id),r=(n.r+(sel===n?5:hov===n?3:0))*cam.z*easeOut;
+
+  // Skeptic mode: dim safe nodes, highlight fragile
+  var isSkepticTarget=skepticIds.has(n.id);
+  var isFragile=fragileIds.has(n.id);
+  // Collapse highlight: dim nodes not affected by the selected source
+  var isCollapseAffected=false;
+  if(collapseHighlight){
+    var imp=docImpact.get(collapseHighlight);
+    if(imp){
+      var isDirectSource=n.e.source&&n.e.source.document===collapseHighlight;
+      var isBroken=imp.broken.some(function(c){return c.id===n.id});
+      var isWeakened=imp.weakened.some(function(c){return c.id===n.id});
+      isCollapseAffected=isDirectSource||isBroken||isWeakened;
+    }
+  }
+
+  var alphaBase=act?1:.18;
+  if(skepticMode&&!isSkepticTarget&&sel!==n&&hov!==n)alphaBase=0.08;
+  if(collapseHighlight&&!isCollapseAffected&&sel!==n&&hov!==n)alphaBase=0.08;
+
+  ctx.save();ctx.globalAlpha=alphaBase*easeOut;
+  ctx.beginPath();ctx.arc(p.x,p.y,Math.max(2,r),0,Math.PI*2);
+  ctx.fillStyle=colors[n.e.type]||"#edf3ff";ctx.shadowColor=ctx.fillStyle;ctx.shadowBlur=sel===n||hov===n?28:12*easeOut;ctx.fill();
+  ctx.shadowBlur=0;
+
+  // Ring styles for different states
+  if(collapseHighlight&&isCollapseAffected){
+    var imp2=docImpact.get(collapseHighlight);
+    var isBroken2=imp2&&imp2.broken.some(function(c){return c.id===n.id});
+    ctx.strokeStyle=isBroken2?"#ff5c7a":"#ffc857";ctx.lineWidth=3;
+    ctx.setLineDash(isBroken2?[6,4]:[4,4]);ctx.lineDashOffset=-frame*.3;ctx.stroke();ctx.setLineDash([]);
+  } else if(skepticMode&&isFragile){
+    var pulseAlpha=0.5+0.5*Math.sin(frame*0.08);
+    ctx.strokeStyle="rgba(255,92,122,"+pulseAlpha+")";ctx.lineWidth=3;ctx.stroke();
+  } else if(n.e.status==="disputed"){
+    ctx.strokeStyle="#ff5c7a";ctx.lineWidth=3;ctx.setLineDash([4,4]);ctx.lineDashOffset=-frame*.3;ctx.stroke();ctx.setLineDash([]);
+  } else {
+    ctx.strokeStyle="rgba(255,255,255,.6)";ctx.lineWidth=1.2;ctx.stroke();
+  }
+
+  // Smart label visibility: show more labels as you zoom in
+  var rank=labelRanks.get(n.e.id)||totalNodes;
+  var showLabel=sel===n||hov===n;
+  if(!showLabel){
+    var labelBudget=totalNodes<=20?1:Math.min(1,Math.max(.1,(cam.z-.5)*0.6));
+    showLabel=rank<totalNodes*labelBudget;
+  }
+  // In skeptic/collapse modes, always show labels on highlighted nodes
+  if((skepticMode&&isSkepticTarget)||(collapseHighlight&&isCollapseAffected))showLabel=true;
+  if(showLabel){
+    var fontSize=Math.max(9,11*cam.z);
+    var label=shortLabel(n.e);
+    ctx.font=fontSize+"px var(--sans)";
+    var tw=ctx.measureText(label).width;
+    ctx.fillStyle="rgba(5,6,9,.7)";
+    ctx.fillRect(p.x+r+3,p.y-fontSize/2-1,tw+4,fontSize+2);
+    ctx.fillStyle=sel===n||hov===n?"rgba(255,255,255,.95)":"rgba(237,243,255,.78)";
+    ctx.fillText(label,p.x+r+5,p.y+4);
+  }
+  ctx.restore();
+}
+
+function drawMini(){
+  mctx.clearRect(0,0,mini.width,mini.height);
+  mctx.fillStyle="rgba(255,255,255,.03)";mctx.fillRect(0,0,mini.width,mini.height);
+  var v=cachedVis;if(!v.length)return;
+  var xs=v.map(function(n){return n.x}),ys=v.map(function(n){return n.y});
+  var mnX=Math.min.apply(null,xs),mxX=Math.max.apply(null,xs),mnY=Math.min.apply(null,ys),mxY=Math.max.apply(null,ys);
+  var s=Math.min(mini.width/Math.max(1,mxX-mnX),mini.height/Math.max(1,mxY-mnY))*.82;
+  v.forEach(function(n){mctx.fillStyle=colors[n.e.type];mctx.beginPath();mctx.arc((n.x-mnX)*s+8,(n.y-mnY)*s+8,2,0,Math.PI*2);mctx.fill()});
+  var tl=s2w(0,0),br=s2w(viewW,viewH);
+  mctx.strokeStyle="rgba(72,215,255,.5)";mctx.lineWidth=1;
+  mctx.strokeRect((tl.x-mnX)*s+8,(tl.y-mnY)*s+8,(br.x-tl.x)*s,(br.y-tl.y)*s);
+}
+
+function nearest(x,y,tol){
+  var best=null,bd=1e9;
+  cachedVis.forEach(function(n){var p=w2s(n.x,n.y),d=Math.hypot(p.x-x,p.y-y);if(d<bd&&d<n.r*cam.z+tol){best=n;bd=d}});
+  return best;
+}
+
+function selectNode(n){if(!n)return;sel=n;dirty=true;$("#dp").classList.add("open");if(window.innerWidth<=900){var mb=document.getElementById("mobBackdrop");if(mb)mb.classList.add("show")}switchTab("detail");panels();updateHash();updateFindingsIndex()}
+
+function fit(){
+  var v=cachedVis;if(!v.length)return;
+  var xs=v.map(function(n){return n.x}),ys=v.map(function(n){return n.y});
+  var mnX=Math.min.apply(null,xs),mxX=Math.max.apply(null,xs),mnY=Math.min.apply(null,ys),mxY=Math.max.apply(null,ys);
+  cam.z=Math.max(.25,Math.min(1.8,Math.min(viewW/(mxX-mnX+220),viewH/(mxY-mnY+220))));
+  cam.x=-(mnX+mxX)/2;cam.y=-(mnY+mxY)/2;
+  $("#zLbl").textContent=Math.round(cam.z*100)+"%";dirty=true;
+}
+
+function resize(){
+  var r=canvas.parentElement.getBoundingClientRect();
+  dpr=window.devicePixelRatio||1;
+  viewW=r.width;viewH=r.height;
+  canvas.width=Math.round(viewW*dpr);canvas.height=Math.round(viewH*dpr);
+  canvas.style.width=viewW+"px";canvas.style.height=viewH+"px";
+  var mr=mini.getBoundingClientRect();mini.width=Math.round(mr.width*dpr);mini.height=Math.round(mr.height*dpr);
+  dirty=true;
+}
+window.onresize=resize;resize();cacheVis();
+// Pre-settle: run simulation before first draw for deterministic poster frame
+for(var ps=0;ps<80;ps++){frame++;simulate()}
+fit();applyFilters();updateFindingsIndex();requestAnimationFrame(tick);
+
+// Narration during play
+function showNarration(text){
+  narrationEl.textContent=text;narrationEl.classList.add("show");
+  clearTimeout(narrationEl._t);narrationEl._t=setTimeout(function(){narrationEl.classList.remove("show")},2500);
+}
+
+// Keyboard shortcuts
+document.onkeydown=function(e){
+  if(e.target.tagName==="INPUT"||e.target.tagName==="TEXTAREA"||e.target.tagName==="BUTTON"||e.target.tagName==="SELECT")return;
+  if(e.key==="s"||e.key==="S"){e.preventDefault();$("#skepticBtn").click()}
+  else if(e.key==="r"||e.key==="R"){e.preventDefault();$("#resetBtn").click()}
+  else if(e.key==="f"||e.key==="F"){e.preventDefault();fit()}
+  else if(e.key==="l"||e.key==="L"){e.preventDefault();isListView?$("#viewGraph").click():$("#viewList").click()}
+  else if(e.key==="Escape"){sel=null;$("#dp").classList.remove("open");var mb2=document.getElementById("mobBackdrop");if(mb2)mb2.classList.remove("show");panels();updateHash();updateFindingsIndex()}
+  else if(e.key==="?"){e.preventDefault();guideEl.classList.add("show")}
+  else if(e.key==="1"){switchTab("briefing")}
+  else if(e.key==="2"){switchTab("detail")}
+  else if(e.key==="3"){switchTab("insights")}
+  else if(e.key==="4"){switchTab("sources")}
+  else if(e.key===" "){e.preventDefault();$("#playBtn").click()}
+  else if(e.key==="Tab"){
+    e.preventDefault();
+    var v=cachedVis;if(!v.length)return;
+    var idx=sel?v.indexOf(sel):-1;
+    idx=e.shiftKey?(idx<=0?v.length-1:idx-1):(idx>=v.length-1?0:idx+1);
+    jumpToEntry(v[idx].id);
+  }
+};
+
+// Controls
+$("#search").oninput=function(e){fil.q=e.target.value.trim().toLowerCase();applyFilters()};
+$("#conf").oninput=function(e){fil.min=+e.target.value/100;$("#confLbl").textContent=e.target.value+"%";applyFilters()};
+$("#iterSlider").oninput=function(e){fil.iter=+e.target.value;$("#iterLbl").textContent="iteration "+fil.iter;applyFilters()};
+$("#fitBtn").onclick=fit;
+$("#resetBtn").onclick=function(){
+  skepticMode=false;$("#skepticBtn").classList.remove("active");
+  collapseHighlight=null;
+  sel=null;
+  fil.q="";$("#search").value="";
+  fil.min=0;$("#conf").value=0;$("#confLbl").textContent="0%";
+  fil.iter=bb.iteration;var sl=$("#iterSlider");sl.value=sl.max;$("#iterLbl").textContent="iteration "+sl.max;
+  types.forEach(function(t){fil.types.add(t)});statuses.forEach(function(s){fil.statuses.add(s)});syncFilterButtons();
+  applyFilters();fit();switchTab("briefing");updateHash();
+  if(playing){clearInterval(timer);playing=false;$("#playBtn").textContent="Play"}
+};
+$("#skepticBtn").onclick=function(){
+  skepticMode=!skepticMode;
+  this.classList.toggle("active",skepticMode);
+  if(skepticMode)collapseHighlight=null;
+  simSettled=false;dirty=true;collapseTestPanel();
+};
+$("#shotBtn").onclick=function(){var a=document.createElement("a");a.download="blackboard-"+bb.id+".png";a.href=canvas.toDataURL("image/png");a.click()};
+$("#playBtn").onclick=function(){
+  playing=!playing;$("#playBtn").textContent=playing?"Pause":"Play";
+  if(playing){
+    fil.iter=0;$("#iterSlider").value=0;$("#iterLbl").textContent="iteration 0";applyFilters();
+    var narr=iterNarration[0];if(narr)showNarration("Iteration 0: "+narr.text);
+    timer=setInterval(function(){
+      var s=$("#iterSlider"),n=+s.value+1;
+      if(n>+s.max){clearInterval(timer);playing=false;$("#playBtn").textContent="Play";return}
+      s.value=n;fil.iter=n;$("#iterLbl").textContent="iteration "+n;applyFilters();
+      var narr2=iterNarration[n];if(narr2)showNarration("Iteration "+n+": "+narr2.text);
+    },1800);
+  }else clearInterval(timer);
+};
+
+// Canvas interaction
+var panMoved=false;
+canvas.onpointerdown=function(e){
+  var n=nearest(e.offsetX,e.offsetY,16);last={x:e.offsetX,y:e.offsetY};panMoved=false;
+  if(n){drag=n;selectNode(n)}else{pan=true}
+  canvas.setPointerCapture(e.pointerId);
+};
+canvas.onpointermove=function(e){
+  var dx=e.offsetX-last.x,dy=e.offsetY-last.y;last={x:e.offsetX,y:e.offsetY};
+  if(drag){var p=s2w(e.offsetX,e.offsetY);drag.x=p.x;drag.y=p.y;simSettled=false;dirty=true}
+  else if(pan){cam.x+=dx/cam.z;cam.y+=dy/cam.z;dirty=true;if(Math.abs(dx)>2||Math.abs(dy)>2)panMoved=true}
+  else{
+    dirty=true;
+    hov=nearest(e.offsetX,e.offsetY,13);
+    tip.style.display=hov?"block":"none";
+    if(hov){
+      tip.style.left=Math.min(e.clientX+16,innerWidth-360)+"px";
+      tip.style.top=Math.min(e.clientY+16,innerHeight-140)+"px";
+      var tipType=typeLabels[hov.e.type]||hov.e.type;
+      var tipConf=Math.round((hov.e.confidence||0)*100);
+      var tipInf=influence.get(hov.id)||{score:0};
+      var tipConfColor=tipConf>=80?"var(--good)":tipConf>=60?"var(--warn)":"var(--bad)";
+      var tipSups=(supportedBy.get(hov.id)||[]).length;
+      var tipBacks=(supportsWhat.get(hov.id)||[]).length;
+      var tipCont=edges.filter(function(ed){return ed.k==="contradicts"&&(ed.s===hov.id||ed.t===hov.id)}).length;
+      tip.innerHTML='<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">'
+        +'<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+colors[hov.e.type]+'"></span>'
+        +'<b style="color:'+colors[hov.e.type]+'">'+esc(tipType)+'</b>'
+        +(hov.e.label?'<span style="color:var(--text);font-size:11px;font-weight:600">'+esc(hov.e.label)+'</span>':'')
+        +'</div>'
+        +'<div style="display:flex;gap:8px;margin-bottom:6px;font-size:10px">'
+        +'<span style="color:'+tipConfColor+'">'+tipConf+'% conf</span>'
+        +(tipSups?'<span style="color:var(--good)">'+tipSups+' evidence</span>':'')
+        +(tipBacks?'<span style="color:var(--accent)">backs '+tipBacks+'</span>':'')
+        +(tipCont?'<span style="color:var(--bad)">'+tipCont+' disputed</span>':'')
+        +'</div>'
+        +'<div style="margin-bottom:4px;line-height:1.45;font-size:12px">'+esc(hov.e.content.slice(0,220))+(hov.e.content.length>220?"...":"")+'</div>'
+        +'<div style="color:var(--muted);font-size:10px">Click to inspect &middot; Drag to move</div>';
+    }
+  }
+};
+canvas.onpointerup=function(e){
+  if(pan&&!panMoved&&!drag){sel=null;$("#dp").classList.remove("open");var mb2=document.getElementById("mobBackdrop");if(mb2)mb2.classList.remove("show");panels();updateHash();updateFindingsIndex();dirty=true}
+  drag=null;pan=false;canvas.releasePointerCapture(e.pointerId);
+};
+canvas.onpointerleave=function(){hov=null;tip.style.display="none";dirty=true};
+canvas.onwheel=function(e){
+  e.preventDefault();
+  var before=s2w(e.offsetX,e.offsetY);
+  cam.z=Math.max(.18,Math.min(4,cam.z*(e.deltaY>0?.9:1.1)));
+  var after=s2w(e.offsetX,e.offsetY);
+  cam.x+=after.x-before.x;cam.y+=after.y-before.y;
+  $("#zLbl").textContent=Math.round(cam.z*100)+"%";dirty=true;
+};
+
+function syncFilterButtons(){
+  $("#typeF").querySelectorAll("button").forEach(function(b,i){var t=types[i];if(t)b.classList.toggle("on",fil.types.has(t))});
+  $("#statusF").querySelectorAll("button").forEach(function(b,i){var s=statuses[i];if(s)b.classList.toggle("on",fil.statuses.has(s))});
+}
+
+// Filter buttons
+types.forEach(function(t){
+  var b=document.createElement("button");b.textContent=typeLabels[t]||t;b.className="on";b.style.fontSize="11px";b.style.padding="3px 8px";
+  b.style.borderLeftColor=colors[t];b.style.borderLeftWidth="3px";
+  b.title={observation:"Facts from sources",analysis:"Interpretations and conclusions",calculation:"Derived results",strategy:"Approach decisions",gap:"Missing information"}[t]||"";
+  b.onclick=function(){fil.types.has(t)?fil.types.delete(t):fil.types.add(t);b.classList.toggle("on");applyFilters()};
+  $("#typeF").appendChild(b);
+});
+statuses.forEach(function(s){
+  var b=document.createElement("button");b.textContent=statusLabels[s]||s;b.className="on";b.style.fontSize="11px";b.style.padding="3px 8px";
+  b.title={active:"Currently valid",disputed:"Conflicts with others",superseded:"Replaced by newer",retracted:"Withdrawn"}[s]||"";
+  b.onclick=function(){fil.statuses.has(s)?fil.statuses.delete(s):fil.statuses.add(s);b.classList.toggle("on");applyFilters()};
+  $("#statusF").appendChild(b);
+});
+
+// Mobile briefing drawer
+var mobBtn=$("#mobBriefBtn"),mobBack=$("#mobBackdrop"),closeBtn=$("#closeDrawer"),dp=$("#dp");
+function openDrawer(){dp.classList.add("open");mobBack.classList.add("show");switchTab("briefing")}
+function closeDrawer(){dp.classList.remove("open");mobBack.classList.remove("show")}
+mobBtn.onclick=openDrawer;
+mobBack.onclick=closeDrawer;
+closeBtn.onclick=closeDrawer;
+
+parseHash();
+})();
+</script>
+</body>
+</html>
