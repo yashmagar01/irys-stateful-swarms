@@ -7,6 +7,7 @@ from pathlib import Path
 
 from .blackboard import Blackboard
 from .models import Entry
+from .utils import _env_on
 from .verification import extract_verification_targets
 
 
@@ -528,7 +529,3 @@ def _counts(values) -> dict:
         key = str(value or "unknown")
         counts[key] = counts.get(key, 0) + 1
     return counts
-
-
-def _env_on(name: str) -> bool:
-    return os.getenv(name, "").strip().lower() in {"1", "true", "yes", "on"}

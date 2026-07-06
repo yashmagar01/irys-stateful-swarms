@@ -11,6 +11,7 @@ from .models import Entry, ModelCaller
 from .prompt_audit import PromptAuditContext
 from .source_custody import source_document_is_valid
 from .synthesis import render_entry
+from .utils import _env_on
 from .worker_dispatch import begin_call_model_usage, call_model, end_call_model_usage
 
 
@@ -536,7 +537,3 @@ def _as_str_list(raw: Any) -> list[str]:
     if isinstance(raw, str) and raw.strip():
         return [part.strip() for part in raw.split(",") if part.strip()]
     return []
-
-
-def _env_on(name: str) -> bool:
-    return os.getenv(name, "").strip().lower() in {"1", "true", "yes", "on"}

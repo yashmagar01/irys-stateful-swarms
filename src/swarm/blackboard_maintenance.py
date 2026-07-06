@@ -8,6 +8,7 @@ from typing import Any
 from .blackboard import Blackboard
 from .models import Entry, EntrySource, ModelCaller, WorkerRecord, gen_entry_id
 from .prompt_audit import PromptAuditContext
+from .utils import _env_on
 from .worker_dispatch import begin_call_model_usage, call_model, end_call_model_usage
 
 
@@ -597,7 +598,3 @@ def _safe_float(value: Any, default: float = 0.0) -> float:
         return float(value)
     except (TypeError, ValueError):
         return default
-
-
-def _env_on(name: str) -> bool:
-    return os.getenv(name, "").strip().lower() in {"1", "true", "yes", "on"}
