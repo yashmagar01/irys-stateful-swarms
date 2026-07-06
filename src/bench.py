@@ -31,6 +31,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from .constants import DEFAULT_PRICING, MODEL_PRICING
+
 
 # ---------------------------------------------------------------------------
 # Benchmark tier definitions
@@ -207,18 +209,6 @@ class IrysSwarmBackend:
 
 
 def _estimate_cost(blackboard) -> float:
-    MODEL_PRICING = {
-        "gemini-3.1-flash-lite": {"input": 0.25, "output": 1.50},
-        "gemini-3-flash-preview": {"input": 0.50, "output": 3.00},
-        "gemini-3.5-flash": {"input": 1.50, "output": 9.00},
-        "gemini-3.1-pro-preview": {"input": 2.00, "output": 12.00},
-        "claude-fable-5": {"input": 10.00, "output": 50.00},
-        "claude-opus-4-8": {"input": 5.00, "output": 25.00},
-        "claude-opus-4-7": {"input": 5.00, "output": 25.00},
-        "claude-opus-4-6": {"input": 5.00, "output": 25.00},
-        "claude-sonnet-4-6": {"input": 3.00, "output": 15.00},
-    }
-    DEFAULT_PRICING = {"input": 0.25, "output": 1.50}
     cost = 0.0
     for model, usage in blackboard.cost_by_model.items():
         pricing = MODEL_PRICING.get(model, DEFAULT_PRICING)
