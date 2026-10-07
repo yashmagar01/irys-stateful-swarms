@@ -5,10 +5,7 @@ then verifies that read_eml() correctly extracts headers, body, and attachments.
 """
 from __future__ import annotations
 
-import email as email_lib
 import email.policy
-import io
-import tempfile
 from email.message import EmailMessage
 from pathlib import Path
 
